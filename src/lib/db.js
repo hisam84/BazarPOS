@@ -41,6 +41,8 @@ const INITIAL_DATA = {
           code: 'P001',
           name: 'Basmati Rice 5kg',
           category: 'Grocery',
+          brand: 'Pran',
+          unit: 'Pcs',
           costPrice: 480,
           sellingPrice: 550,
           quantity: 25,
@@ -52,6 +54,8 @@ const INITIAL_DATA = {
           code: 'P002',
           name: 'Soyabean Oil 5L',
           category: 'Grocery',
+          brand: 'Rupchanda',
+          unit: 'Liter',
           costPrice: 780,
           sellingPrice: 850,
           quantity: 12,
@@ -60,6 +64,8 @@ const INITIAL_DATA = {
         }
       ],
       categories: ['Grocery', 'Electronics', 'Clothing', 'Stationery'],
+      brands: ['Pran', 'Rupchanda', 'Square', 'ACI', 'Unilever'],
+      units: ['Pcs', 'KG', 'Liter', 'Box', 'Dozen'],
       clients: [
         { id: 'c1', name: 'Standard Customer', phone: '01700000000', address: 'Cash Sale', due: 0 }
       ],
@@ -78,6 +84,32 @@ const INITIAL_DATA = {
         income: [],
         expense: []
       },
+      stockAdjustments: [],
+      cashRegisters: [
+        {
+          id: 'cr1',
+          date: new Date().toISOString().slice(0, 10),
+          openedAt: new Date().toISOString(),
+          closedAt: null,
+          openingCash: 5000,
+          closingCashExpected: 5000,
+          closingCashActual: null,
+          status: 'open'
+        }
+      ],
+      branches: [
+        { id: 'b1', name: 'Main Outlet (Uttara)', code: 'MAIN', address: 'Dhaka', phone: '01700000000', isPrimary: true }
+      ],
+      stockTransfers: [],
+      auditLogs: [
+        {
+          id: 'log1',
+          timestamp: new Date().toISOString(),
+          username: 'admin',
+          action: 'SYSTEM_INIT',
+          details: 'Initialized Enterprise POS System'
+        }
+      ],
       voucherCounter: 1001
     }
   }
@@ -85,7 +117,6 @@ const INITIAL_DATA = {
 
 let inMemoryDb = null;
 
-// Neon PostgreSQL connection
 export function getNeonSql() {
   if (process.env.DATABASE_URL) {
     try {
@@ -142,6 +173,8 @@ export function getStoreData(storeId = 'default') {
       company: { name: 'New Store', phone: '', address: '' },
       products: [],
       categories: ['General'],
+      brands: ['General'],
+      units: ['Pcs'],
       clients: [],
       salers: [],
       suppliers: [],
@@ -149,6 +182,11 @@ export function getStoreData(storeId = 'default') {
       staff: [],
       vouchers: [],
       externalIncomeExpense: { income: [], expense: [] },
+      stockAdjustments: [],
+      cashRegisters: [],
+      branches: [{ id: 'b1', name: 'Main Outlet', code: 'MAIN', address: '', phone: '', isPrimary: true }],
+      stockTransfers: [],
+      auditLogs: [],
       voucherCounter: 1001
     };
     saveDb(db);
@@ -161,6 +199,19 @@ export function saveStoreData(storeId, storeData) {
   db.storeData[storeId] = storeData;
   saveDb(db);
   return db.storeData[storeId];
+}
+
+export function logAuditAction(storeId = 'default', username = 'system', action, details) {
+  const storeData = getStoreData(storeId);
+  storeData.auditLogs = storeData.auditLogs || [];
+  storeData.auditLogs.unshift({
+    id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+    timestamp: new Date().toISOString(),
+    username,
+    action,
+    details
+  });
+  saveStoreData(storeId, storeData);
 }
 
 export function getStores() {
@@ -187,6 +238,8 @@ export function createStore({ name, owner, phone, address, username, password })
     company: { name, phone, address, email: '', website: '', logoUrl: '' },
     products: [],
     categories: ['General'],
+    brands: ['General'],
+    units: ['Pcs'],
     clients: [{ id: 'c1', name: 'Walk-in Customer', phone: phone || '', address: address || '', due: 0 }],
     salers: [{ id: 's1', name: 'Main Saler', phone: phone || '', role: 'Sales Representative' }],
     suppliers: [],
@@ -194,6 +247,11 @@ export function createStore({ name, owner, phone, address, username, password })
     staff: [],
     vouchers: [],
     externalIncomeExpense: { income: [], expense: [] },
+    stockAdjustments: [],
+    cashRegisters: [],
+    branches: [{ id: 'b1', name: name + ' Outlet', code: 'MAIN', address: address || '', phone: phone || '', isPrimary: true }],
+    stockTransfers: [],
+    auditLogs: [],
     voucherCounter: 1001
   };
   saveDb(db);

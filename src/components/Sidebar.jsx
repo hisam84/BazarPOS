@@ -21,11 +21,14 @@ import {
   ChevronRight,
   ChevronDown,
   User,
-  KeyRound,
   Shield,
   Building2,
   PieChart,
-  Boxes
+  Boxes,
+  DollarSign,
+  AlertOctagon,
+  ArrowRightLeft,
+  ShieldCheck
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -124,7 +127,25 @@ export default function Sidebar({ user, onLogout }) {
               } ${collapsed ? 'justify-center space-x-0' : ''}`}
             >
               <Package size={18} />
-              {!collapsed && <span>Inventory</span>}
+              {!collapsed && <span>Inventory Catalog</span>}
+            </Link>
+            <Link
+              href="/stock-adjustment"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/stock-adjustment' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <AlertOctagon size={18} />
+              {!collapsed && <span>Stock Adjustment</span>}
+            </Link>
+            <Link
+              href="/suppliers"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/suppliers' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Truck size={18} />
+              {!collapsed && <span>Suppliers & PO</span>}
             </Link>
             <Link
               href="/barcodes"
@@ -142,7 +163,7 @@ export default function Sidebar({ user, onLogout }) {
               } ${collapsed ? 'justify-center space-x-0' : ''}`}
             >
               <Users size={18} />
-              {!collapsed && <span>Clients</span>}
+              {!collapsed && <span>Clients & Due</span>}
             </Link>
             <Link
               href="/salers"
@@ -162,14 +183,25 @@ export default function Sidebar({ user, onLogout }) {
               <Scale size={18} />
               {!collapsed && <span>Saler Balance</span>}
             </Link>
+          </div>
+        </div>
+
+        {/* FINANCE & CASH */}
+        <div>
+          {!collapsed && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
+              Finance & Outlets
+            </p>
+          )}
+          <div className="space-y-1">
             <Link
-              href="/suppliers"
+              href="/cash-register"
               className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                pathname === '/suppliers' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+                pathname === '/cash-register' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
               } ${collapsed ? 'justify-center space-x-0' : ''}`}
             >
-              <Truck size={18} />
-              {!collapsed && <span>Suppliers & PO</span>}
+              <DollarSign size={18} />
+              {!collapsed && <span>Cash Register (Day)</span>}
             </Link>
             <Link
               href="/expenses"
@@ -180,6 +212,15 @@ export default function Sidebar({ user, onLogout }) {
               <Receipt size={18} />
               {!collapsed && <span>Expenses</span>}
             </Link>
+            <Link
+              href="/branches"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/branches' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Building2 size={18} />
+              {!collapsed && <span>Branches & Transfers</span>}
+            </Link>
           </div>
         </div>
 
@@ -187,7 +228,7 @@ export default function Sidebar({ user, onLogout }) {
         <div>
           {!collapsed && (
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-              Reports
+              Analytics & Audit
             </p>
           )}
           <div className="space-y-1">
@@ -199,7 +240,7 @@ export default function Sidebar({ user, onLogout }) {
             >
               <div className="flex items-center space-x-3">
                 <BarChart3 size={18} />
-                {!collapsed && <span>Reports</span>}
+                {!collapsed && <span>Financial Reports</span>}
               </div>
               {!collapsed && (
                 <ChevronDown size={14} className={`transition-transform ${reportsOpen ? 'rotate-180' : ''}`} />
@@ -213,24 +254,34 @@ export default function Sidebar({ user, onLogout }) {
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
                 >
                   <PieChart size={14} />
-                  <span>Income Report</span>
+                  <span>Income Statement</span>
                 </Link>
                 <Link
                   href="/reports?type=expense"
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
                 >
                   <Receipt size={14} />
-                  <span>Expense Report</span>
+                  <span>Expense Summary</span>
                 </Link>
                 <Link
                   href="/reports?type=stock"
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
                 >
                   <Boxes size={14} />
-                  <span>Stock Report</span>
+                  <span>Stock Valuation</span>
                 </Link>
               </div>
             )}
+
+            <Link
+              href="/audit-logs"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/audit-logs' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <ShieldCheck size={18} />
+              {!collapsed && <span>Audit History Logs</span>}
+            </Link>
           </div>
         </div>
 
@@ -238,7 +289,7 @@ export default function Sidebar({ user, onLogout }) {
         <div>
           {!collapsed && (
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-              Settings
+              Settings & Roles
             </p>
           )}
           <div className="space-y-1">
@@ -248,8 +299,8 @@ export default function Sidebar({ user, onLogout }) {
                 pathname === '/settings' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
               } ${collapsed ? 'justify-center space-x-0' : ''}`}
             >
-              <Building2 size={18} />
-              {!collapsed && <span>Company</span>}
+              <Settings size={18} />
+              {!collapsed && <span>Company Settings</span>}
             </Link>
 
             {isSuperAdmin && (
@@ -260,7 +311,7 @@ export default function Sidebar({ user, onLogout }) {
                 } ${collapsed ? 'justify-center space-x-0' : ''}`}
               >
                 <ShieldAlert size={18} />
-                {!collapsed && <span>Companies Portal</span>}
+                {!collapsed && <span>Super Admin SaaS</span>}
               </Link>
             )}
 
@@ -271,27 +322,7 @@ export default function Sidebar({ user, onLogout }) {
               } ${collapsed ? 'justify-center space-x-0' : ''}`}
             >
               <Shield size={18} />
-              {!collapsed && <span>Staff Credentials</span>}
-            </Link>
-          </div>
-        </div>
-
-        {/* ACCOUNT */}
-        <div>
-          {!collapsed && (
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-              Account
-            </p>
-          )}
-          <div className="space-y-1">
-            <Link
-              href="/profile"
-              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                pathname === '/profile' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-              } ${collapsed ? 'justify-center space-x-0' : ''}`}
-            >
-              <User size={18} />
-              {!collapsed && <span>Profile</span>}
+              {!collapsed && <span>Staff RBAC Roles</span>}
             </Link>
           </div>
         </div>
