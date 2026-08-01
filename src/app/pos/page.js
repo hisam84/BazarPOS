@@ -11,6 +11,9 @@ import {
   CheckCircle,
   MessageSquare,
   Share2,
+  UserPlus,
+  PackagePlus,
+  UserCheck,
   X
 } from 'lucide-react';
 
@@ -21,7 +24,7 @@ export default function POSTerminalPage() {
   const [salers, setSalers] = useState([]);
   const [categories, setCategories] = useState(['All']);
   
-  // POS State
+  // POS Cart & Search State
   const [cart, setCart] = useState([]);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,10 +38,27 @@ export default function POSTerminalPage() {
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [note, setNote] = useState('');
   
-  // Modal & Printing
+  // Modals
   const [completedVoucher, setCompletedVoucher] = useState(null);
   const [printModal, setPrintModal] = useState(false);
-  const [receiptType, setReceiptType] = useState('thermal');
+  const [showAddClientModal, setShowAddClientModal] = useState(false);
+  const [showAddSalerModal, setShowAddSalerModal] = useState(false);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+
+  // Quick Add Forms
+  const [clientForm, setClientForm] = useState({ name: '', phone: '', address: '', due: 0 });
+  const [salerForm, setSalerForm] = useState({ name: '', phone: '', role: 'Sales Representative' });
+  const [productForm, setProductForm] = useState({
+    code: '',
+    name: '',
+    category: 'Grocery',
+    costPrice: '',
+    sellingPrice: '',
+    quantity: '10',
+    minQuantity: 5,
+    barcode: ''
+  });
+
   const barcodeRef = useRef(null);
 
   useEffect(() => {
@@ -68,11 +88,11 @@ export default function POSTerminalPage() {
       }
       if (cliData.success) {
         setClients(cliData.clients || []);
-        if (cliData.clients.length > 0) setSelectedClient(cliData.clients[0].name);
+        if (cliData.clients.length > 0 && !selectedClient) setSelectedClient(cliData.clients[0].name);
       }
       if (salData.success) {
         setSalers(salData.salers || []);
-        if (salData.salers.length > 0) setSelectedSaler(salData.salers[0].name);
+        if (salData.salers.length > 0 && !selectedSaler) setSelectedSaler(salData.salers[0].name);
       }
     } catch (err) {
       console.error(err);
@@ -136,6 +156,69 @@ export default function POSTerminalPage() {
     }
   };
 
+  // Quick Add Customer Handler
+  const handleQuickAddClient = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId: user?.storeId || 'default', ...clientForm })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSelectedClient(clientForm.name);
+        setShowAddClientModal(false);
+        setClientForm({ name: '', phone: '', address: '', due: 0 });
+        loadPOSData(user?.storeId || 'default');
+      }
+    } catch (err) {
+      alert('Error adding customer');
+    }
+  };
+
+  // Quick Add Saler Handler
+  const handleQuickAddSaler = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/salers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId: user?.storeId || 'default', ...salerForm })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSelectedSaler(salerForm.name);
+        setShowAddSalerModal(false);
+        setSalerForm({ name: '', phone: '', role: 'Sales Representative' });
+        loadPOSData(user?.storeId || 'default');
+      }
+    } catch (err) {
+      alert('Error adding sales representative');
+    }
+  };
+
+  // Quick Add Product Handler
+  const handleQuickAddProduct = async (e) => {
+    e.preventDefault();
+    try {
+      const code = productForm.code || 'P' + (products.length + 1).toString().padStart(3, '0');
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId: user?.storeId || 'default', ...productForm, code })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowAddProductModal(false);
+        setProductForm({ code: '', name: '', category: 'Grocery', costPrice: '', sellingPrice: '', quantity: '10', minQuantity: 5, barcode: '' });
+        loadPOSData(user?.storeId || 'default');
+      }
+    } catch (err) {
+      alert('Error adding product');
+    }
+  };
+
   const subTotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
   const grandTotal = Math.max(0, subTotal - Number(discount));
   const dueAmount = Math.max(0, grandTotal - Number(paidAmount));
@@ -181,7 +264,6 @@ export default function POSTerminalPage() {
     }
   };
 
-  // WhatsApp Share helper
   const getWhatsAppShareUrl = () => {
     if (!completedVoucher) return '#';
     const client = clients.find(c => c.name === completedVoucher.clientName);
@@ -253,6 +335,14 @@ export default function POSTerminalPage() {
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500"
             />
           </div>
+
+          <button
+            onClick={() => setShowAddProductModal(true)}
+            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1 whitespace-nowrap"
+          >
+            <PackagePlus size={16} />
+            <span>+ Add Product</span>
+          </button>
         </div>
 
         <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-3 no-scrollbar">
@@ -316,7 +406,16 @@ export default function POSTerminalPage() {
 
         <div className="grid grid-cols-2 gap-2 my-3">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-500 mb-1">Customer</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-semibold text-slate-500">Customer</label>
+              <button
+                onClick={() => setShowAddClientModal(true)}
+                className="text-[10px] text-blue-600 font-bold hover:underline flex items-center space-x-0.5"
+              >
+                <UserPlus size={12} />
+                <span>+ Add</span>
+              </button>
+            </div>
             <select
               value={selectedClient}
               onChange={(e) => setSelectedClient(e.target.value)}
@@ -327,8 +426,18 @@ export default function POSTerminalPage() {
               ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-[11px] font-semibold text-slate-500 mb-1">Sales Rep</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-semibold text-slate-500">Sales Rep</label>
+              <button
+                onClick={() => setShowAddSalerModal(true)}
+                className="text-[10px] text-blue-600 font-bold hover:underline flex items-center space-x-0.5"
+              >
+                <UserCheck size={12} />
+                <span>+ Add</span>
+              </button>
+            </div>
             <select
               value={selectedSaler}
               onChange={(e) => setSelectedSaler(e.target.value)}
@@ -430,7 +539,95 @@ export default function POSTerminalPage() {
         </div>
       </div>
 
-      {/* PRINT RECEIPT & SHARE MODAL */}
+      {/* QUICK ADD CUSTOMER MODAL */}
+      {showAddClientModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-bold text-slate-800 text-base">Quick Add New Customer</h3>
+              <button onClick={() => setShowAddClientModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleQuickAddClient} className="space-y-3 text-xs font-medium">
+              <div>
+                <label className="block text-slate-600 mb-1">Customer Name *</label>
+                <input type="text" required value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+              </div>
+              <div>
+                <label className="block text-slate-600 mb-1">Phone Number</label>
+                <input type="text" value={clientForm.phone} onChange={e => setClientForm({...clientForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+              </div>
+              <div>
+                <label className="block text-slate-600 mb-1">Address</label>
+                <input type="text" value={clientForm.address} onChange={e => setClientForm({...clientForm, address: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+              </div>
+              <div className="pt-3 border-t flex space-x-3">
+                <button type="button" onClick={() => setShowAddClientModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save & Select</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD SALER MODAL */}
+      {showAddSalerModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-bold text-slate-800 text-base">Quick Add Sales Representative</h3>
+              <button onClick={() => setShowAddSalerModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleQuickAddSaler} className="space-y-3 text-xs font-medium">
+              <div>
+                <label className="block text-slate-600 mb-1">Saler Name *</label>
+                <input type="text" required value={salerForm.name} onChange={e => setSalerForm({...salerForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+              </div>
+              <div>
+                <label className="block text-slate-600 mb-1">Phone Number</label>
+                <input type="text" value={salerForm.phone} onChange={e => setSalerForm({...salerForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+              </div>
+              <div className="pt-3 border-t flex space-x-3">
+                <button type="button" onClick={() => setShowAddSalerModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save & Select</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD PRODUCT MODAL */}
+      {showAddProductModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="font-bold text-slate-800 text-base">Quick Add New Product</h3>
+              <button onClick={() => setShowAddProductModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleQuickAddProduct} className="space-y-3 text-xs font-medium">
+              <div>
+                <label className="block text-slate-600 mb-1">Product Name *</label>
+                <input type="text" required value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-600 mb-1">Selling Price (৳) *</label>
+                  <input type="number" required value={productForm.sellingPrice} onChange={e => setProductForm({...productForm, sellingPrice: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold text-blue-600" />
+                </div>
+                <div>
+                  <label className="block text-slate-600 mb-1">Stock Quantity *</label>
+                  <input type="number" required value={productForm.quantity} onChange={e => setProductForm({...productForm, quantity: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold" />
+                </div>
+              </div>
+              <div className="pt-3 border-t flex space-x-3">
+                <button type="button" onClick={() => setShowAddProductModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save Product</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PRINT RECEIPT MODAL */}
       {printModal && completedVoucher && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
@@ -444,7 +641,6 @@ export default function POSTerminalPage() {
               </button>
             </div>
 
-            {/* Action Bar: WhatsApp & SMS */}
             <div className="flex gap-2 no-print">
               <a
                 href={getWhatsAppShareUrl()}
@@ -464,7 +660,6 @@ export default function POSTerminalPage() {
               </button>
             </div>
 
-            {/* Printable Preview Area */}
             <div className="printable-area border p-4 rounded-xl bg-slate-50 font-mono text-xs text-slate-800 space-y-2">
               <div className="text-center pb-2 border-b">
                 <h2 className="font-bold text-sm text-slate-900">{user?.storeName || 'BazarPOS Outlet'}</h2>
