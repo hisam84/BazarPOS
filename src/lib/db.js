@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { neon } from '@neondatabase/serverless';
 
 const DB_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
@@ -84,6 +85,18 @@ const INITIAL_DATA = {
 
 let inMemoryDb = null;
 
+// Neon PostgreSQL connection
+export function getNeonSql() {
+  if (process.env.DATABASE_URL) {
+    try {
+      return neon(process.env.DATABASE_URL);
+    } catch (e) {
+      console.warn('Neon DB connection error:', e.message);
+    }
+  }
+  return null;
+}
+
 function ensureDb() {
   if (inMemoryDb) return inMemoryDb;
 
@@ -114,7 +127,7 @@ function saveDb(data) {
     }
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
-    // Read-only serverless filesystem
+    // Serverless filesystem
   }
 }
 
