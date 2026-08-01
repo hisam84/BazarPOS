@@ -12,46 +12,30 @@ import {
   UserCheck,
   Truck,
   Receipt,
+  Scale,
   BarChart3,
   Settings,
   ShieldAlert,
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Shield
+  ChevronDown,
+  User,
+  KeyRound,
+  Shield,
+  Building2,
+  PieChart,
+  Boxes
 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Sidebar({ user, onLogout }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(true);
 
   const role = user?.role || 'owner';
   const isSuperAdmin = role === 'superadmin';
-  const isCashier = role === 'cashier';
-
-  const allStoreNavItems = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['owner', 'manager'] },
-    { name: 'POS Terminal', href: '/pos', icon: ShoppingCart, roles: ['owner', 'manager', 'cashier'] },
-    { name: 'Sales Reports', href: '/vouchers/history', icon: FileText, roles: ['owner', 'manager', 'cashier'] },
-    { name: 'Inventory', href: '/inventory', icon: Package, roles: ['owner', 'manager', 'cashier'] },
-    { name: 'Suppliers & PO', href: '/suppliers', icon: Truck, roles: ['owner', 'manager'] },
-    { name: 'Barcodes', href: '/barcodes', icon: Barcode, roles: ['owner', 'manager', 'cashier'] },
-    { name: 'Clients', href: '/clients', icon: Users, roles: ['owner', 'manager'] },
-    { name: 'Salers', href: '/salers', icon: UserCheck, roles: ['owner', 'manager'] },
-    { name: 'Staff Credentials', href: '/staff', icon: Shield, roles: ['owner'] },
-    { name: 'Expenses', href: '/expenses', icon: Receipt, roles: ['owner', 'manager'] },
-    { name: 'Analytics', href: '/reports', icon: BarChart3, roles: ['owner'] },
-    { name: 'Store Settings', href: '/settings', icon: Settings, roles: ['owner'] },
-  ];
-
-  const superAdminNavItems = [
-    { name: 'Stores Portal', href: '/superadmin/dashboard', icon: ShieldAlert }
-  ];
-
-  const navItems = isSuperAdmin
-    ? superAdminNavItems
-    : allStoreNavItems.filter(item => item.roles.includes(role));
 
   return (
     <aside
@@ -85,27 +69,232 @@ export default function Sidebar({ user, onLogout }) {
         </button>
       </div>
 
-      {/* Nav Menu */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          return (
+      {/* Nav Menu Sections */}
+      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        {/* MAIN MENU */}
+        <div>
+          {!collapsed && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
+              Main Menu
+            </p>
+          )}
+          <div className="space-y-1">
             <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              href="/"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
               } ${collapsed ? 'justify-center space-x-0' : ''}`}
-              title={collapsed ? item.name : undefined}
             >
-              <Icon size={20} />
-              {!collapsed && <span>{item.name}</span>}
+              <LayoutDashboard size={18} />
+              {!collapsed && <span>Dashboard</span>}
             </Link>
-          );
-        })}
+            <Link
+              href="/pos"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/pos' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <ShoppingCart size={18} />
+              {!collapsed && <span>New Sale (POS)</span>}
+            </Link>
+            <Link
+              href="/vouchers/history"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/vouchers/history' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <FileText size={18} />
+              {!collapsed && <span>Sales Reports</span>}
+            </Link>
+          </div>
+        </div>
+
+        {/* MANAGEMENT */}
+        <div>
+          {!collapsed && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
+              Management
+            </p>
+          )}
+          <div className="space-y-1">
+            <Link
+              href="/inventory"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/inventory' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Package size={18} />
+              {!collapsed && <span>Inventory</span>}
+            </Link>
+            <Link
+              href="/barcodes"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/barcodes' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Barcode size={18} />
+              {!collapsed && <span>Barcodes</span>}
+            </Link>
+            <Link
+              href="/clients"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/clients' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Users size={18} />
+              {!collapsed && <span>Clients</span>}
+            </Link>
+            <Link
+              href="/salers"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/salers' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <UserCheck size={18} />
+              {!collapsed && <span>Salers</span>}
+            </Link>
+            <Link
+              href="/saler-balance"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/saler-balance' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Scale size={18} />
+              {!collapsed && <span>Saler Balance</span>}
+            </Link>
+            <Link
+              href="/suppliers"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/suppliers' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Truck size={18} />
+              {!collapsed && <span>Suppliers & PO</span>}
+            </Link>
+            <Link
+              href="/expenses"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/expenses' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Receipt size={18} />
+              {!collapsed && <span>Expenses</span>}
+            </Link>
+          </div>
+        </div>
+
+        {/* REPORTS (Collapsible Submenu) */}
+        <div>
+          {!collapsed && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
+              Reports
+            </p>
+          )}
+          <div className="space-y-1">
+            <button
+              onClick={() => setReportsOpen(!reportsOpen)}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition ${
+                collapsed ? 'justify-center' : ''
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <BarChart3 size={18} />
+                {!collapsed && <span>Reports</span>}
+              </div>
+              {!collapsed && (
+                <ChevronDown size={14} className={`transition-transform ${reportsOpen ? 'rotate-180' : ''}`} />
+              )}
+            </button>
+
+            {reportsOpen && !collapsed && (
+              <div className="pl-6 space-y-1 border-l-2 border-slate-800 ml-4 py-1">
+                <Link
+                  href="/reports?type=income"
+                  className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
+                >
+                  <PieChart size={14} />
+                  <span>Income Report</span>
+                </Link>
+                <Link
+                  href="/reports?type=expense"
+                  className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
+                >
+                  <Receipt size={14} />
+                  <span>Expense Report</span>
+                </Link>
+                <Link
+                  href="/reports?type=stock"
+                  className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
+                >
+                  <Boxes size={14} />
+                  <span>Stock Report</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* SETTINGS */}
+        <div>
+          {!collapsed && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
+              Settings
+            </p>
+          )}
+          <div className="space-y-1">
+            <Link
+              href="/settings"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/settings' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Building2 size={18} />
+              {!collapsed && <span>Company</span>}
+            </Link>
+
+            {isSuperAdmin && (
+              <Link
+                href="/superadmin/dashboard"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                  pathname === '/superadmin/dashboard' ? 'bg-purple-600 text-white shadow-md' : 'text-purple-300 hover:bg-slate-800'
+                } ${collapsed ? 'justify-center space-x-0' : ''}`}
+              >
+                <ShieldAlert size={18} />
+                {!collapsed && <span>Companies Portal</span>}
+              </Link>
+            )}
+
+            <Link
+              href="/staff"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/staff' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <Shield size={18} />
+              {!collapsed && <span>Staff Credentials</span>}
+            </Link>
+          </div>
+        </div>
+
+        {/* ACCOUNT */}
+        <div>
+          {!collapsed && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
+              Account
+            </p>
+          )}
+          <div className="space-y-1">
+            <Link
+              href="/profile"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                pathname === '/profile' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+            >
+              <User size={18} />
+              {!collapsed && <span>Profile</span>}
+            </Link>
+          </div>
+        </div>
       </nav>
 
       {/* Logout Footer */}
@@ -117,7 +306,7 @@ export default function Sidebar({ user, onLogout }) {
           }`}
           title="Logout"
         >
-          <LogOut size={20} />
+          <LogOut size={18} />
           {!collapsed && <span>Logout</span>}
         </button>
       </div>

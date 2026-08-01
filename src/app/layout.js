@@ -7,22 +7,32 @@ import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import './globals.css';
 
+const DEFAULT_USER = {
+  username: 'admin',
+  fullName: 'Main Store Admin',
+  role: 'owner',
+  storeId: 'default',
+  storeName: 'Main BazarPOS Store'
+};
+
 export default function RootLayout({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(DEFAULT_USER);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Read session from localStorage
     const savedUser = localStorage.getItem('bazarpos_user');
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (e) {
-        localStorage.removeItem('bazarpos_user');
+        setUser(DEFAULT_USER);
       }
+    } else {
+      localStorage.setItem('bazarpos_user', JSON.stringify(DEFAULT_USER));
+      setUser(DEFAULT_USER);
     }
     setLoading(false);
   }, []);
@@ -55,7 +65,7 @@ export default function RootLayout({ children }) {
               <p className="text-sm font-medium tracking-wide">Loading BazarPOS...</p>
             </div>
           </div>
-        ) : isLoginPage || !user ? (
+        ) : isLoginPage ? (
           <div className="min-h-screen w-full">{children}</div>
         ) : (
           <div className="flex min-h-screen w-full">
