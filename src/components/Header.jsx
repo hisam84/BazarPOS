@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import {
   User,
@@ -9,19 +8,12 @@ import {
   Shield,
   DollarSign,
   AlertOctagon,
-  Globe,
   ShieldCheck,
-  Building2
+  Building2,
+  Clock
 } from 'lucide-react';
 
 export default function Header({ user, onLogout }) {
-  const [lang, setLang] = useState('EN');
-
-  const toggleLanguage = () => {
-    const nextLang = lang === 'EN' ? 'BN' : 'EN';
-    setLang(nextLang);
-  };
-
   const isSuperAdmin = user?.role === 'superadmin';
 
   return (
@@ -42,7 +34,7 @@ export default function Header({ user, onLogout }) {
           <span className="text-[10px] text-slate-500 font-mono">
             {isSuperAdmin
               ? 'Multi-Tenant Company & Subscription Management Platform'
-              : (lang === 'EN' ? 'Enterprise POS Edition' : 'এন্টারপ্রাইজ পস সফটওয়্যার')}
+              : 'Enterprise POS Edition'}
           </span>
         </div>
       </div>
@@ -108,17 +100,6 @@ export default function Header({ user, onLogout }) {
             </Link>
           </div>
         )}
-
-        {/* Language Toggle */}
-        <button
-          onClick={toggleLanguage}
-          className="flex items-center space-x-1 px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition border border-blue-200"
-          title="Toggle Language"
-        >
-
-          <Globe size={14} />
-          <span>{lang === 'EN' ? 'English (EN)' : 'বাংলা (BN)'}</span>
-        </button>
 
         {/* User Info */}
         <div className="flex items-center space-x-2 pl-2">
