@@ -214,28 +214,135 @@ export function logAuditAction(storeId = 'default', username = 'system', action,
   saveStoreData(storeId, storeData);
 }
 
+export const DEFAULT_SUBSCRIPTION_PLANS = [
+  {
+    id: 'trial',
+    name: 'Free Trial',
+    price: 0,
+    durationDays: 14,
+    billingCycle: 'monthly',
+    maxBranches: 1,
+    maxStaff: 2,
+    maxProducts: 100,
+    badgeColor: 'blue',
+    features: ['Single Branch Terminal', 'Basic Inventory Catalog', 'Standard Sales Invoicing', '14 Days Free Access']
+  },
+  {
+    id: 'starter',
+    name: 'Starter Business',
+    price: 999,
+    durationDays: 30,
+    billingCycle: 'monthly',
+    maxBranches: 1,
+    maxStaff: 3,
+    maxProducts: 1000,
+    badgeColor: 'emerald',
+    features: ['1 Branch POS Terminal', 'Up to 3 Staff Members', 'Stock Adjustment & Loss Tracking', 'Cash Register Reconciliation', 'Voucher & Due Management']
+  },
+  {
+    id: 'standard',
+    name: 'Standard Pro',
+    price: 1999,
+    durationDays: 30,
+    billingCycle: 'monthly',
+    maxBranches: 3,
+    maxStaff: 10,
+    maxProducts: 10000,
+    badgeColor: 'purple',
+    features: ['Up to 3 Outlets / Branches', 'Inter-Branch Stock Transfer', 'Full RBAC Roles Matrix', 'Financial & Income Reports', 'System Audit Trail Logs']
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise VIP',
+    price: 3999,
+    durationDays: 30,
+    billingCycle: 'monthly',
+    maxBranches: 10,
+    maxStaff: 50,
+    maxProducts: 100000,
+    badgeColor: 'amber',
+    features: ['Up to 10 Outlets', 'Unlimited Staff & Products', 'Dedicated 24/7 SLA Support', 'Custom Domain & Branding', 'Data Backup & Priority Sync']
+  }
+];
+
 export function getStores() {
   const db = ensureDb();
+  // Ensure subscription data exists for each store
+  Object.values(db.stores).forEach(st => {
+    if (!st.subscription) {
+      st.subscription = {
+        planId: 'standard',
+        planName: 'Standard Pro',
+        price: 1999,
+        billingCycle: 'monthly',
+        status: 'active',
+        startDate: new Date().toISOString().slice(0, 10),
+        expiryDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+        paymentStatus: 'paid',
+        lastPaidAt: new Date().toISOString().slice(0, 10),
+        notes: 'Default Subscription'
+      };
+    }
+  });
   return db.stores;
 }
 
-export function createStore({ name, owner, phone, address, username, password }) {
+export function getCompanies() {
+  const stores = getStores();
+  return Object.values(stores);
+}
+
+export function createCompany({
+  name,
+  owner = '',
+  phone = '',
+  email = '',
+  address = '',
+  username,
+  password,
+  planId = 'starter',
+  billingCycle = 'monthly',
+  customPrice = null,
+  durationDays = 30
+}) {
   const db = ensureDb();
-  const storeId = 'store_' + Date.now();
-  const newStore = {
-    id: storeId,
+  const companyId = 'comp_' + Date.now();
+
+  const plan = DEFAULT_SUBSCRIPTION_PLANS.find(p => p.id === planId) || DEFAULT_SUBSCRIPTION_PLANS[1];
+  const price = customPrice !== null && !isNaN(customPrice) ? Number(customPrice) : plan.price;
+  const days = plan.id === 'trial' ? 14 : (billingCycle === 'yearly' ? 365 : 30);
+
+  const startDate = new Date().toISOString().slice(0, 10);
+  const expiryDate = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+
+  const newCompany = {
+    id: companyId,
     name,
     owner,
     phone,
+    email,
     address,
     username,
     password,
     status: 'active',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    subscription: {
+      planId: plan.id,
+      planName: plan.name,
+      price: price,
+      billingCycle: billingCycle,
+      status: 'active',
+      startDate: startDate,
+      expiryDate: expiryDate,
+      paymentStatus: plan.id === 'trial' ? 'paid' : 'paid',
+      lastPaidAt: startDate,
+      notes: 'Initial activation'
+    }
   };
-  db.stores[storeId] = newStore;
-  db.storeData[storeId] = {
-    company: { name, phone, address, email: '', website: '', logoUrl: '' },
+
+  db.stores[companyId] = newCompany;
+  db.storeData[companyId] = {
+    company: { name, phone, address, email, website: '', logoUrl: '' },
     products: [],
     categories: ['General'],
     brands: ['General'],
@@ -251,18 +358,153 @@ export function createStore({ name, owner, phone, address, username, password })
     cashRegisters: [],
     branches: [{ id: 'b1', name: name + ' Outlet', code: 'MAIN', address: address || '', phone: phone || '', isPrimary: true }],
     stockTransfers: [],
-    auditLogs: [],
+    auditLogs: [
+      {
+        id: 'log_' + Date.now(),
+        timestamp: new Date().toISOString(),
+        username: 'superadmin',
+        action: 'COMPANY_CREATED',
+        details: `Company "${name}" created with ${plan.name}`
+      }
+    ],
     voucherCounter: 1001
   };
+
   saveDb(db);
-  return newStore;
+  return newCompany;
+}
+
+export function updateCompany(companyId, updates) {
+  const db = ensureDb();
+  if (!db.stores[companyId]) return null;
+
+  db.stores[companyId] = {
+    ...db.stores[companyId],
+    ...updates,
+    id: companyId // ensure id immutable
+  };
+
+  if (updates.name && db.storeData[companyId]?.company) {
+    db.storeData[companyId].company.name = updates.name;
+  }
+  if (updates.phone && db.storeData[companyId]?.company) {
+    db.storeData[companyId].company.phone = updates.phone;
+  }
+  if (updates.address && db.storeData[companyId]?.company) {
+    db.storeData[companyId].company.address = updates.address;
+  }
+
+  saveDb(db);
+  return db.stores[companyId];
+}
+
+export function deleteCompany(companyId) {
+  const db = ensureDb();
+  if (companyId === 'default') {
+    throw new Error('Default main store cannot be deleted');
+  }
+  if (db.stores[companyId]) {
+    delete db.stores[companyId];
+    if (db.storeData[companyId]) {
+      delete db.storeData[companyId];
+    }
+    saveDb(db);
+    return true;
+  }
+  return false;
+}
+
+export function updateCompanySubscription(companyId, subscriptionUpdates) {
+  const db = ensureDb();
+  if (!db.stores[companyId]) return null;
+
+  const currentSub = db.stores[companyId].subscription || {};
+  db.stores[companyId].subscription = {
+    ...currentSub,
+    ...subscriptionUpdates
+  };
+
+  // If status is suspended or active, sync company status too
+  if (subscriptionUpdates.status === 'suspended') {
+    db.stores[companyId].status = 'suspended';
+  } else if (subscriptionUpdates.status === 'active' && db.stores[companyId].status === 'suspended') {
+    db.stores[companyId].status = 'active';
+  }
+
+  saveDb(db);
+  return db.stores[companyId].subscription;
+}
+
+export function getSubscriptionPlans() {
+  return DEFAULT_SUBSCRIPTION_PLANS;
+}
+
+export function getSaaSStats() {
+  const db = ensureDb();
+  const companies = Object.values(db.stores);
+  const total = companies.length;
+  const active = companies.filter(c => c.status === 'active').length;
+  const suspended = companies.filter(c => c.status === 'suspended').length;
+
+  const now = new Date();
+  const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000);
+
+  let mrr = 0;
+  let activeSubs = 0;
+  let expiringSoon = 0;
+  let expiredSubs = 0;
+
+  companies.forEach(c => {
+    const sub = c.subscription;
+    if (sub) {
+      if (sub.status === 'active') {
+        activeSubs++;
+        mrr += Number(sub.price) || 0;
+      } else if (sub.status === 'expired') {
+        expiredSubs++;
+      }
+
+      if (sub.expiryDate) {
+        const exp = new Date(sub.expiryDate);
+        if (exp > now && exp <= sevenDaysFromNow) {
+          expiringSoon++;
+        }
+      }
+    }
+  });
+
+  return {
+    totalCompanies: total,
+    activeCompanies: active,
+    suspendedCompanies: suspended,
+    activeSubscriptions: activeSubs,
+    expiredSubscriptions: expiredSubs,
+    expiringSoon,
+    mrr
+  };
+}
+
+export function getSuperAdmin() {
+  const db = ensureDb();
+  return {
+    username: db.superAdmin.username,
+    fullName: db.superAdmin.fullName
+  };
+}
+
+export function updateSuperAdminPassword(newPassword) {
+  const db = ensureDb();
+  db.superAdmin.password = newPassword;
+  saveDb(db);
+  return true;
+}
+
+export function createStore(args) {
+  return createCompany(args);
 }
 
 export function updateStoreStatus(storeId, status) {
-  const db = ensureDb();
-  if (db.stores[storeId]) {
-    db.stores[storeId].status = status;
-    saveDb(db);
-  }
-  return db.stores[storeId];
+  return updateCompany(storeId, { status });
 }
+
+

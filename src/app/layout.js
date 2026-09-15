@@ -24,9 +24,11 @@ export default function RootLayout({ children }) {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('bazarpos_user');
+    let currentUser = DEFAULT_USER;
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        currentUser = JSON.parse(savedUser);
+        setUser(currentUser);
       } catch (e) {
         setUser(DEFAULT_USER);
       }
@@ -35,7 +37,17 @@ export default function RootLayout({ children }) {
       setUser(DEFAULT_USER);
     }
     setLoading(false);
-  }, []);
+
+    // Route guards: Super Admin has NO store features
+    if (currentUser?.role === 'superadmin') {
+      if (pathname === '/' || (!pathname.startsWith('/superadmin') && pathname !== '/login')) {
+        router.replace('/superadmin/dashboard');
+      }
+    } else if (currentUser?.role !== 'superadmin' && pathname.startsWith('/superadmin')) {
+      router.replace('/');
+    }
+  }, [pathname]);
+
 
   const handleLogout = () => {
     localStorage.removeItem('bazarpos_user');

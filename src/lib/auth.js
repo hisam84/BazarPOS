@@ -22,7 +22,10 @@ export function authenticateUser(username, password) {
     const store = stores[storeId];
     if (store.username === username && store.password === password) {
       if (store.status !== 'active') {
-        return { success: false, message: 'This store account is suspended. Contact Super Admin.' };
+        return { success: false, message: 'This company store account is suspended. Contact Super Admin.' };
+      }
+      if (store.subscription?.status === 'expired') {
+        return { success: false, message: 'Your company subscription has expired. Please contact Super Admin to renew.' };
       }
       return {
         success: true,
@@ -41,11 +44,18 @@ export function authenticateUser(username, password) {
 
   // 3. Check Store Staff (Manager / Cashier)
   for (const storeId in stores) {
+    const parentStore = stores[storeId];
+    if (parentStore && parentStore.status !== 'active') {
+      continue;
+    }
     const storeData = getStoreData(storeId);
     const staffMember = (storeData.staff || []).find(
       s => s.username === username && s.password === password
     );
     if (staffMember) {
+      if (parentStore && parentStore.subscription?.status === 'expired') {
+        return { success: false, message: 'Store subscription is expired. Contact Super Admin to renew.' };
+      }
       return {
         success: true,
         role: staffMember.role || 'cashier',
