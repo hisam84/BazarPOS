@@ -19,7 +19,8 @@ import {
   CreditCard,
   KeyRound,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Clock
 } from 'lucide-react';
 
 export default function SuperAdminCompaniesPage() {
