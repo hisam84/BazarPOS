@@ -16,100 +16,59 @@ const INITIAL_DATA = {
       id: 'default',
       name: 'Main BazarPOS Store',
       owner: 'Admin',
-      phone: '01700000000',
-      address: 'Dhaka, Bangladesh',
+      phone: '',
+      address: '',
       username: 'admin',
       password: 'superadmin@123',
       status: 'active',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      subscription: {
+        planId: '1year',
+        planName: '1 Year Full Access',
+        durationDays: 365,
+        status: 'active',
+        startDate: new Date().toISOString().slice(0, 10),
+        expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+        notes: 'Initial license'
+      }
     }
   },
   storeData: {
     'default': {
       company: {
         name: 'BazarPOS Outlet',
-        tagline: 'Modern POS & Voucher System',
-        phone: '01700000000',
-        email: 'info@bazarpos.com',
-        website: 'https://bazarpos.com',
-        address: 'Dhaka, Bangladesh',
+        tagline: 'Point of Sale System',
+        phone: '',
+        email: '',
+        website: '',
+        address: '',
         logoUrl: ''
       },
-      products: [
-        {
-          id: 'p1',
-          code: 'P001',
-          name: 'Basmati Rice 5kg',
-          category: 'Grocery',
-          brand: 'Pran',
-          unit: 'Pcs',
-          costPrice: 480,
-          sellingPrice: 550,
-          quantity: 25,
-          minQuantity: 5,
-          barcode: 'GROC0010001'
-        },
-        {
-          id: 'p2',
-          code: 'P002',
-          name: 'Soyabean Oil 5L',
-          category: 'Grocery',
-          brand: 'Rupchanda',
-          unit: 'Liter',
-          costPrice: 780,
-          sellingPrice: 850,
-          quantity: 12,
-          minQuantity: 3,
-          barcode: 'GROC0010002'
-        }
-      ],
-      categories: ['Grocery', 'Electronics', 'Clothing', 'Stationery'],
-      brands: ['Pran', 'Rupchanda', 'Square', 'ACI', 'Unilever'],
-      units: ['Pcs', 'KG', 'Liter', 'Box', 'Dozen'],
+      products: [],
+      categories: ['General'],
+      brands: ['General'],
+      units: ['Pcs'],
       clients: [
-        { id: 'c1', name: 'Standard Customer', phone: '01700000000', address: 'Cash Sale', due: 0 }
+        { id: 'c1', name: 'Walk-in Customer', phone: '', address: 'Counter', due: 0 }
       ],
       salers: [
-        { id: 's1', name: 'Main Counter', phone: '01700000000', role: 'Sales Representative' }
+        { id: 's1', name: 'Main Counter', phone: '', role: 'Sales' }
       ],
-      suppliers: [
-        { id: 'sup1', name: 'Arafat Wholesale Traders', phone: '01800000000', email: 'arafat@traders.com', address: 'Dhaka', payable: 0 }
-      ],
+      suppliers: [],
       purchases: [],
-      staff: [
-        { id: 'st1', name: 'Counter Cashier', username: 'cashier1', password: '123', role: 'cashier' }
-      ],
+      staff: [],
       vouchers: [],
       externalIncomeExpense: {
         income: [],
         expense: []
       },
       stockAdjustments: [],
-      cashRegisters: [
-        {
-          id: 'cr1',
-          date: new Date().toISOString().slice(0, 10),
-          openedAt: new Date().toISOString(),
-          closedAt: null,
-          openingCash: 5000,
-          closingCashExpected: 5000,
-          closingCashActual: null,
-          status: 'open'
-        }
-      ],
+      cashRegisters: [],
       branches: [
-        { id: 'b1', name: 'Main Outlet (Uttara)', code: 'MAIN', address: 'Dhaka', phone: '01700000000', isPrimary: true }
+        { id: 'b1', name: 'Main Outlet', code: 'MAIN', address: '', phone: '', isPrimary: true }
       ],
       stockTransfers: [],
-      auditLogs: [
-        {
-          id: 'log1',
-          timestamp: new Date().toISOString(),
-          username: 'admin',
-          action: 'SYSTEM_INIT',
-          details: 'Initialized Enterprise POS System'
-        }
-      ],
+      auditLogs: [],
       voucherCounter: 1001
     }
   }
