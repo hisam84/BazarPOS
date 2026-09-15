@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, owner, phone, email, address, username, password, planId, billingCycle, customPrice } = body;
+    const { name, owner, phone, email, address, username, password, planId, customDurationDays, notes } = body;
 
     if (!name || !username || !password) {
       return NextResponse.json(
@@ -30,9 +30,9 @@ export async function POST(request) {
       address,
       username,
       password,
-      planId: planId || 'starter',
-      billingCycle: billingCycle || 'monthly',
-      customPrice: customPrice !== undefined ? customPrice : null
+      planId: planId || '1month',
+      customDurationDays: customDurationDays ? Number(customDurationDays) : null,
+      notes: notes || ''
     });
 
     return NextResponse.json({ success: true, company: newCompany });

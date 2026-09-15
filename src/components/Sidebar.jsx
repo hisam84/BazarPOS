@@ -28,7 +28,8 @@ import {
   DollarSign,
   AlertOctagon,
   ArrowRightLeft,
-  ShieldCheck
+  ShieldCheck,
+  Clock
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -121,10 +122,10 @@ export default function Sidebar({ user, onLogout }) {
                     ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                     : 'text-slate-300 hover:bg-slate-800'
                 } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                title="Subscription Management"
+                title="Subscription & Validity Management"
               >
-                <DollarSign size={18} />
-                {!collapsed && <span>Subscriptions</span>}
+                <Clock size={18} />
+                {!collapsed && <span>Subscriptions & Validity</span>}
               </Link>
 
               <Link

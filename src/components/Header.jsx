@@ -63,10 +63,10 @@ export default function Header({ user, onLogout }) {
             <Link
               href="/superadmin/subscriptions"
               className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
-              title="Subscription Management"
+              title="Subscription & Validity Management"
             >
-              <DollarSign size={14} className="text-emerald-600" />
-              <span>Subscriptions</span>
+              <Clock size={14} className="text-purple-600" />
+              <span>Validity</span>
             </Link>
           </div>
         ) : (

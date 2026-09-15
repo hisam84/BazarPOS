@@ -15,14 +15,13 @@ export async function GET() {
       email: c.email,
       status: c.status,
       subscription: c.subscription || {
-        planId: 'starter',
-        planName: 'Starter Business',
-        price: 999,
-        billingCycle: 'monthly',
+        planId: '1year',
+        planName: '1 Year Full Access',
+        durationDays: 365,
         status: 'active',
         startDate: c.createdAt ? c.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
-        expiryDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-        paymentStatus: 'paid'
+        expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+        notes: ''
       }
     }));
 

@@ -42,9 +42,9 @@ export default function SuperAdminCompaniesPage() {
     address: '',
     username: '',
     password: '',
-    planId: 'starter',
-    billingCycle: 'monthly',
-    customPrice: ''
+    planId: '1month',
+    customDurationDays: '',
+    notes: ''
   });
 
   // Form State for Edit
@@ -86,7 +86,7 @@ export default function SuperAdminCompaniesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...createForm,
-          customPrice: createForm.customPrice ? Number(createForm.customPrice) : undefined
+          customDurationDays: createForm.customDurationDays ? Number(createForm.customDurationDays) : undefined
         })
       });
       const data = await res.json();
@@ -104,9 +104,9 @@ export default function SuperAdminCompaniesPage() {
         address: '',
         username: '',
         password: '',
-        planId: 'starter',
-        billingCycle: 'monthly',
-        customPrice: ''
+        planId: '1month',
+        customDurationDays: '',
+        notes: ''
       });
       loadCompanies();
     } catch (err) {
@@ -221,16 +221,31 @@ export default function SuperAdminCompaniesPage() {
 
   const getPlanBadgeColor = (planId) => {
     switch (planId) {
+      case '1year':
       case 'enterprise':
         return 'bg-amber-100 text-amber-800 border-amber-300';
+      case '6months':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      case '3months':
       case 'standard':
         return 'bg-purple-100 text-purple-800 border-purple-300';
+      case '1month':
       case 'starter':
         return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'lifetime':
+        return 'bg-teal-100 text-teal-800 border-teal-300';
       case 'trial':
       default:
         return 'bg-blue-100 text-blue-800 border-blue-300';
     }
+  };
+
+  const calculateDaysLeft = (expiryDate) => {
+    if (!expiryDate) return '';
+    const diff = new Date(expiryDate).getTime() - new Date().getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (days < 0) return `${Math.abs(days)}d expired`;
+    return `${days}d left`;
   };
 
   return (
@@ -243,7 +258,7 @@ export default function SuperAdminCompaniesPage() {
             <span>SaaS Company Management (কম্পানি ম্যানেজমেন্ট)</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Create, configure, monitor, and manage all merchant POS company accounts.
+            Create, configure, monitor, and manage all merchant POS company accounts & validity.
           </p>
         </div>
 
@@ -298,6 +313,7 @@ export default function SuperAdminCompaniesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredCompanies.map((comp) => {
             const sub = comp.subscription || {};
+            const daysLeft = calculateDaysLeft(sub.expiryDate);
             return (
               <div
                 key={comp.id}
@@ -330,16 +346,23 @@ export default function SuperAdminCompaniesPage() {
                     </span>
                   </div>
 
-                  {/* Plan & Subscription Badge */}
+                  {/* Plan & Subscription Validity Badge */}
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-medium">Subscription:</span>
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] border ${getPlanBadgeColor(
-                        sub.planId
-                      )}`}
-                    >
-                      {sub.planName || 'Standard'} ({sub.billingCycle || 'monthly'})
-                    </span>
+                    <span className="text-slate-500 font-medium">Validity:</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span
+                        className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${getPlanBadgeColor(
+                          sub.planId
+                        )}`}
+                      >
+                        {sub.planName || '1 Year'}
+                      </span>
+                      {sub.expiryDate && (
+                        <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                          {sub.expiryDate} {daysLeft && `(${daysLeft})`}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Company Details */}
@@ -406,7 +429,7 @@ export default function SuperAdminCompaniesPage() {
                     className="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition"
                   >
                     <CreditCard size={13} />
-                    <span>Manage Plan</span>
+                    <span>Validity & Plans</span>
                   </Link>
                 </div>
               </div>
@@ -529,53 +552,56 @@ export default function SuperAdminCompaniesPage() {
               {/* Subscription Plan Selection */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                 <p className="font-bold text-slate-800 flex items-center space-x-1.5">
-                  <CreditCard size={14} className="text-emerald-600" />
-                  <span>Assign Initial Subscription Plan</span>
+                  <Clock size={14} className="text-purple-600" />
+                  <span>Assign Subscription Validity / Duration</span>
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
-                    { id: 'trial', name: 'Free Trial', price: '৳0 (14d)' },
-                    { id: 'starter', name: 'Starter', price: '৳999/mo' },
-                    { id: 'standard', name: 'Standard', price: '৳1,999/mo' },
-                    { id: 'enterprise', name: 'Enterprise', price: '৳3,999/mo' }
+                    { id: 'trial', name: 'Free Trial', duration: '14 Days' },
+                    { id: '1month', name: '1 Month', duration: '30 Days' },
+                    { id: '3months', name: '3 Months', duration: '90 Days' },
+                    { id: '6months', name: '6 Months', duration: '180 Days' },
+                    { id: '1year', name: '1 Year Full', duration: '365 Days' },
+                    { id: 'lifetime', name: 'Lifetime', duration: '10 Years' }
                   ].map((p) => (
                     <button
                       key={p.id}
                       type="button"
-                      onClick={() => setCreateForm({ ...createForm, planId: p.id })}
+                      onClick={() => {
+                        setCreateForm({ ...createForm, planId: p.id, customDurationDays: '' });
+                      }}
                       className={`p-2.5 rounded-xl border text-center transition ${
-                        createForm.planId === p.id
+                        createForm.planId === p.id && !createForm.customDurationDays
                           ? 'border-purple-600 bg-purple-600 text-white font-bold shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                       }`}
                     >
                       <p className="text-xs font-semibold">{p.name}</p>
-                      <p className="text-[10px] opacity-80 mt-0.5">{p.price}</p>
+                      <p className="text-[10px] opacity-80 mt-0.5">{p.duration}</p>
                     </button>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div>
-                    <label className="block text-slate-600 font-semibold mb-1">Billing Cycle</label>
-                    <select
-                      value={createForm.billingCycle}
-                      onChange={(e) => setCreateForm({ ...createForm, billingCycle: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white"
-                    >
-                      <option value="monthly">Monthly (30 Days)</option>
-                      <option value="yearly">Yearly (365 Days)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-slate-600 font-semibold mb-1">Custom Price (Optional ৳)</label>
+                    <label className="block text-slate-600 font-semibold mb-1">Custom Validity (Days)</label>
                     <input
                       type="number"
-                      placeholder="Leave blank for plan rate"
-                      value={createForm.customPrice}
-                      onChange={(e) => setCreateForm({ ...createForm, customPrice: e.target.value })}
+                      placeholder="e.g. 45 or 60 days"
+                      value={createForm.customDurationDays}
+                      onChange={(e) => setCreateForm({ ...createForm, customDurationDays: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 font-semibold mb-1">External Payment / Notes (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Cash / Bank paid offline"
+                      value={createForm.notes}
+                      onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white"
                     />
                   </div>
                 </div>

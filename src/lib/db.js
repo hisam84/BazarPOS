@@ -218,69 +218,78 @@ export const DEFAULT_SUBSCRIPTION_PLANS = [
   {
     id: 'trial',
     name: 'Free Trial',
-    price: 0,
     durationDays: 14,
-    billingCycle: 'monthly',
+    badgeColor: 'blue',
     maxBranches: 1,
     maxStaff: 2,
     maxProducts: 100,
-    badgeColor: 'blue',
-    features: ['Single Branch Terminal', 'Basic Inventory Catalog', 'Standard Sales Invoicing', '14 Days Free Access']
+    features: ['14 Days Free Access', 'Single Branch Terminal', 'Basic Inventory Catalog', 'Standard Sales Invoicing']
   },
   {
-    id: 'starter',
-    name: 'Starter Business',
-    price: 999,
+    id: '1month',
+    name: '1 Month Access',
     durationDays: 30,
-    billingCycle: 'monthly',
-    maxBranches: 1,
-    maxStaff: 3,
-    maxProducts: 1000,
     badgeColor: 'emerald',
-    features: ['1 Branch POS Terminal', 'Up to 3 Staff Members', 'Stock Adjustment & Loss Tracking', 'Cash Register Reconciliation', 'Voucher & Due Management']
+    maxBranches: 1,
+    maxStaff: 5,
+    maxProducts: 5000,
+    features: ['30 Days Validity', '1 POS Branch Terminal', 'Up to 5 Staff Accounts', 'Stock Adjustment & Loss Tracking', 'Cash Register Reconciliation']
   },
   {
-    id: 'standard',
-    name: 'Standard Pro',
-    price: 1999,
-    durationDays: 30,
-    billingCycle: 'monthly',
-    maxBranches: 3,
-    maxStaff: 10,
-    maxProducts: 10000,
+    id: '3months',
+    name: '3 Months Pass',
+    durationDays: 90,
     badgeColor: 'purple',
-    features: ['Up to 3 Outlets / Branches', 'Inter-Branch Stock Transfer', 'Full RBAC Roles Matrix', 'Financial & Income Reports', 'System Audit Trail Logs']
+    maxBranches: 2,
+    maxStaff: 10,
+    maxProducts: 15000,
+    features: ['90 Days Validity (3 Months)', 'Up to 2 Outlets / Branches', 'Inter-Branch Stock Transfers', 'Full RBAC Roles Matrix', 'System Audit Trail Logs']
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise VIP',
-    price: 3999,
-    durationDays: 30,
-    billingCycle: 'monthly',
+    id: '6months',
+    name: '6 Months Pass',
+    durationDays: 180,
+    badgeColor: 'indigo',
+    maxBranches: 3,
+    maxStaff: 20,
+    maxProducts: 50000,
+    features: ['180 Days Validity (6 Months)', 'Up to 3 Outlets / Branches', 'Full Financial & Income Reports', 'Priority System Backup']
+  },
+  {
+    id: '1year',
+    name: '1 Year Full Access',
+    durationDays: 365,
+    badgeColor: 'amber',
     maxBranches: 10,
     maxStaff: 50,
     maxProducts: 100000,
-    badgeColor: 'amber',
-    features: ['Up to 10 Outlets', 'Unlimited Staff & Products', 'Dedicated 24/7 SLA Support', 'Custom Domain & Branding', 'Data Backup & Priority Sync']
+    features: ['365 Days Validity (1 Year)', 'Up to 10 Outlets', 'Unlimited Staff & Products', 'Dedicated 24/7 Technical Support']
+  },
+  {
+    id: 'lifetime',
+    name: 'Lifetime / Custom',
+    durationDays: 3650,
+    badgeColor: 'teal',
+    maxBranches: 50,
+    maxStaff: 100,
+    maxProducts: 500000,
+    features: ['10 Years / Lifetime Access', 'Unlimited Outlets & Staff', 'Custom Domain & Enterprise Privileges']
   }
 ];
 
 export function getStores() {
   const db = ensureDb();
-  // Ensure subscription data exists for each store
+  // Ensure subscription duration data exists for each store
   Object.values(db.stores).forEach(st => {
     if (!st.subscription) {
       st.subscription = {
-        planId: 'standard',
-        planName: 'Standard Pro',
-        price: 1999,
-        billingCycle: 'monthly',
+        planId: '1year',
+        planName: '1 Year Full Access',
+        durationDays: 365,
         status: 'active',
         startDate: new Date().toISOString().slice(0, 10),
-        expiryDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-        paymentStatus: 'paid',
-        lastPaidAt: new Date().toISOString().slice(0, 10),
-        notes: 'Default Subscription'
+        expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+        notes: 'Initial activation'
       };
     }
   });
@@ -300,17 +309,15 @@ export function createCompany({
   address = '',
   username,
   password,
-  planId = 'starter',
-  billingCycle = 'monthly',
-  customPrice = null,
-  durationDays = 30
+  planId = '1month',
+  customDurationDays = null,
+  notes = ''
 }) {
   const db = ensureDb();
   const companyId = 'comp_' + Date.now();
 
   const plan = DEFAULT_SUBSCRIPTION_PLANS.find(p => p.id === planId) || DEFAULT_SUBSCRIPTION_PLANS[1];
-  const price = customPrice !== null && !isNaN(customPrice) ? Number(customPrice) : plan.price;
-  const days = plan.id === 'trial' ? 14 : (billingCycle === 'yearly' ? 365 : 30);
+  const days = customDurationDays && !isNaN(customDurationDays) ? Number(customDurationDays) : plan.durationDays;
 
   const startDate = new Date().toISOString().slice(0, 10);
   const expiryDate = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
@@ -329,14 +336,11 @@ export function createCompany({
     subscription: {
       planId: plan.id,
       planName: plan.name,
-      price: price,
-      billingCycle: billingCycle,
+      durationDays: days,
       status: 'active',
       startDate: startDate,
       expiryDate: expiryDate,
-      paymentStatus: plan.id === 'trial' ? 'paid' : 'paid',
-      lastPaidAt: startDate,
-      notes: 'Initial activation'
+      notes: notes || `Created with ${plan.name} (${days} days)`
     }
   };
 
@@ -364,7 +368,7 @@ export function createCompany({
         timestamp: new Date().toISOString(),
         username: 'superadmin',
         action: 'COMPANY_CREATED',
-        details: `Company "${name}" created with ${plan.name}`
+        details: `Company "${name}" created with validity for ${days} days`
       }
     ],
     voucherCounter: 1001
@@ -449,7 +453,6 @@ export function getSaaSStats() {
   const now = new Date();
   const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000);
 
-  let mrr = 0;
   let activeSubs = 0;
   let expiringSoon = 0;
   let expiredSubs = 0;
@@ -459,14 +462,15 @@ export function getSaaSStats() {
     if (sub) {
       if (sub.status === 'active') {
         activeSubs++;
-        mrr += Number(sub.price) || 0;
       } else if (sub.status === 'expired') {
         expiredSubs++;
       }
 
       if (sub.expiryDate) {
         const exp = new Date(sub.expiryDate);
-        if (exp > now && exp <= sevenDaysFromNow) {
+        if (exp < now) {
+          // expired
+        } else if (exp <= sevenDaysFromNow) {
           expiringSoon++;
         }
       }
@@ -479,8 +483,7 @@ export function getSaaSStats() {
     suspendedCompanies: suspended,
     activeSubscriptions: activeSubs,
     expiredSubscriptions: expiredSubs,
-    expiringSoon,
-    mrr
+    expiringSoon
   };
 }
 

@@ -3,22 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
-  CreditCard,
+  Clock,
   Building2,
   Calendar,
   CheckCircle,
-  Clock,
   AlertTriangle,
   RefreshCw,
   Search,
   Filter,
-  DollarSign,
-  TrendingUp,
   X,
   Layers,
-  ChevronRight,
-  ShieldAlert,
-  Sparkles
+  Sparkles,
+  CalendarDays,
+  FileText
 } from 'lucide-react';
 
 export default function SuperAdminSubscriptionsPage() {
@@ -31,8 +28,7 @@ export default function SuperAdminSubscriptionsPage() {
     totalCompanies: 0,
     activeSubscriptions: 0,
     expiredSubscriptions: 0,
-    expiringSoon: 0,
-    mrr: 0
+    expiringSoon: 0
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,14 +41,11 @@ export default function SuperAdminSubscriptionsPage() {
 
   const [renewForm, setRenewForm] = useState({
     companyId: '',
-    planId: 'standard',
-    planName: 'Standard Pro',
-    billingCycle: 'monthly',
-    price: 1999,
+    planId: '1year',
+    planName: '1 Year Full Access',
     startDate: '',
     expiryDate: '',
     status: 'active',
-    paymentStatus: 'paid',
     notes: ''
   });
 
@@ -82,14 +75,11 @@ export default function SuperAdminSubscriptionsPage() {
     const sub = item.subscription || {};
     setRenewForm({
       companyId: item.companyId,
-      planId: sub.planId || 'standard',
-      planName: sub.planName || 'Standard Pro',
-      billingCycle: sub.billingCycle || 'monthly',
-      price: sub.price || 1999,
+      planId: sub.planId || '1year',
+      planName: sub.planName || '1 Year Full Access',
       startDate: sub.startDate || new Date().toISOString().slice(0, 10),
-      expiryDate: sub.expiryDate || new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+      expiryDate: sub.expiryDate || new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
       status: sub.status || 'active',
-      paymentStatus: sub.paymentStatus || 'paid',
       notes: sub.notes || ''
     });
     setShowRenewModal(true);
@@ -98,14 +88,13 @@ export default function SuperAdminSubscriptionsPage() {
   const handlePlanSelection = (planId) => {
     const selected = plans.find((p) => p.id === planId);
     if (selected) {
-      const days = selected.id === 'trial' ? 14 : (renewForm.billingCycle === 'yearly' ? 365 : 30);
+      const days = selected.durationDays || 30;
       const newExpiry = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
 
       setRenewForm({
         ...renewForm,
         planId: selected.id,
         planName: selected.name,
-        price: selected.price,
         expiryDate: newExpiry
       });
     }
@@ -128,27 +117,23 @@ export default function SuperAdminSubscriptionsPage() {
           companyId: renewForm.companyId,
           planId: renewForm.planId,
           planName: renewForm.planName,
-          billingCycle: renewForm.billingCycle,
-          price: Number(renewForm.price) || 0,
           startDate: renewForm.startDate,
           expiryDate: renewForm.expiryDate,
           status: renewForm.status,
-          paymentStatus: renewForm.paymentStatus,
-          notes: renewForm.notes,
-          lastPaidAt: new Date().toISOString().slice(0, 10)
+          notes: renewForm.notes
         })
       });
 
       const data = await res.json();
       if (!data.success) {
-        alert(data.message || 'Failed to update subscription');
+        alert(data.message || 'Failed to update validity');
         return;
       }
 
       setShowRenewModal(false);
       loadSubscriptions();
     } catch (err) {
-      alert('Error updating subscription');
+      alert('Error updating subscription validity');
     }
   };
 
@@ -163,6 +148,27 @@ export default function SuperAdminSubscriptionsPage() {
       return { days, text: `${days}d Remaining`, badgeClass: 'bg-amber-100 text-amber-700 font-bold animate-pulse' };
     } else {
       return { days, text: `${days}d Remaining`, badgeClass: 'bg-emerald-100 text-emerald-700 font-semibold' };
+    }
+  };
+
+  const getPlanBadgeColor = (planId) => {
+    switch (planId) {
+      case '1year':
+      case 'enterprise':
+        return 'bg-amber-100 text-amber-800 border-amber-300';
+      case '6months':
+        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      case '3months':
+      case 'standard':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      case '1month':
+      case 'starter':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'lifetime':
+        return 'bg-teal-100 text-teal-800 border-teal-300';
+      case 'trial':
+      default:
+        return 'bg-blue-100 text-blue-800 border-blue-300';
     }
   };
 
@@ -188,11 +194,11 @@ export default function SuperAdminSubscriptionsPage() {
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <CreditCard className="text-purple-600" size={24} />
-            <span>Subscription & Billing Management (সাবস্ক্রিপশন ম্যানেজমেন্ট)</span>
+            <Clock className="text-purple-600" size={24} />
+            <span>Subscription & Validity Management (সাবস্ক্রিপশন মেয়াদ পরিচালনা)</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Monitor plan subscriptions, renew expiration dates, collect platform revenue, and configure packages.
+            ম্যানেজ করুন প্রতিটি ক্লায়েন্ট কোম্পানির সফটওয়্যার এক্সেস মেয়াদ (Validity Time)। আর্থিক লেনদেন সম্পূর্ণ বাইরে/এক্সটার্নাল ভাবে হবে।
           </p>
         </div>
 
@@ -208,21 +214,21 @@ export default function SuperAdminSubscriptionsPage() {
       {/* Top Metrics Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-purple-600 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Active Subscriptions</span>
-            <CheckCircle size={18} />
+          <div className="flex items-center justify-between text-blue-600 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Total Tenants</span>
+            <Building2 size={18} />
           </div>
-          <p className="text-2xl font-black text-purple-900">{stats.activeSubscriptions}</p>
-          <span className="text-[10px] text-slate-500">Live billable accounts</span>
+          <p className="text-2xl font-black text-slate-900">{stats.totalCompanies}</p>
+          <span className="text-[10px] text-slate-500">Registered businesses</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-emerald-600 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Monthly MRR</span>
-            <TrendingUp size={18} />
+          <div className="flex items-center justify-between text-purple-600 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Active Validity</span>
+            <CheckCircle size={18} />
           </div>
-          <p className="text-2xl font-black text-emerald-700">৳{stats.mrr.toLocaleString()}</p>
-          <span className="text-[10px] text-emerald-600/80">Monthly Recurring Revenue</span>
+          <p className="text-2xl font-black text-purple-900">{stats.activeSubscriptions}</p>
+          <span className="text-[10px] text-purple-600/80">Valid store licenses</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -231,7 +237,7 @@ export default function SuperAdminSubscriptionsPage() {
             <Clock size={18} />
           </div>
           <p className="text-2xl font-black text-amber-600">{stats.expiringSoon}</p>
-          <span className="text-[10px] text-amber-600/80">Needs renewal attention</span>
+          <span className="text-[10px] text-amber-600/80">Needs time extension</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -240,7 +246,7 @@ export default function SuperAdminSubscriptionsPage() {
             <AlertTriangle size={18} />
           </div>
           <p className="text-2xl font-black text-rose-600">{stats.expiredSubscriptions}</p>
-          <span className="text-[10px] text-rose-500/80">Require reactivation</span>
+          <span className="text-[10px] text-rose-500/80">Require license renewal</span>
         </div>
       </div>
 
@@ -263,11 +269,13 @@ export default function SuperAdminSubscriptionsPage() {
             onChange={(e) => setPlanFilter(e.target.value)}
             className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none"
           >
-            <option value="all">All Plans</option>
-            <option value="trial">Free Trial</option>
-            <option value="starter">Starter Business</option>
-            <option value="standard">Standard Pro</option>
-            <option value="enterprise">Enterprise VIP</option>
+            <option value="all">All Tiers</option>
+            <option value="trial">Free Trial (14d)</option>
+            <option value="1month">1 Month (30d)</option>
+            <option value="3months">3 Months (90d)</option>
+            <option value="6months">6 Months (180d)</option>
+            <option value="1year">1 Year (365d)</option>
+            <option value="lifetime">Lifetime (10y)</option>
           </select>
 
           <select
@@ -300,26 +308,25 @@ export default function SuperAdminSubscriptionsPage() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
                 <th className="py-4 px-6">Company & Owner</th>
-                <th className="py-4 px-4">Plan / Package</th>
-                <th className="py-4 px-4">Billing Cycle</th>
-                <th className="py-4 px-4">Rate (৳)</th>
+                <th className="py-4 px-4">Validity Tier</th>
+                <th className="py-4 px-4">Start Date</th>
                 <th className="py-4 px-4">Expiry Date</th>
-                <th className="py-4 px-4">Remaining</th>
-                <th className="py-4 px-4">Payment</th>
+                <th className="py-4 px-4">Time Remaining</th>
                 <th className="py-4 px-4">Status</th>
+                <th className="py-4 px-4">External Notes</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan="9" className="py-12 text-center text-slate-400">
+                  <td colSpan="8" className="py-12 text-center text-slate-400">
                     Loading Subscriptions...
                   </td>
                 </tr>
               ) : filteredSubscriptions.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="py-12 text-center text-slate-400">
+                  <td colSpan="8" className="py-12 text-center text-slate-400">
                     No subscriptions found.
                   </td>
                 </tr>
@@ -348,32 +355,21 @@ export default function SuperAdminSubscriptionsPage() {
                       {/* Plan Badge */}
                       <td className="py-4 px-4">
                         <span
-                          className={`inline-block px-2.5 py-1 rounded-full font-bold text-[10px] uppercase border ${
-                            sub.planId === 'enterprise'
-                              ? 'bg-amber-100 text-amber-800 border-amber-300'
-                              : sub.planId === 'standard'
-                              ? 'bg-purple-100 text-purple-800 border-purple-300'
-                              : sub.planId === 'starter'
-                              ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                              : 'bg-blue-100 text-blue-800 border-blue-300'
-                          }`}
+                          className={`inline-block px-2.5 py-1 rounded-full font-bold text-[10px] uppercase border ${getPlanBadgeColor(
+                            sub.planId
+                          )}`}
                         >
-                          {sub.planName || 'Standard'}
+                          {sub.planName || '1 Year'}
                         </span>
                       </td>
 
-                      {/* Billing Cycle */}
-                      <td className="py-4 px-4 capitalize font-medium text-slate-700">
-                        {sub.billingCycle || 'monthly'}
-                      </td>
-
-                      {/* Price */}
-                      <td className="py-4 px-4 font-mono font-bold text-slate-900">
-                        ৳{Number(sub.price || 0).toLocaleString()}
+                      {/* Start Date */}
+                      <td className="py-4 px-4 font-mono text-slate-600">
+                        {sub.startDate || 'N/A'}
                       </td>
 
                       {/* Expiry Date */}
-                      <td className="py-4 px-4 font-mono text-slate-600">
+                      <td className="py-4 px-4 font-mono font-bold text-slate-900">
                         {sub.expiryDate || 'N/A'}
                       </td>
 
@@ -381,19 +377,6 @@ export default function SuperAdminSubscriptionsPage() {
                       <td className="py-4 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] ${remaining.badgeClass}`}>
                           {remaining.text}
-                        </span>
-                      </td>
-
-                      {/* Payment Status */}
-                      <td className="py-4 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            sub.paymentStatus === 'paid'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {sub.paymentStatus || 'paid'}
                         </span>
                       </td>
 
@@ -410,13 +393,18 @@ export default function SuperAdminSubscriptionsPage() {
                         </span>
                       </td>
 
+                      {/* External Notes */}
+                      <td className="py-4 px-4 text-slate-500 text-[11px] max-w-xs truncate">
+                        {sub.notes || '—'}
+                      </td>
+
                       {/* Actions */}
                       <td className="py-4 px-6 text-right">
                         <button
                           onClick={() => openRenewModal(item)}
                           className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition shadow-xs text-xs"
                         >
-                          Renew / Edit
+                          Extend / Set Date
                         </button>
                       </td>
                     </tr>
@@ -432,28 +420,26 @@ export default function SuperAdminSubscriptionsPage() {
       <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-4">
         <div className="flex items-center space-x-2">
           <Sparkles className="text-purple-400" size={20} />
-          <h3 className="font-bold text-base">Subscription Plans & Limits Overview</h3>
+          <h3 className="font-bold text-base">Subscription Validity Tiers & Outlets Limits</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
           {plans.map((p) => (
             <div
               key={p.id}
-              className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between space-y-3"
+              className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-3.5 flex flex-col justify-between space-y-2"
             >
               <div>
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-white text-sm">{p.name}</h4>
-                  <span className="text-xs font-mono font-bold text-purple-400">৳{p.price}/mo</span>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <h4 className="font-bold text-white text-xs">{p.name}</h4>
+                <p className="text-[11px] font-mono text-purple-400 font-semibold">{p.durationDays} Days</p>
+                <p className="text-[10px] text-slate-400 mt-1">
                   Outlets: <strong>{p.maxBranches}</strong> | Staff: <strong>{p.maxStaff}</strong>
                 </p>
-                <ul className="mt-3 space-y-1 text-[11px] text-slate-300">
-                  {p.features?.map((f, i) => (
-                    <li key={i} className="flex items-center space-x-1.5">
+                <ul className="mt-2 space-y-1 text-[10px] text-slate-300">
+                  {p.features?.slice(0, 2).map((f, i) => (
+                    <li key={i} className="flex items-center space-x-1">
                       <span className="text-emerald-400">✓</span>
-                      <span>{f}</span>
+                      <span className="line-clamp-1">{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -463,13 +449,13 @@ export default function SuperAdminSubscriptionsPage() {
         </div>
       </div>
 
-      {/* ================= RENEW / EDIT SUBSCRIPTION MODAL ================= */}
+      {/* ================= RENEW / EXTEND VALIDITY MODAL ================= */}
       {showRenewModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-3">
               <div>
-                <h3 className="font-bold text-slate-800 text-base">Renew / Edit Subscription</h3>
+                <h3 className="font-bold text-slate-800 text-base">Extend License Validity Time</h3>
                 <p className="text-xs text-slate-500">{selectedSub?.companyName}</p>
               </div>
               <button
@@ -483,125 +469,104 @@ export default function SuperAdminSubscriptionsPage() {
             <form onSubmit={handleSaveSubscription} className="space-y-4 text-xs">
               {/* Plan Picker */}
               <div>
-                <label className="block text-slate-700 font-bold mb-1.5">Select Subscription Plan</label>
-                <div className="grid grid-cols-2 gap-2">
+                <label className="block text-slate-700 font-bold mb-1.5">Select Validity Tier</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {plans.map((p) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => handlePlanSelection(p.id)}
-                      className={`p-3 rounded-2xl border text-left transition ${
+                      className={`p-2.5 rounded-2xl border text-left transition ${
                         renewForm.planId === p.id
                           ? 'border-purple-600 bg-purple-50/60 font-bold text-purple-900'
                           : 'border-slate-200 hover:border-slate-300 text-slate-700'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold">{p.name}</span>
-                        <span className="font-mono text-[11px]">৳{p.price}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-500 font-normal">
-                        {p.maxBranches} Branch • {p.maxStaff} Staff
+                      <span className="font-semibold text-xs block">{p.name}</span>
+                      <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                        {p.durationDays} Days
                       </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Billing Cycle & Price */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Billing Cycle</label>
-                  <select
-                    value={renewForm.billingCycle}
-                    onChange={(e) => setRenewForm({ ...renewForm, billingCycle: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50"
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Price / Fee (৳)</label>
-                  <input
-                    type="number"
-                    value={renewForm.price}
-                    onChange={(e) => setRenewForm({ ...renewForm, price: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-mono font-bold"
-                  />
-                </div>
-              </div>
-
               {/* Expiry Date & Quick Add Buttons */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
-                <label className="block text-slate-700 font-bold">Subscription Expiry Date *</label>
+                <label className="block text-slate-700 font-bold flex items-center justify-between">
+                  <span>Subscription Expiry Date *</span>
+                  <span className="text-purple-600 font-mono text-[11px]">
+                    {calculateDaysRemaining(renewForm.expiryDate).text}
+                  </span>
+                </label>
                 <input
                   type="date"
                   required
                   value={renewForm.expiryDate}
                   onChange={(e) => setRenewForm({ ...renewForm, expiryDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono font-bold text-slate-800"
                 />
 
-                <div className="flex items-center space-x-2 pt-1">
-                  <span className="text-[10px] text-slate-500 font-semibold">Extend by:</span>
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-slate-500 font-semibold mr-1">Quick Extend:</span>
                   <button
                     type="button"
                     onClick={() => handleQuickAddDays(30)}
-                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-slate-700 rounded-lg text-[10px] font-bold transition"
+                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-slate-700 rounded-lg text-[10px] font-bold transition shadow-2xs"
                   >
-                    +30 Days
+                    +30 Days (1 Mo)
                   </button>
                   <button
                     type="button"
                     onClick={() => handleQuickAddDays(90)}
-                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-slate-700 rounded-lg text-[10px] font-bold transition"
+                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-slate-700 rounded-lg text-[10px] font-bold transition shadow-2xs"
                   >
                     +3 Months
                   </button>
                   <button
                     type="button"
+                    onClick={() => handleQuickAddDays(180)}
+                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-slate-700 rounded-lg text-[10px] font-bold transition shadow-2xs"
+                  >
+                    +6 Months
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleQuickAddDays(365)}
-                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-slate-700 rounded-lg text-[10px] font-bold transition"
+                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-slate-700 rounded-lg text-[10px] font-bold transition shadow-2xs"
                   >
                     +1 Year
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickAddDays(3650)}
+                    className="px-2.5 py-1 bg-white border border-slate-200 hover:border-purple-400 text-purple-700 rounded-lg text-[10px] font-bold transition shadow-2xs"
+                  >
+                    +10 Years
                   </button>
                 </div>
               </div>
 
-              {/* Status and Payment Status */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Subscription Status</label>
-                  <select
-                    value={renewForm.status}
-                    onChange={(e) => setRenewForm({ ...renewForm, status: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50"
-                  >
-                    <option value="active">Active</option>
-                    <option value="expired">Expired</option>
-                    <option value="suspended">Suspended</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Payment Status</label>
-                  <select
-                    value={renewForm.paymentStatus}
-                    onChange={(e) => setRenewForm({ ...renewForm, paymentStatus: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-bold"
-                  >
-                    <option value="paid">Paid</option>
-                    <option value="pending">Pending</option>
-                  </select>
-                </div>
+              {/* Status */}
+              <div>
+                <label className="block text-slate-600 font-semibold mb-1">Account License Status</label>
+                <select
+                  value={renewForm.status}
+                  onChange={(e) => setRenewForm({ ...renewForm, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-semibold text-slate-800"
+                >
+                  <option value="active">Active (Access Granted)</option>
+                  <option value="expired">Expired (Requires Renewal)</option>
+                  <option value="suspended">Suspended (Blocked)</option>
+                </select>
               </div>
 
               {/* Notes */}
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">Notes / Transaction Reference</label>
+                <label className="block text-slate-600 font-semibold mb-1">External Payment Reference / Remarks</label>
                 <input
                   type="text"
-                  placeholder="e.g. bKash TrxID #9X23881, Paid for Sep 2026"
+                  placeholder="e.g. bKash / Cash payment verified offline, Reference #39281"
                   value={renewForm.notes}
                   onChange={(e) => setRenewForm({ ...renewForm, notes: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50"
@@ -621,7 +586,7 @@ export default function SuperAdminSubscriptionsPage() {
                   type="submit"
                   className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg shadow-purple-600/30 transition"
                 >
-                  Update Subscription
+                  Save Validity
                 </button>
               </div>
             </form>
