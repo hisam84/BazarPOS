@@ -128,6 +128,145 @@ export function getNeonSql() {
   return null;
 }
 
+let dbInitPromise = null;
+
+export async function initPostgresTables() {
+  const sql = getNeonSql();
+  if (!sql) return false;
+
+  if (dbInitPromise) return dbInitPromise;
+
+  dbInitPromise = (async () => {
+    try {
+      // Create tables
+      await sql`
+        CREATE TABLE IF NOT EXISTS bazarpos_superadmin (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(100) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          full_name VARCHAR(255) DEFAULT 'System Super Admin',
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS bazarpos_stores (
+          id VARCHAR(100) PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          owner VARCHAR(255),
+          phone VARCHAR(50),
+          email VARCHAR(255),
+          address TEXT,
+          username VARCHAR(100) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          status VARCHAR(50) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          subscription JSONB
+        );
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS bazarpos_store_data (
+          store_id VARCHAR(100) PRIMARY KEY,
+          company JSONB,
+          products JSONB,
+          categories JSONB,
+          brands JSONB,
+          units JSONB,
+          clients JSONB,
+          salers JSONB,
+          suppliers JSONB,
+          purchases JSONB,
+          staff JSONB,
+          vouchers JSONB,
+          external_income_expense JSONB,
+          stock_adjustments JSONB,
+          cash_registers JSONB,
+          branches JSONB,
+          stock_transfers JSONB,
+          audit_logs JSONB,
+          voucher_counter INTEGER DEFAULT 1001,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+
+      // Check and seed superadmin
+      const admins = await sql`SELECT * FROM bazarpos_superadmin WHERE username = 'superadmin' LIMIT 1`;
+      if (admins.length === 0) {
+        await sql`
+          INSERT INTO bazarpos_superadmin (username, password, full_name)
+          VALUES ('superadmin', 'superadmin@123', 'System Super Admin')
+        `;
+      }
+
+      // Check and seed default store
+      const stores = await sql`SELECT * FROM bazarpos_stores WHERE id = 'default' LIMIT 1`;
+      if (stores.length === 0) {
+        const localDb = ensureDb();
+        const def = localDb.stores['default'] || INITIAL_DATA.stores['default'];
+        await sql`
+          INSERT INTO bazarpos_stores (id, name, owner, phone, address, username, password, status, subscription)
+          VALUES (
+            'default', 
+            ${def.name}, 
+            ${def.owner || ''}, 
+            ${def.phone || ''}, 
+            ${def.address || ''}, 
+            ${def.username}, 
+            ${def.password}, 
+            'active',
+            ${JSON.stringify(def.subscription || { planId: '1year', planName: '1 Year Full Access', durationDays: 365, status: 'active', startDate: new Date().toISOString().slice(0, 10), expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10), notes: 'Default initial license' })}
+          )
+        `;
+      }
+
+      // Check and seed default store data
+      const sData = await sql`SELECT * FROM bazarpos_store_data WHERE store_id = 'default' LIMIT 1`;
+      if (sData.length === 0) {
+        const localDb = ensureDb();
+        const sd = localDb.storeData['default'] || INITIAL_DATA.storeData['default'];
+        await sql`
+          INSERT INTO bazarpos_store_data (
+            store_id, company, products, categories, brands, units, clients, salers, suppliers, purchases, staff, vouchers, external_income_expense, stock_adjustments, cash_registers, branches, stock_transfers, audit_logs, voucher_counter
+          ) VALUES (
+            'default',
+            ${JSON.stringify(sd.company || {})},
+            ${JSON.stringify(sd.products || [])},
+            ${JSON.stringify(sd.categories || ['General'])},
+            ${JSON.stringify(sd.brands || ['General'])},
+            ${JSON.stringify(sd.units || ['Pcs'])},
+            ${JSON.stringify(sd.clients || [])},
+            ${JSON.stringify(sd.salers || [])},
+            ${JSON.stringify(sd.suppliers || [])},
+            ${JSON.stringify(sd.purchases || [])},
+            ${JSON.stringify(sd.staff || [])},
+            ${JSON.stringify(sd.vouchers || [])},
+            ${JSON.stringify(sd.externalIncomeExpense || { income: [], expense: [] })},
+            ${JSON.stringify(sd.stockAdjustments || [])},
+            ${JSON.stringify(sd.cashRegisters || [])},
+            ${JSON.stringify(sd.branches || [{ id: 'b1', name: 'Main Outlet', code: 'MAIN', address: '', phone: '', isPrimary: true }])},
+            ${JSON.stringify(sd.stockTransfers || [])},
+            ${JSON.stringify(sd.auditLogs || [])},
+            ${sd.voucherCounter || 1001}
+          )
+        `;
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('Error initializing PostgreSQL tables:', err.message);
+      return false;
+    }
+  })();
+
+  return dbInitPromise;
+}
+
+// Trigger initial setup if DATABASE_URL exists
+if (process.env.DATABASE_URL) {
+  initPostgresTables().catch(() => {});
+}
+
 function ensureDb() {
   if (inMemoryDb) return inMemoryDb;
 
@@ -198,6 +337,64 @@ export function saveStoreData(storeId, storeData) {
   const db = ensureDb();
   db.storeData[storeId] = storeData;
   saveDb(db);
+
+  // Sync to PostgreSQL if DATABASE_URL active
+  const sql = getNeonSql();
+  if (sql) {
+    (async () => {
+      try {
+        await sql`
+          INSERT INTO bazarpos_store_data (
+            store_id, company, products, categories, brands, units, clients, salers, suppliers, purchases, staff, vouchers, external_income_expense, stock_adjustments, cash_registers, branches, stock_transfers, audit_logs, voucher_counter, updated_at
+          ) VALUES (
+            ${storeId},
+            ${JSON.stringify(storeData.company || {})},
+            ${JSON.stringify(storeData.products || [])},
+            ${JSON.stringify(storeData.categories || [])},
+            ${JSON.stringify(storeData.brands || [])},
+            ${JSON.stringify(storeData.units || [])},
+            ${JSON.stringify(storeData.clients || [])},
+            ${JSON.stringify(storeData.salers || [])},
+            ${JSON.stringify(storeData.suppliers || [])},
+            ${JSON.stringify(storeData.purchases || [])},
+            ${JSON.stringify(storeData.staff || [])},
+            ${JSON.stringify(storeData.vouchers || [])},
+            ${JSON.stringify(storeData.externalIncomeExpense || { income: [], expense: [] })},
+            ${JSON.stringify(storeData.stockAdjustments || [])},
+            ${JSON.stringify(storeData.cashRegisters || [])},
+            ${JSON.stringify(storeData.branches || [])},
+            ${JSON.stringify(storeData.stockTransfers || [])},
+            ${JSON.stringify(storeData.auditLogs || [])},
+            ${storeData.voucherCounter || 1001},
+            NOW()
+          )
+          ON CONFLICT (store_id) DO UPDATE SET
+            company = EXCLUDED.company,
+            products = EXCLUDED.products,
+            categories = EXCLUDED.categories,
+            brands = EXCLUDED.brands,
+            units = EXCLUDED.units,
+            clients = EXCLUDED.clients,
+            salers = EXCLUDED.salers,
+            suppliers = EXCLUDED.suppliers,
+            purchases = EXCLUDED.purchases,
+            staff = EXCLUDED.staff,
+            vouchers = EXCLUDED.vouchers,
+            external_income_expense = EXCLUDED.external_income_expense,
+            stock_adjustments = EXCLUDED.stock_adjustments,
+            cash_registers = EXCLUDED.cash_registers,
+            branches = EXCLUDED.branches,
+            stock_transfers = EXCLUDED.stock_transfers,
+            audit_logs = EXCLUDED.audit_logs,
+            voucher_counter = EXCLUDED.voucher_counter,
+            updated_at = NOW();
+        `;
+      } catch (e) {
+        console.warn('Postgres store_data sync error:', e.message);
+      }
+    })();
+  }
+
   return db.storeData[storeId];
 }
 
@@ -375,6 +572,43 @@ export function createCompany({
   };
 
   saveDb(db);
+
+  // Sync store creation to PostgreSQL
+  const sql = getNeonSql();
+  if (sql) {
+    (async () => {
+      try {
+        await sql`
+          INSERT INTO bazarpos_stores (id, name, owner, phone, email, address, username, password, status, subscription)
+          VALUES (
+            ${companyId},
+            ${newCompany.name},
+            ${newCompany.owner || ''},
+            ${newCompany.phone || ''},
+            ${newCompany.email || ''},
+            ${newCompany.address || ''},
+            ${newCompany.username},
+            ${newCompany.password},
+            ${newCompany.status},
+            ${JSON.stringify(newCompany.subscription)}
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            owner = EXCLUDED.owner,
+            phone = EXCLUDED.phone,
+            email = EXCLUDED.email,
+            address = EXCLUDED.address,
+            username = EXCLUDED.username,
+            password = EXCLUDED.password,
+            status = EXCLUDED.status,
+            subscription = EXCLUDED.subscription;
+        `;
+      } catch (e) {
+        console.warn('Postgres create company sync error:', e.message);
+      }
+    })();
+  }
+
   return newCompany;
 }
 
@@ -399,6 +633,31 @@ export function updateCompany(companyId, updates) {
   }
 
   saveDb(db);
+
+  const sql = getNeonSql();
+  if (sql) {
+    (async () => {
+      try {
+        const store = db.stores[companyId];
+        await sql`
+          UPDATE bazarpos_stores SET
+            name = ${store.name},
+            owner = ${store.owner || ''},
+            phone = ${store.phone || ''},
+            email = ${store.email || ''},
+            address = ${store.address || ''},
+            username = ${store.username},
+            password = ${store.password},
+            status = ${store.status},
+            subscription = ${JSON.stringify(store.subscription || {})}
+          WHERE id = ${companyId};
+        `;
+      } catch (e) {
+        console.warn('Postgres update company sync error:', e.message);
+      }
+    })();
+  }
+
   return db.stores[companyId];
 }
 
@@ -413,6 +672,19 @@ export function deleteCompany(companyId) {
       delete db.storeData[companyId];
     }
     saveDb(db);
+
+    const sql = getNeonSql();
+    if (sql) {
+      (async () => {
+        try {
+          await sql`DELETE FROM bazarpos_stores WHERE id = ${companyId};`;
+          await sql`DELETE FROM bazarpos_store_data WHERE store_id = ${companyId};`;
+        } catch (e) {
+          console.warn('Postgres delete company sync error:', e.message);
+        }
+      })();
+    }
+
     return true;
   }
   return false;
@@ -436,6 +708,24 @@ export function updateCompanySubscription(companyId, subscriptionUpdates) {
   }
 
   saveDb(db);
+
+  const sql = getNeonSql();
+  if (sql) {
+    (async () => {
+      try {
+        const store = db.stores[companyId];
+        await sql`
+          UPDATE bazarpos_stores SET
+            status = ${store.status},
+            subscription = ${JSON.stringify(store.subscription || {})}
+          WHERE id = ${companyId};
+        `;
+      } catch (e) {
+        console.warn('Postgres update subscription sync error:', e.message);
+      }
+    })();
+  }
+
   return db.stores[companyId].subscription;
 }
 

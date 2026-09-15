@@ -194,16 +194,132 @@ export default function SuperAdminSettingsPage() {
             </div>
           </div>
 
+          {/* Database & Tables Initialization Card */}
+          <DatabaseStatusCard />
+
           <div className="bg-gradient-to-br from-slate-900 to-purple-950 text-white p-6 rounded-3xl shadow-xl space-y-2">
             <h3 className="font-bold text-sm flex items-center space-x-2 text-purple-300">
               <Sparkles size={16} />
               <span>BazarPOS SaaS Platform</span>
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              সুপার এডমিন প্যানেলে স্টোর-লেভেলের (POS, Inventory, Billing) কোনো মডিউল রাখা হয়নি। সুপার এডমিনের কাজ শুধু মার্চেন্ট কোম্পানিগুলোকে অনবোর্ড ও সাসপেন্ড করা এবং সাবস্ক্রিপশন মেয়াদ ও বিলিং নিয়ন্ত্রণ করা।
+              সুপার এডমিন প্যানেল থেকে মার্চেন্ট কোম্পানি অনবোর্ডিং, লাইসেন্স মেয়াদ ও ডাটাবেজ ব্যাকেন্ড সিঙ্ক নিয়ন্ত্রণ করা যায়।
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function DatabaseStatusCard() {
+  const [dbStatus, setDbStatus] = useState({ loading: true, connected: false, tables: [], message: '' });
+  const [initializing, setInitializing] = useState(false);
+
+  useEffect(() => {
+    checkStatus();
+  }, []);
+
+  const checkStatus = async () => {
+    setDbStatus((prev) => ({ ...prev, loading: true }));
+    try {
+      const res = await fetch('/api/db/init');
+      const data = await res.json();
+      setDbStatus({
+        loading: false,
+        connected: data.connected || false,
+        database: data.database,
+        tables: data.tables || [],
+        tableCount: data.tableCount || 0,
+        message: data.message || ''
+      });
+    } catch (err) {
+      setDbStatus({ loading: false, connected: false, tables: [], message: 'Could not connect to API' });
+    }
+  };
+
+  const handleInitDb = async () => {
+    if (!confirm('Initialize PostgreSQL database tables now?')) return;
+    setInitializing(true);
+    try {
+      const res = await fetch('/api/db/init', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message || 'Database tables initialized successfully!');
+        checkStatus();
+      } else {
+        alert(data.message || 'Failed to initialize tables');
+      }
+    } catch (err) {
+      alert('Error connecting to database');
+    } finally {
+      setInitializing(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Database className="text-emerald-600" size={20} />
+          <h2 className="text-base font-bold text-slate-800">PostgreSQL Database Connection</h2>
+        </div>
+        <button
+          onClick={checkStatus}
+          className="text-xs text-purple-600 hover:text-purple-700 font-semibold"
+        >
+          Check Status
+        </button>
+      </div>
+
+      <div className="space-y-3 text-xs">
+        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+          <span className="text-slate-600 font-medium">PostgreSQL Engine</span>
+          <span
+            className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+              dbStatus.connected
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-amber-100 text-amber-800'
+            }`}
+          >
+            {dbStatus.loading
+              ? 'Checking...'
+              : dbStatus.connected
+              ? `Connected (${dbStatus.database || 'PostgreSQL'})`
+              : 'Local Mode (DATABASE_URL not set)'}
+          </span>
+        </div>
+
+        {dbStatus.connected && (
+          <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 space-y-1.5">
+            <p className="font-bold text-emerald-900">
+              Tables in Database: {dbStatus.tables.length}
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {dbStatus.tables.map((t) => (
+                <span
+                  key={t}
+                  className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-mono text-[10px] rounded-md font-semibold"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleInitDb}
+          disabled={initializing}
+          className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-sm text-xs disabled:opacity-50 flex items-center justify-center space-x-1.5"
+        >
+          <Database size={14} />
+          <span>
+            {initializing
+              ? 'Creating & Syncing Tables...'
+              : 'Initialize / Create PostgreSQL Tables Now'}
+          </span>
+        </button>
       </div>
     </div>
   );
