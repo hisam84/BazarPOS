@@ -253,35 +253,35 @@ export default function InvoiceSettingsPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 sm:space-y-6 pb-12 overflow-x-hidden">
       {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs no-print">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <FileText className="text-blue-600" size={24} />
-            <span>A4 Invoice Template & Print Settings</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <FileText className="text-blue-600 flex-shrink-0" size={22} />
+            <span className="truncate">A4 Invoice Designer</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Customize invoice layout, upload company header banner, select visible fields, and view real-time A4 preview.
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+            Customize invoice layout, upload header banner, and view live A4 preview.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2">
           <button
             type="button"
             onClick={handlePrintTest}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center space-x-2 transition border border-slate-200 shadow-sm"
+            className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition border border-slate-200 shadow-xs active:scale-95"
           >
-            <Printer size={16} />
-            <span>Print Test A4</span>
+            <Printer size={15} />
+            <span>Print Test</span>
           </button>
           <button
             type="button"
             disabled={saving}
             onClick={handleSave}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center space-x-2 transition shadow-md shadow-blue-500/20"
+            className="px-4 py-2 sm:px-6 sm:py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition shadow-md shadow-blue-500/20 active:scale-98"
           >
-            <Save size={16} />
+            <Save size={15} />
             <span>{saving ? 'Saving...' : 'Save Settings'}</span>
           </button>
         </div>
@@ -289,24 +289,24 @@ export default function InvoiceSettingsPage() {
 
       {/* Notifications */}
       {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-semibold rounded-2xl flex items-center space-x-2 no-print animate-fadeIn">
-          <CheckCircle size={18} />
+        <div className="p-3.5 sm:p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs sm:text-sm font-semibold rounded-2xl flex items-center space-x-2 no-print animate-fadeIn">
+          <CheckCircle size={17} className="flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
       {errorMsg && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-2xl flex items-center space-x-2 no-print">
-          <ShieldAlert size={18} />
+        <div className="p-3.5 sm:p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-semibold rounded-2xl flex items-center space-x-2 no-print">
+          <ShieldAlert size={17} className="flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {/* Main Grid: Left Controls + Right A4 Live Preview */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* ================= LEFT CONTROLS COLUMN ================= */}
-        <div className="lg:col-span-6 space-y-6 no-print">
+        <div className="lg:col-span-6 space-y-4 sm:space-y-6 no-print">
           {/* 1. Header Banner & Branding */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-5">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between border-b pb-3">
               <h2 className="text-sm font-bold text-slate-800 flex items-center space-x-2">
                 <ImageIcon className="text-blue-600" size={18} />
@@ -1105,19 +1105,19 @@ export default function InvoiceSettingsPage() {
         </div>
 
         {/* ================= RIGHT LIVE A4 PREVIEW COLUMN ================= */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="flex items-center justify-between bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-sm no-print">
+        <div className="lg:col-span-6 space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between bg-slate-900 text-white px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl shadow-xs no-print">
             <div className="flex items-center space-x-2">
-              <Eye size={18} className="text-blue-400" />
-              <span className="font-bold text-xs">Live A4 Paper Sheet Preview</span>
+              <Eye size={16} className="text-blue-400 flex-shrink-0" />
+              <span className="font-bold text-xs">Live A4 Preview</span>
             </div>
-            <span className="text-[10px] bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-mono">
-              210mm x 297mm Standard A4
+            <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full font-mono">
+              210 × 297 mm
             </span>
           </div>
 
           {/* Real A4 Sheet Container */}
-          <div className="bg-slate-200/70 p-4 sm:p-6 rounded-3xl border border-slate-300 shadow-inner overflow-x-auto">
+          <div className="bg-slate-200/70 p-2 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-300 shadow-inner overflow-x-auto">
             <div className="printable-area">
               <InvoiceA4
                 company={company}
