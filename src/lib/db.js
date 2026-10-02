@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { neon } from '@neondatabase/serverless';
-import { hashPassword } from './password';
+import { hashPassword, isBcryptHash } from './password';
 
 const DB_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
@@ -212,6 +212,9 @@ export async function initPostgresTables() {
         `;
       }
 
+      // Run Batch Password Migration to immediately convert all existing plaintext passwords in Postgres to bcrypt hashes
+      await migrateAllPasswordsToBcrypt();
+
       return true;
     } catch (err) {
       console.warn('Error initializing PostgreSQL tables:', err.message);
@@ -222,7 +225,80 @@ export async function initPostgresTables() {
   return dbInitPromise;
 }
 
-// Trigger initial setup if DATABASE_URL exists
+export async function migrateAllPasswordsToBcrypt() {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      // 1. Migrate SuperAdmin passwords in PostgreSQL
+      const admins = await sql`SELECT id, username, password FROM bazarpos_superadmin`;
+      for (const a of admins) {
+        if (a.password && !isBcryptHash(a.password)) {
+          const hashed = await hashPassword(a.password);
+          await sql`UPDATE bazarpos_superadmin SET password = ${hashed} WHERE id = ${a.id}`;
+        }
+      }
+
+      // 2. Migrate Store Owner passwords in PostgreSQL
+      const stores = await sql`SELECT id, username, password FROM bazarpos_stores`;
+      for (const s of stores) {
+        if (s.password && !isBcryptHash(s.password)) {
+          const hashed = await hashPassword(s.password);
+          await sql`UPDATE bazarpos_stores SET password = ${hashed} WHERE id = ${s.id}`;
+        }
+      }
+
+      // 3. Migrate Staff passwords in PostgreSQL
+      const storeDataRows = await sql`SELECT store_id, staff FROM bazarpos_store_data`;
+      for (const row of storeDataRows) {
+        const staff = parseJsonField(row.staff, []);
+        let modified = false;
+        for (const st of staff) {
+          if (st.password && !isBcryptHash(st.password)) {
+            st.password = await hashPassword(st.password);
+            modified = true;
+          }
+        }
+        if (modified) {
+          await sql`UPDATE bazarpos_store_data SET staff = ${JSON.stringify(staff)} WHERE store_id = ${row.store_id}`;
+        }
+      }
+    } catch (e) {
+      console.warn('Postgres batch password migration error:', e.message);
+    }
+  }
+
+  // Also migrate in-memory / local JSON DB
+  try {
+    const db = ensureDb();
+    let dbModified = false;
+    if (db.superAdmin?.password && !isBcryptHash(db.superAdmin.password)) {
+      db.superAdmin.password = await hashPassword(db.superAdmin.password);
+      dbModified = true;
+    }
+    for (const id in (db.stores || {})) {
+      if (db.stores[id].password && !isBcryptHash(db.stores[id].password)) {
+        db.stores[id].password = await hashPassword(db.stores[id].password);
+        dbModified = true;
+      }
+    }
+    for (const id in (db.storeData || {})) {
+      const staff = db.storeData[id].staff || [];
+      for (const st of staff) {
+        if (st.password && !isBcryptHash(st.password)) {
+          st.password = await hashPassword(st.password);
+          dbModified = true;
+        }
+      }
+    }
+    if (dbModified) {
+      saveDb(db);
+    }
+  } catch (e) {
+    console.warn('Local db password migration error:', e.message);
+  }
+}
+
+// Trigger initial setup & password migration if DATABASE_URL exists
 if (process.env.DATABASE_URL) {
   initPostgresTables().catch(() => {});
 }
