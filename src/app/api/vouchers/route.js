@@ -88,13 +88,22 @@ export async function POST(request) {
     const publicToken = 'inv_' + crypto.randomBytes(16).toString('hex');
     const voucherId = 'v_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex');
 
+    // Resolve client phone from client list if not directly provided
+    let resolvedPhone = (clientPhone || '').trim();
+    if (!resolvedPhone && clientName && clientName !== 'Walk-in Customer') {
+      const matchedClient = (storeData.clients || []).find(c => c.name === clientName || c.id === clientName);
+      if (matchedClient?.phone) {
+        resolvedPhone = matchedClient.phone.trim();
+      }
+    }
+
     const newVoucher = {
       id: voucherId,
       publicToken,
       voucherNo,
       date: new Date().toISOString(),
       clientName: clientName || 'Walk-in Customer',
-      clientPhone: clientPhone || '',
+      clientPhone: resolvedPhone,
       salerName: salerName || 'Main Counter',
       items,
       subTotal: Number(totalAmount),

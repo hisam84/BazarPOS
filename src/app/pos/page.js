@@ -240,12 +240,16 @@ export default function POSTerminalPage() {
     }
 
     try {
+      const clientObj = clients.find(c => c.name === selectedClient || c.id === selectedClient);
+      const clientPhone = clientObj?.phone || '';
+
       const res = await fetch('/api/vouchers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           storeId: user?.storeId || 'default',
           clientName: selectedClient || 'Walk-in Customer',
+          clientPhone,
           salerName: selectedSaler || 'Main Counter',
           items: cart,
           totalAmount: subTotal,
@@ -286,23 +290,39 @@ export default function POSTerminalPage() {
     return `${origin}/invoice/${token}?storeId=${user?.storeId || 'default'}`;
   };
 
+  const formatWhatsAppPhone = (rawPhone) => {
+    if (!rawPhone) return '';
+    let clean = String(rawPhone).replace(/[^0-9]/g, '');
+    if (!clean) return '';
+    if (clean.startsWith('00')) clean = clean.substring(2);
+    // Bangladesh local 11-digit mobile starting with 01 (017, 018, 019, 013, 014, 015, 016)
+    if (clean.length === 11 && clean.startsWith('01')) {
+      clean = '88' + clean;
+    } else if (clean.length === 10 && clean.startsWith('1')) {
+      clean = '880' + clean;
+    }
+    return clean;
+  };
+
   const getWhatsAppShareUrl = () => {
     if (!completedVoucher) return '#';
-    const client = clients.find(c => c.name === completedVoucher.clientName);
-    const phone = client?.phone ? client.phone.replace(/[^0-9]/g, '') : '';
+    const client = clients.find(c => c.name === completedVoucher.clientName || c.id === completedVoucher.clientId);
+    const rawPhone = completedVoucher.clientPhone || client?.phone || '';
+    const phone = formatWhatsAppPhone(rawPhone);
     const downloadUrl = getInvoiceDownloadUrl(completedVoucher);
 
     const text = encodeURIComponent(
       `*${user?.storeName || 'BazarPOS Outlet'}*\n` +
       `📄 *Invoice #:* ${completedVoucher.voucherNo}\n` +
       `📅 *Date:* ${new Date(completedVoucher.date).toLocaleDateString()}\n` +
+      `👤 *Customer:* ${completedVoucher.clientName || 'Valued Customer'}\n` +
       `💵 *Total Amount:* ৳${completedVoucher.totalAmount}\n` +
       `✅ *Paid:* ৳${completedVoucher.paidAmount}\n` +
       (completedVoucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${completedVoucher.dueAmount}\n` : '') +
       `\n📥 *Download / View Invoice Link:*\n${downloadUrl}\n\n` +
       `Thank you for your business!`
     );
-    return `https://wa.me/${phone}?text=${text}`;
+    return phone ? `https://wa.me/${phone}?text=${text}` : `https://api.whatsapp.com/send?text=${text}`;
   };
 
   const handleSendEmailInvoice = async (e) => {

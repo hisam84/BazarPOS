@@ -37,6 +37,8 @@ export default function VoucherHistoryPage() {
   const [emailSuccessMsg, setEmailSuccessMsg] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const [clients, setClients] = useState([]);
+
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
     if (saved) {
@@ -50,12 +52,14 @@ export default function VoucherHistoryPage() {
 
   const fetchVouchers = async (storeId) => {
     try {
-      const [vRes, invRes] = await Promise.all([
+      const [vRes, invRes, cRes] = await Promise.all([
         fetch(`/api/vouchers?storeId=${storeId}`),
-        fetch(`/api/invoice-settings?storeId=${storeId}`)
+        fetch(`/api/invoice-settings?storeId=${storeId}`),
+        fetch(`/api/clients?storeId=${storeId}`)
       ]);
       const data = await vRes.json();
       const invData = await invRes.json();
+      const clientData = await cRes.json();
 
       if (data.success) {
         setVouchers(data.vouchers || []);
@@ -64,6 +68,9 @@ export default function VoucherHistoryPage() {
         if (invData.settings) setInvoiceSettings(invData.settings);
         if (invData.company) setCompany(invData.company);
         if (invData.settings?.paperSize) setPrintLayout(invData.settings.paperSize === 'thermal' ? 'thermal' : 'A4');
+      }
+      if (clientData.success) {
+        setClients(clientData.clients || []);
       }
     } catch (err) {
       console.error(err);
@@ -96,22 +103,39 @@ export default function VoucherHistoryPage() {
     return `${origin}/invoice/${token}?storeId=${user?.storeId || 'default'}`;
   };
 
+  const formatWhatsAppPhone = (rawPhone) => {
+    if (!rawPhone) return '';
+    let clean = String(rawPhone).replace(/[^0-9]/g, '');
+    if (!clean) return '';
+    if (clean.startsWith('00')) clean = clean.substring(2);
+    // Bangladesh local 11-digit mobile starting with 01 (017, 018, 019, 013, 014, 015, 016)
+    if (clean.length === 11 && clean.startsWith('01')) {
+      clean = '88' + clean;
+    } else if (clean.length === 10 && clean.startsWith('1')) {
+      clean = '880' + clean;
+    }
+    return clean;
+  };
+
   const getWhatsAppShareUrl = (voucher) => {
     if (!voucher) return '#';
-    const phone = voucher.clientPhone ? voucher.clientPhone.replace(/[^0-9]/g, '') : '';
+    const client = clients.find(c => c.name === voucher.clientName || c.id === voucher.clientId);
+    const rawPhone = voucher.clientPhone || client?.phone || '';
+    const phone = formatWhatsAppPhone(rawPhone);
     const downloadUrl = getInvoiceDownloadUrl(voucher);
 
     const text = encodeURIComponent(
       `*${user?.storeName || company?.name || 'BazarPOS Outlet'}*\n` +
       `📄 *Invoice #:* ${voucher.voucherNo}\n` +
       `📅 *Date:* ${new Date(voucher.date).toLocaleDateString()}\n` +
+      `👤 *Customer:* ${voucher.clientName || 'Valued Customer'}\n` +
       `💵 *Total Amount:* ৳${voucher.totalAmount}\n` +
       `✅ *Paid:* ৳${voucher.paidAmount}\n` +
       (voucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${voucher.dueAmount}\n` : '') +
       `\n📥 *Download / View Invoice Link:*\n${downloadUrl}\n\n` +
       `Thank you for your business!`
     );
-    return `https://wa.me/${phone}?text=${text}`;
+    return phone ? `https://wa.me/${phone}?text=${text}` : `https://api.whatsapp.com/send?text=${text}`;
   };
 
   const handleSendEmailInvoice = async (e) => {
@@ -400,7 +424,8 @@ export default function VoucherHistoryPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setRecipientEmail(selectedVoucher?.clientEmail || '');
+                    const matchedClient = clients.find(c => c.name === selectedVoucher?.clientName || c.id === selectedVoucher?.clientId);
+                    setRecipientEmail(selectedVoucher?.clientEmail || matchedClient?.email || '');
                     setEmailModal(true);
                   }}
                   className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl flex items-center space-x-1.5 text-xs shadow-sm transition"
