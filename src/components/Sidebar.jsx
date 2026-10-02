@@ -26,7 +26,6 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronLeft,
-  Search,
   LogOut,
   Sparkles,
   Receipt,
@@ -239,7 +238,6 @@ const SUPERADMIN_NAVIGATION_ITEMS = [
 export default function Sidebar({ user, company, onLogout, mobileOpen, setMobileOpen }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   
   // Track open group states (Accordion)
   const [openGroups, setOpenGroups] = useState({
@@ -304,19 +302,6 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
     return userPermissions.includes(item.permission);
   };
 
-  // Filter items if searching
-  const filteredNavItems = useMemo(() => {
-    if (!searchQuery.trim()) return navItems;
-    const q = searchQuery.toLowerCase();
-    return navItems.filter(item => {
-      if (item.title.toLowerCase().includes(q)) return true;
-      if (item.items) {
-        return item.items.some(sub => sub.name.toLowerCase().includes(q));
-      }
-      return false;
-    });
-  }, [navItems, searchQuery]);
-
   return (
     <>
       {/* Mobile Backdrop */}
@@ -336,74 +321,76 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
         }`}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-[#222944] bg-[#121626] shrink-0">
+        <div className={`h-16 flex items-center border-b border-[#222944] bg-[#121626] shrink-0 relative ${
+          collapsed ? 'justify-center px-2' : 'justify-between px-3.5'
+        }`}>
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center space-x-3 overflow-hidden min-w-0"
+            className={`flex items-center overflow-hidden min-w-0 ${
+              collapsed ? 'justify-center' : 'space-x-3 flex-1'
+            }`}
+            title={company?.name || user?.storeName || 'BazarPOS'}
           >
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt="Store Logo"
-                className="w-9 h-9 rounded-xl object-contain bg-white/10 p-1 border border-white/10 shrink-0 shadow-xs"
+                className={`${
+                  collapsed ? 'w-10 h-10' : 'w-9 h-9'
+                } rounded-xl object-contain bg-white/10 p-1 border border-white/10 shrink-0 shadow-xs`}
               />
             ) : (
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white shrink-0 shadow-md shadow-blue-500/20 text-sm">
+              <div className={`${
+                collapsed ? 'w-10 h-10 text-base' : 'w-9 h-9 text-sm'
+              } rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white shrink-0 shadow-md shadow-blue-500/20`}>
                 B
               </div>
             )}
 
             {!collapsed && (
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="font-extrabold text-sm text-white tracking-tight truncate block">
                   {company?.name || user?.storeName || 'BazarPOS'}
                 </span>
-                <span className="text-[10px] text-blue-400 font-semibold block uppercase tracking-wider">
+                <span className="text-[10px] text-blue-400 font-semibold block uppercase tracking-wider truncate">
                   {isSuperAdmin ? 'SuperAdmin Portal' : (role === 'owner' ? 'Store Manager' : role)}
                 </span>
               </div>
             )}
           </Link>
 
-          {/* Desktop Collapse & Mobile Close */}
-          <div className="flex items-center space-x-1">
+          {/* Desktop Collapse / Expand Toggle Button */}
+          {!collapsed ? (
             <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition"
-              title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              onClick={() => setCollapsed(true)}
+              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition shrink-0 ml-1"
+              title="Collapse Sidebar"
             >
-              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+              <ChevronLeft size={16} />
             </button>
+          ) : (
+            <button
+              onClick={() => setCollapsed(false)}
+              className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-600 hover:bg-blue-500 text-white rounded-full items-center justify-center shadow-md transition z-20 border-2 border-[#161b2e]"
+              title="Expand Sidebar"
+            >
+              <ChevronRight size={13} />
+            </button>
+          )}
 
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5"
-            >
-              <X size={20} />
-            </button>
-          </div>
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5"
+          >
+            <X size={20} />
+          </button>
         </div>
-
-        {/* Search Navigation Bar (when expanded) */}
-        {!collapsed && (
-          <div className="p-3 border-b border-[#222944] bg-[#141829] shrink-0">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 text-slate-500 pointer-events-none" size={14} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search menus..."
-                className="w-full pl-8.5 pr-3 py-1.5 bg-[#1e243d] border border-[#2a3356] rounded-xl text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:bg-[#222a47] transition font-medium"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Navigation Items Tree List */}
         <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-1 custom-scrollbar text-xs font-medium">
-          {filteredNavItems.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isOpen = !!openGroups[item.id];
 
