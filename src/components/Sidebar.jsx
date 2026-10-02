@@ -170,12 +170,12 @@ export default function Sidebar({ user, onLogout }) {
 
   return (
     <aside
-      className={`bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-100 min-h-screen transition-all duration-300 flex flex-col no-print border-r border-slate-800/80 shadow-2xl z-30 ${
+      className={`sticky top-0 h-screen flex-shrink-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-100 transition-all duration-300 flex flex-col no-print border-r border-slate-800/80 shadow-2xl z-40 select-none ${
         collapsed ? 'w-20' : 'w-72'
       }`}
     >
       {/* Brand Header */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40">
+      <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40 flex-shrink-0">
         {!collapsed ? (
           <div className="flex items-center space-x-3">
             <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25 border border-blue-400/30">
@@ -207,7 +207,7 @@ export default function Sidebar({ user, onLogout }) {
 
       {/* Quick Search Filter (Only when expanded) */}
       {!collapsed && (
-        <div className="px-3 pt-3 pb-1">
+        <div className="px-3 pt-3 pb-1 flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 text-slate-500 pointer-events-none" size={14} />
             <input
@@ -358,7 +358,7 @@ export default function Sidebar({ user, onLogout }) {
       </nav>
 
       {/* User Info & Store Status */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-950/40 space-y-2">
+      <div className="p-3 border-t border-slate-800/80 bg-slate-950/40 space-y-2 flex-shrink-0">
         {!collapsed && (
           <div className="flex items-center justify-between px-2 py-1.5 bg-slate-900/80 rounded-xl border border-slate-800">
             <div className="flex items-center space-x-2.5 min-w-0">
