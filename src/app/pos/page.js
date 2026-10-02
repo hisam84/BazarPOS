@@ -23,7 +23,7 @@ export default function POSTerminalPage() {
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [clients, setClients] = useState([]);
-  const [salers, setSalers] = useState([]);
+  const [staffList, setStaffList] = useState([]);
   const [categories, setCategories] = useState(['All']);
   const [company, setCompany] = useState({});
   const [invoiceSettings, setInvoiceSettings] = useState({});
@@ -47,12 +47,10 @@ export default function POSTerminalPage() {
   const [completedVoucher, setCompletedVoucher] = useState(null);
   const [printModal, setPrintModal] = useState(false);
   const [showAddClientModal, setShowAddClientModal] = useState(false);
-  const [showAddSalerModal, setShowAddSalerModal] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
 
   // Quick Add Forms
   const [clientForm, setClientForm] = useState({ name: '', phone: '', address: '', due: 0 });
-  const [salerForm, setSalerForm] = useState({ name: '', phone: '', role: 'Sales Representative' });
   const [productForm, setProductForm] = useState({
     code: '',
     name: '',
@@ -71,22 +69,23 @@ export default function POSTerminalPage() {
     if (saved) {
       const u = JSON.parse(saved);
       setUser(u);
-      loadPOSData(u.storeId || 'default');
+      setSelectedSaler(u.fullName || u.username || 'Store Account');
+      loadPOSData(u.storeId || 'default', u);
     }
   }, []);
 
-  const loadPOSData = async (storeId) => {
+  const loadPOSData = async (storeId, currentUser) => {
     try {
-      const [prodRes, cliRes, salRes, invRes] = await Promise.all([
+      const [prodRes, cliRes, staffRes, invRes] = await Promise.all([
         fetch(`/api/products?storeId=${storeId}`),
         fetch(`/api/clients?storeId=${storeId}`),
-        fetch(`/api/salers?storeId=${storeId}`),
+        fetch(`/api/staff?storeId=${storeId}`),
         fetch(`/api/invoice-settings?storeId=${storeId}`)
       ]);
 
       const prodData = await prodRes.json();
       const cliData = await cliRes.json();
-      const salData = await salRes.json();
+      const staffData = await staffRes.json();
       const invData = await invRes.json();
 
       if (prodData.success) {
@@ -97,14 +96,17 @@ export default function POSTerminalPage() {
         setClients(cliData.clients || []);
         if (cliData.clients.length > 0 && !selectedClient) setSelectedClient(cliData.clients[0].name);
       }
-      if (salData.success) {
-        setSalers(salData.salers || []);
-        if (salData.salers.length > 0 && !selectedSaler) setSelectedSaler(salData.salers[0].name);
+      if (staffData.success) {
+        setStaffList(staffData.staff || []);
       }
       if (invData.success) {
         if (invData.settings) setInvoiceSettings(invData.settings);
         if (invData.company) setCompany(invData.company);
         if (invData.settings?.paperSize) setPrintLayout(invData.settings.paperSize === 'thermal' ? 'thermal' : 'A4');
+      }
+
+      if (currentUser) {
+        setSelectedSaler(currentUser.fullName || currentUser.username || 'Store Account');
       }
     } catch (err) {
       console.error(err);
@@ -189,26 +191,6 @@ export default function POSTerminalPage() {
     }
   };
 
-  // Quick Add Saler Handler
-  const handleQuickAddSaler = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/salers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId: user?.storeId || 'default', ...salerForm })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSelectedSaler(salerForm.name);
-        setShowAddSalerModal(false);
-        setSalerForm({ name: '', phone: '', role: 'Sales Representative' });
-        loadPOSData(user?.storeId || 'default');
-      }
-    } catch (err) {
-      alert('Error adding sales representative');
-    }
-  };
 
   // Quick Add Product Handler
   const handleQuickAddProduct = async (e) => {
@@ -441,23 +423,24 @@ export default function POSTerminalPage() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[11px] font-semibold text-slate-500">Sales Rep</label>
-              <button
-                onClick={() => setShowAddSalerModal(true)}
-                className="text-[10px] text-blue-600 font-bold hover:underline flex items-center space-x-0.5"
-              >
-                <UserCheck size={12} />
-                <span>+ Add</span>
-              </button>
+              <label className="text-[11px] font-semibold text-slate-500">Seller / Staff</label>
+              <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">Active</span>
             </div>
             <select
               value={selectedSaler}
               onChange={(e) => setSelectedSaler(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none"
+              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
             >
-              {salers.map((s) => (
-                <option key={s.id} value={s.name}>{s.name}</option>
-              ))}
+              <option value={user?.fullName || user?.username || 'Store Account'}>
+                {user?.fullName || user?.username || 'Store Account'} ({user?.role === 'staff' ? 'Staff' : 'Owner'})
+              </option>
+              {staffList
+                .filter(st => st.name !== (user?.fullName || user?.username) && st.username !== user?.username)
+                .map((st) => (
+                  <option key={st.id} value={st.name}>
+                    {st.name} ({st.role || 'Staff'})
+                  </option>
+                ))}
             </select>
           </div>
         </div>
@@ -581,31 +564,6 @@ export default function POSTerminalPage() {
         </div>
       )}
 
-      {/* QUICK ADD SALER MODAL */}
-      {showAddSalerModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-slate-800 text-base">Quick Add Sales Representative</h3>
-              <button onClick={() => setShowAddSalerModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleQuickAddSaler} className="space-y-3 text-xs font-medium">
-              <div>
-                <label className="block text-slate-600 mb-1">Saler Name *</label>
-                <input type="text" required value={salerForm.name} onChange={e => setSalerForm({...salerForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
-              </div>
-              <div>
-                <label className="block text-slate-600 mb-1">Phone Number</label>
-                <input type="text" value={salerForm.phone} onChange={e => setSalerForm({...salerForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
-              </div>
-              <div className="pt-3 border-t flex space-x-3">
-                <button type="button" onClick={() => setShowAddSalerModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save & Select</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* QUICK ADD PRODUCT MODAL */}
       {showAddProductModal && (

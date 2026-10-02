@@ -173,14 +173,14 @@ export default function Dashboard() {
           </Link>
 
           <Link
-            href="/salers"
+            href="/staff"
             className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-blue-500 hover:shadow-md transition flex flex-col items-center text-center group"
           >
             <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-2 group-hover:scale-110 transition">
               <UserCheck size={22} />
             </div>
-            <span className="font-bold text-xs text-slate-800">Add Sales Staff</span>
-            <span className="text-[10px] text-slate-400 mt-0.5">Salers Directory</span>
+            <span className="font-bold text-xs text-slate-800">Staff & Roles</span>
+            <span className="text-[10px] text-slate-400 mt-0.5">Manage Sellers</span>
           </Link>
 
           <Link

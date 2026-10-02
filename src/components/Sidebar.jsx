@@ -236,24 +236,6 @@ export default function Sidebar({ user, onLogout }) {
                   <Users size={18} />
                   {!collapsed && <span>Clients & Due</span>}
                 </Link>
-                <Link
-                  href="/salers"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/salers' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <UserCheck size={18} />
-                  {!collapsed && <span>Salers</span>}
-                </Link>
-                <Link
-                  href="/saler-balance"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/saler-balance' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Scale size={18} />
-                  {!collapsed && <span>Saler Balance</span>}
-                </Link>
               </div>
             </div>
 
