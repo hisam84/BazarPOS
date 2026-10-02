@@ -289,7 +289,7 @@ function ReportsContent() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto overflow-x-hidden">
       {/* Dynamic Print CSS for standard A4 layout */}
       <style jsx global>{`
         @media print {
@@ -359,127 +359,127 @@ function ReportsContent() {
       `}</style>
 
       {/* Screen Top Header (hidden on print) */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs no-print">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <BarChart3 className="text-blue-600" size={24} />
-            <span>Store Reports & Financial Intelligence</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <BarChart3 className="text-blue-600 flex-shrink-0" size={22} />
+            <span className="truncate">Store Reports & Financials</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Detailed A4-optimized reporting for Sales Invoices, Net Profit/Loss Statement, Operating Expenses, and Stock Valuation.
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+            Detailed reporting for Sales, Net Profit/Loss, Expenses, and Stock Valuation.
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 sm:space-x-2.5">
           <button
             onClick={handleExportCsv}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition"
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-[11px] sm:text-xs transition active:scale-95"
           >
-            <Download size={15} />
+            <Download size={14} />
             <span>Export CSV</span>
           </button>
 
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md shadow-blue-500/20 text-xs"
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md shadow-blue-500/20 text-[11px] sm:text-xs active:scale-95"
           >
-            <Printer size={16} />
-            <span>Print A4 Report</span>
+            <Printer size={14} />
+            <span>Print Report</span>
           </button>
         </div>
       </div>
 
       {/* Report Tabs (hidden on print) */}
-      <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-2 no-print">
+      <div className="bg-white p-1.5 sm:p-2 rounded-2xl border border-slate-200 shadow-xs grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2 no-print">
         <button
           onClick={() => setActiveTab('sales')}
-          className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 ${
+          className={`py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center space-x-1.5 sm:space-x-2 ${
             activeTab === 'sales'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20'
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <ShoppingCart size={16} />
-          <span>Sales Report</span>
+          <ShoppingCart size={15} className="flex-shrink-0" />
+          <span className="truncate">Sales Report</span>
         </button>
 
         <button
           onClick={() => setActiveTab('income')}
-          className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 ${
+          className={`py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center space-x-1.5 sm:space-x-2 ${
             activeTab === 'income'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <TrendingUp size={16} />
-          <span>Income & Profit / Loss</span>
+          <TrendingUp size={15} className="flex-shrink-0" />
+          <span className="truncate">Profit & Loss</span>
         </button>
 
         <button
           onClick={() => setActiveTab('expenses')}
-          className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 ${
+          className={`py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center space-x-1.5 sm:space-x-2 ${
             activeTab === 'expenses'
-              ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+              ? 'bg-rose-600 text-white shadow-sm shadow-rose-600/20'
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <Receipt size={16} />
-          <span>Operating Expenses</span>
+          <Receipt size={15} className="flex-shrink-0" />
+          <span className="truncate">Expenses Log</span>
         </button>
 
         <button
           onClick={() => setActiveTab('stock')}
-          className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 ${
+          className={`py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center space-x-1.5 sm:space-x-2 ${
             activeTab === 'stock'
-              ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
+              ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/20'
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <PackageCheck size={16} />
-          <span>Stock Valuation Report</span>
+          <PackageCheck size={15} className="flex-shrink-0" />
+          <span className="truncate">Stock Valuation</span>
         </button>
       </div>
 
       {/* Date & Filter Controls (hidden on print) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 no-print date-filter-bar">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Quick Date Presets */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center space-x-1">
-              <Calendar size={14} />
-              <span>Date Filter:</span>
-            </span>
-            {[
-              { key: 'today', label: 'Today' },
-              { key: 'yesterday', label: 'Yesterday' },
-              { key: '7days', label: 'Last 7 Days' },
-              { key: 'month', label: 'This Month' },
-              { key: 'last_month', label: 'Last Month' },
-              { key: 'all', label: 'All Time' },
-              { key: 'custom', label: 'Custom Range' },
-            ].map(preset => (
-              <button
-                key={preset.key}
-                onClick={() => setDatePreset(preset.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  datePreset === preset.key
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2.5 no-print date-filter-bar">
+        {/* Quick Date Presets Scrollable */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+          <span className="text-[11px] font-bold text-slate-500 mr-0.5 flex items-center space-x-1 flex-shrink-0">
+            <Calendar size={13} />
+            <span>Filter:</span>
+          </span>
+          {[
+            { key: 'today', label: 'Today' },
+            { key: 'yesterday', label: 'Yesterday' },
+            { key: '7days', label: 'Last 7 Days' },
+            { key: 'month', label: 'This Month' },
+            { key: 'last_month', label: 'Last Month' },
+            { key: 'all', label: 'All Time' },
+            { key: 'custom', label: 'Custom' },
+          ].map(preset => (
+            <button
+              key={preset.key}
+              onClick={() => setDatePreset(preset.key)}
+              className={`px-2.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap flex-shrink-0 transition active:scale-95 ${
+                datePreset === preset.key
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
 
-          {/* Payment Method or Category sub-filters */}
+        {/* Payment Method or Category sub-filters */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
           {activeTab === 'sales' && (
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-slate-500 font-bold">Payment:</span>
+            <div className="flex items-center space-x-2 flex-1 sm:flex-initial">
+              <span className="text-[11px] text-slate-500 font-bold whitespace-nowrap">Payment:</span>
               <select
                 value={paymentMethodFilter}
                 onChange={(e) => setPaymentMethodFilter(e.target.value)}
-                className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                className="w-full sm:w-auto px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] sm:text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
               >
                 <option value="all">All Methods</option>
                 <option value="cash">Cash</option>
@@ -491,12 +491,12 @@ function ReportsContent() {
           )}
 
           {(activeTab === 'expenses' || activeTab === 'stock') && (
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-slate-500 font-bold">Category:</span>
+            <div className="flex items-center space-x-2 flex-1 sm:flex-initial">
+              <span className="text-[11px] text-slate-500 font-bold whitespace-nowrap">Category:</span>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                className="w-full sm:w-auto px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] sm:text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
               >
                 <option value="all">All Categories</option>
                 {categoriesList.map((cat, i) => (
@@ -507,12 +507,12 @@ function ReportsContent() {
           )}
 
           {activeTab === 'stock' && (
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-slate-500 font-bold">Brand:</span>
+            <div className="flex items-center space-x-2 flex-1 sm:flex-initial">
+              <span className="text-[11px] text-slate-500 font-bold whitespace-nowrap">Brand:</span>
               <select
                 value={selectedBrand}
                 onChange={(e) => setSelectedBrand(e.target.value)}
-                className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                className="w-full sm:w-auto px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] sm:text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
               >
                 <option value="all">All Brands</option>
                 {brandsList.map((b, i) => (
@@ -525,23 +525,23 @@ function ReportsContent() {
 
         {/* Custom Date Inputs if selected */}
         {datePreset === 'custom' && (
-          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-3">
+          <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div className="flex items-center space-x-2">
-              <label className="text-xs font-bold text-slate-600">Start Date:</label>
+              <label className="text-[11px] font-bold text-slate-600 whitespace-nowrap">From:</label>
               <input
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div className="flex items-center space-x-2">
-              <label className="text-xs font-bold text-slate-600">End Date:</label>
+              <label className="text-[11px] font-bold text-slate-600 whitespace-nowrap">To:</label>
               <input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -549,72 +549,74 @@ function ReportsContent() {
       </div>
 
       {/* PRINTABLE AREA (A4 Standard Format) */}
-      <div className="printable-area printable-report space-y-6">
+      <div className="printable-area printable-report space-y-4 sm:space-y-6">
         {/* Printable Business Header (visible in print & on screen) */}
-        <div className="print-header block bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex justify-between items-start">
+        <div className="print-header block bg-white p-3.5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2.5">
             <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">{storeInfo.name}</h2>
-              {storeInfo.address && <p className="text-xs text-slate-500 mt-0.5">{storeInfo.address}</p>}
-              <div className="flex items-center space-x-4 text-xs text-slate-500 mt-1 font-mono">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{storeInfo.name}</h2>
+              {storeInfo.address && <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">{storeInfo.address}</p>}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500 mt-1 font-mono">
                 {storeInfo.phone && <span>Tel: {storeInfo.phone}</span>}
                 {storeInfo.email && <span>Email: {storeInfo.email}</span>}
               </div>
             </div>
-            <div className="text-right">
-              <span className="inline-block px-3 py-1 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase tracking-wider">
-                {activeTab === 'sales' && 'Detailed Sales Report'}
-                {activeTab === 'income' && 'Income & Profit/Loss Statement'}
-                {activeTab === 'expenses' && 'Operating Expense Report'}
-                {activeTab === 'stock' && 'Inventory Stock Valuation Report'}
+            <div className="sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+              <span className="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 bg-slate-900 text-white rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                {activeTab === 'sales' && 'Sales Report'}
+                {activeTab === 'income' && 'Profit / Loss Statement'}
+                {activeTab === 'expenses' && 'Expense Report'}
+                {activeTab === 'stock' && 'Stock Valuation Report'}
               </span>
-              <p className="text-xs font-semibold text-slate-700 mt-1.5">
+              <p className="text-[11px] sm:text-xs font-semibold text-slate-700 mt-1">
                 Period: <span className="font-bold text-blue-600">{dateRange.label}</span>
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Generated: {new Date().toLocaleString()}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Generated: {new Date().toLocaleDateString()}</p>
             </div>
           </div>
         </div>
 
         {/* TAB 1: SALES REPORT */}
         {activeTab === 'sales' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 kpi-grid">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Sales Revenue</span>
-                <p className="text-xl font-bold font-mono text-blue-700 mt-1">৳{salesMetrics.totalSales.toLocaleString()}</p>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">{salesMetrics.count} Total Invoices</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 kpi-grid">
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Sales</span>
+                <p className="text-base sm:text-xl font-black font-mono text-blue-700 mt-1 truncate">৳{salesMetrics.totalSales.toLocaleString()}</p>
+                <span className="text-[10px] text-slate-500 mt-0.5 block truncate">{salesMetrics.count} Invoices</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Gross Profit</span>
-                <p className="text-xl font-bold font-mono text-emerald-700 mt-1">৳{salesMetrics.grossProfit.toLocaleString()}</p>
-                <span className="text-[10px] text-emerald-600 mt-0.5 block">After Product COGS</span>
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Gross Profit</span>
+                <p className="text-base sm:text-xl font-black font-mono text-emerald-700 mt-1 truncate">৳{salesMetrics.grossProfit.toLocaleString()}</p>
+                <span className="text-[10px] text-emerald-600 mt-0.5 block truncate">Margin: {salesMetrics.totalSales > 0 ? ((salesMetrics.grossProfit / salesMetrics.totalSales) * 100).toFixed(0) : 0}%</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Collected Cash / Paid</span>
-                <p className="text-xl font-bold font-mono text-slate-800 mt-1">৳{salesMetrics.totalPaid.toLocaleString()}</p>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Discount: ৳{salesMetrics.totalDiscount.toLocaleString()}</span>
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Collected</span>
+                <p className="text-base sm:text-xl font-black font-mono text-slate-800 mt-1 truncate">৳{salesMetrics.totalPaid.toLocaleString()}</p>
+                <span className="text-[10px] text-slate-500 mt-0.5 block truncate">Discounts: ৳{salesMetrics.totalDiscount.toLocaleString()}</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Uncollected Due</span>
-                <p className="text-xl font-bold font-mono text-rose-600 mt-1">৳{salesMetrics.totalDue.toLocaleString()}</p>
-                <span className="text-[10px] text-rose-500 mt-0.5 block">Credit Sales Balance</span>
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Due</span>
+                <p className="text-base sm:text-xl font-black font-mono text-rose-600 mt-1 truncate">৳{salesMetrics.totalDue.toLocaleString()}</p>
+                <span className="text-[10px] text-rose-500 mt-0.5 block truncate">Uncollected</span>
               </div>
             </div>
 
-            {/* Sales Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-                <h3 className="font-bold text-slate-800 text-sm flex items-center space-x-2">
-                  <ShoppingCart size={16} className="text-blue-600" />
-                  <span>Sales Invoices Breakdown ({filteredVouchers.length} records)</span>
+            {/* Sales Section: Table for Desktop, Touch Cards for Mobile */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="p-3.5 sm:p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                <h3 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center space-x-2">
+                  <ShoppingCart size={15} className="text-blue-600 flex-shrink-0" />
+                  <span>Sales Breakdown ({filteredVouchers.length} records)</span>
                 </h3>
               </div>
-              <div className="overflow-x-auto">
+
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
                     <tr>
@@ -672,102 +674,160 @@ function ReportsContent() {
                   )}
                 </table>
               </div>
+
+              {/* Mobile Card List */}
+              <div className="block md:hidden divide-y divide-slate-100">
+                {filteredVouchers.map((v) => (
+                  <div key={v.id} className="p-3 hover:bg-slate-50 transition space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono font-bold text-xs text-indigo-700">{v.voucherNumber || v.id}</span>
+                          <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-bold uppercase">
+                            {v.paymentMethod || 'Cash'}
+                          </span>
+                        </div>
+                        <p className="font-semibold text-slate-800 text-xs mt-0.5">{v.clientName || 'Walk-in Customer'}</p>
+                        {v.clientPhone && <p className="text-[10px] text-slate-400 font-mono">{v.clientPhone}</p>}
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-black font-mono text-slate-900 block">৳{Number(v.totalAmount).toLocaleString()}</span>
+                        <span className="text-[10px] text-slate-400">{new Date(v.createdAt || v.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-dashed border-slate-100">
+                      <span className="text-slate-500 font-medium">Items: <span className="font-bold text-slate-700">{v.items?.length || 1}</span></span>
+                      <div className="flex items-center space-x-3 font-mono">
+                        <span className="text-emerald-600 font-bold">Paid: ৳{Number(v.paidAmount || 0).toLocaleString()}</span>
+                        {v.dueAmount > 0 && (
+                          <span className="text-rose-600 font-bold">Due: ৳{Number(v.dueAmount).toLocaleString()}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {filteredVouchers.length === 0 && (
+                  <div className="text-center py-10 text-slate-400 text-xs">
+                    No sales records found for this period.
+                  </div>
+                )}
+
+                {/* Mobile Summary Total Card */}
+                {filteredVouchers.length > 0 && (
+                  <div className="p-3 bg-slate-100 border-t border-slate-200 space-y-1.5 text-xs font-mono">
+                    <div className="flex justify-between font-bold text-slate-800">
+                      <span>Total Revenue:</span>
+                      <span className="text-blue-700">৳{salesMetrics.totalSales.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 text-[11px]">
+                      <span>Paid / Due:</span>
+                      <span>৳{salesMetrics.totalPaid.toLocaleString()} / <span className="text-rose-600 font-bold">৳{salesMetrics.totalDue.toLocaleString()}</span></span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {/* TAB 2: INCOME & PROFIT / LOSS */}
         {activeTab === 'income' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 kpi-grid">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Total Sales Revenue</span>
-                <p className="text-2xl font-bold font-mono text-blue-700 mt-1">৳{pnlMetrics.revenue.toLocaleString()}</p>
-                <span className="text-[11px] text-slate-500 mt-1 block">From {filteredVouchers.length} sales orders</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 kpi-grid">
+              <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block truncate">Total Revenue</span>
+                <p className="text-lg sm:text-2xl font-black font-mono text-blue-700 mt-1 truncate">৳{pnlMetrics.revenue.toLocaleString()}</p>
+                <span className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 block truncate">{filteredVouchers.length} sales orders</span>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Gross Profit</span>
-                <p className="text-2xl font-bold font-mono text-emerald-700 mt-1">৳{pnlMetrics.grossProfit.toLocaleString()}</p>
-                <span className="text-[11px] text-emerald-600 mt-1 block">Gross Margin: {pnlMetrics.grossMarginPct}%</span>
+              <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 block truncate">Gross Operating Profit</span>
+                <p className="text-lg sm:text-2xl font-black font-mono text-emerald-700 mt-1 truncate">৳{pnlMetrics.grossProfit.toLocaleString()}</p>
+                <span className="text-[10px] sm:text-[11px] text-emerald-600 mt-0.5 block truncate">Gross Margin: {pnlMetrics.grossMarginPct}%</span>
               </div>
 
-              <div className="bg-slate-900 p-5 rounded-2xl text-white shadow-md kpi-card">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-300 block">Net Business Profit</span>
-                <p className="text-3xl font-bold font-mono text-emerald-400 mt-1">৳{pnlMetrics.netProfit.toLocaleString()}</p>
-                <span className="text-[11px] text-slate-300 mt-1 block">Net Margin: {pnlMetrics.netMarginPct}%</span>
+              <div className="bg-slate-900 p-3.5 sm:p-5 rounded-2xl text-white shadow-sm kpi-card">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 block truncate">Net Business Profit</span>
+                <p className={`text-xl sm:text-3xl font-black font-mono mt-1 truncate ${pnlMetrics.netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  ৳{pnlMetrics.netProfit.toLocaleString()}
+                </p>
+                <span className="text-[10px] sm:text-[11px] text-slate-300 mt-0.5 block truncate">Net Margin: {pnlMetrics.netMarginPct}%</span>
               </div>
             </div>
 
-            {/* Income & P&L Statement Structured Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-6">
-              <h3 className="font-bold text-slate-800 text-base pb-3 border-b border-slate-200 flex items-center justify-between">
-                <span>Profit & Loss Statement ({dateRange.label})</span>
-                <span className="text-xs text-slate-500 font-normal">All amounts in BDT (৳)</span>
-              </h3>
+            {/* Income & P&L Statement Structured View */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+              <div className="pb-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h3 className="font-bold text-slate-800 text-sm sm:text-base">
+                  Profit & Loss Statement
+                </h3>
+                <span className="text-[11px] text-slate-500 font-mono">Currency in BDT (৳)</span>
+              </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* 1. Operating Revenue */}
-                <div className="bg-slate-50 p-4 rounded-xl space-y-2">
-                  <div className="flex justify-between font-bold text-slate-800 text-sm">
+                <div className="bg-slate-50 p-3 sm:p-4 rounded-xl space-y-1.5">
+                  <div className="flex justify-between items-center font-bold text-slate-800 text-xs sm:text-sm">
                     <span>1. Gross Sales Revenue</span>
-                    <span className="font-mono">৳{pnlMetrics.revenue.toLocaleString()}</span>
+                    <span className="font-mono text-blue-700 font-black">৳{pnlMetrics.revenue.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-slate-500 pl-4">
-                    <span>Less: Total Discounts Given</span>
+                  <div className="flex justify-between items-center text-[11px] sm:text-xs text-slate-500 pl-2 sm:pl-4">
+                    <span>Less: Discounts Given</span>
                     <span className="font-mono text-amber-600">-৳{salesMetrics.totalDiscount.toLocaleString()}</span>
                   </div>
                 </div>
 
                 {/* 2. Cost of Goods Sold */}
-                <div className="bg-slate-50 p-4 rounded-xl space-y-2">
-                  <div className="flex justify-between font-bold text-slate-800 text-sm">
+                <div className="bg-slate-50 p-3 sm:p-4 rounded-xl space-y-1">
+                  <div className="flex justify-between items-center font-bold text-slate-800 text-xs sm:text-sm">
                     <span>2. Cost of Goods Sold (COGS)</span>
-                    <span className="font-mono text-slate-700">-৳{pnlMetrics.cogs.toLocaleString()}</span>
+                    <span className="font-mono text-slate-700 font-bold">-৳{pnlMetrics.cogs.toLocaleString()}</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 pl-4">Direct inventory purchase costs for items sold.</p>
+                  <p className="text-[10px] text-slate-400 pl-2 sm:pl-4">Direct inventory purchase costs for items sold.</p>
                 </div>
 
                 {/* Gross Profit Result */}
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex justify-between items-center">
+                <div className="p-3 sm:p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex justify-between items-center">
                   <div>
-                    <span className="font-bold text-emerald-900 text-sm block">GROSS OPERATING PROFIT</span>
-                    <span className="text-xs text-emerald-700">Revenue minus Cost of Goods Sold</span>
+                    <span className="font-black text-emerald-900 text-xs sm:text-sm block">GROSS OPERATING PROFIT</span>
+                    <span className="text-[10px] text-emerald-700">Revenue minus Cost of Goods Sold</span>
                   </div>
-                  <span className="text-xl font-bold font-mono text-emerald-700">৳{pnlMetrics.grossProfit.toLocaleString()}</span>
+                  <span className="text-base sm:text-xl font-black font-mono text-emerald-700">৳{pnlMetrics.grossProfit.toLocaleString()}</span>
                 </div>
 
                 {/* 3. Operating Expenses Breakdown */}
-                <div className="bg-slate-50 p-4 rounded-xl space-y-3">
-                  <div className="flex justify-between font-bold text-slate-800 text-sm border-b pb-2">
+                <div className="bg-slate-50 p-3 sm:p-4 rounded-xl space-y-2 sm:space-y-3">
+                  <div className="flex justify-between items-center font-bold text-slate-800 text-xs sm:text-sm border-b pb-2">
                     <span>3. Operating & Administrative Expenses</span>
-                    <span className="font-mono text-rose-600">-৳{pnlMetrics.operatingExpenses.toLocaleString()}</span>
+                    <span className="font-mono text-rose-600 font-bold">-৳{pnlMetrics.operatingExpenses.toLocaleString()}</span>
                   </div>
-                  <div className="space-y-1.5 pl-4 text-xs">
+                  <div className="space-y-1 pl-2 sm:pl-4 text-[11px] sm:text-xs">
                     {Object.keys(expenseMetrics.byCategory).map((cat, i) => (
                       <div key={i} className="flex justify-between text-slate-600">
                         <span>{cat} Expenses</span>
-                        <span className="font-mono font-medium">৳{expenseMetrics.byCategory[cat].toLocaleString()}</span>
+                        <span className="font-mono font-semibold">৳{expenseMetrics.byCategory[cat].toLocaleString()}</span>
                       </div>
                     ))}
                     {Object.keys(expenseMetrics.byCategory).length === 0 && (
-                      <p className="text-slate-400 italic">No operating expenses recorded for this period.</p>
+                      <p className="text-slate-400 italic text-[11px]">No operating expenses recorded for this period.</p>
                     )}
                   </div>
                 </div>
 
                 {/* NET PROFIT FINAL ROW */}
-                <div className="p-5 bg-slate-900 text-white rounded-xl flex justify-between items-center shadow-md">
+                <div className="p-3.5 sm:p-5 bg-slate-900 text-white rounded-xl flex justify-between items-center shadow-sm">
                   <div>
-                    <span className="font-black text-base uppercase tracking-wider block">NET FINAL PROFIT / (LOSS)</span>
-                    <span className="text-xs text-slate-400">Gross Profit minus All Operating Expenses</span>
+                    <span className="font-black text-xs sm:text-base uppercase tracking-wider block">NET FINAL PROFIT / (LOSS)</span>
+                    <span className="text-[10px] sm:text-xs text-slate-400">Gross Profit minus Expenses</span>
                   </div>
                   <div className="text-right">
-                    <span className={`text-2xl font-black font-mono ${pnlMetrics.netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <span className={`text-lg sm:text-2xl font-black font-mono block ${pnlMetrics.netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                       ৳{pnlMetrics.netProfit.toLocaleString()}
                     </span>
-                    <span className="block text-[11px] text-slate-400 mt-0.5">Margin: {pnlMetrics.netMarginPct}%</span>
+                    <span className="text-[10px] sm:text-[11px] text-slate-400">Margin: {pnlMetrics.netMarginPct}%</span>
                   </div>
                 </div>
               </div>
@@ -777,39 +837,41 @@ function ReportsContent() {
 
         {/* TAB 3: EXPENSES REPORT */}
         {activeTab === 'expenses' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 kpi-grid">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Expense Amount</span>
-                <p className="text-xl font-bold font-mono text-rose-600 mt-1">৳{expenseMetrics.totalAmount.toLocaleString()}</p>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">{expenseMetrics.count} Entries</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 kpi-grid">
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Expenses</span>
+                <p className="text-lg sm:text-xl font-black font-mono text-rose-600 mt-1 truncate">৳{expenseMetrics.totalAmount.toLocaleString()}</p>
+                <span className="text-[10px] text-slate-500 mt-0.5 block truncate">{expenseMetrics.count} Entries</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Top Expense Category</span>
-                <p className="text-lg font-bold text-slate-800 mt-1 truncate">
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Top Category</span>
+                <p className="text-base sm:text-lg font-bold text-slate-800 mt-1 truncate">
                   {Object.keys(expenseMetrics.byCategory).sort((a,b) => expenseMetrics.byCategory[b] - expenseMetrics.byCategory[a])[0] || 'None'}
                 </p>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Highest expense driver</span>
+                <span className="text-[10px] text-slate-500 mt-0.5 block truncate">Highest expense driver</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Active Categories</span>
-                <p className="text-xl font-bold font-mono text-slate-800 mt-1">{Object.keys(expenseMetrics.byCategory).length}</p>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Categorized cost centers</span>
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Active Categories</span>
+                <p className="text-lg sm:text-xl font-black font-mono text-slate-800 mt-1">{Object.keys(expenseMetrics.byCategory).length}</p>
+                <span className="text-[10px] text-slate-500 mt-0.5 block truncate">Cost centers</span>
               </div>
             </div>
 
-            {/* Expenses Detailed Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-                <h3 className="font-bold text-slate-800 text-sm flex items-center space-x-2">
-                  <Receipt size={16} className="text-rose-600" />
-                  <span>Detailed Expenses Log ({filteredExpenses.length} entries)</span>
+            {/* Expenses Section: Desktop Table + Mobile Cards */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="p-3.5 sm:p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                <h3 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center space-x-2">
+                  <Receipt size={15} className="text-rose-600 flex-shrink-0" />
+                  <span>Expenses Log ({filteredExpenses.length} entries)</span>
                 </h3>
               </div>
-              <div className="overflow-x-auto">
+
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
                     <tr>
@@ -852,49 +914,87 @@ function ReportsContent() {
                   )}
                 </table>
               </div>
+
+              {/* Mobile Card List */}
+              <div className="block md:hidden divide-y divide-slate-100">
+                {filteredExpenses.map((e, idx) => (
+                  <div key={idx} className="p-3 hover:bg-slate-50 transition space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <span className="px-2 py-0.5 bg-rose-50 text-rose-700 font-bold rounded-md border border-rose-200 text-[10px]">
+                          {e.category || 'General'}
+                        </span>
+                        <p className="font-semibold text-slate-800 text-xs">{e.description || 'Operating Expense'}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-black font-mono text-rose-600 block">৳{Number(e.amount || 0).toLocaleString()}</span>
+                        <span className="text-[10px] text-slate-400">{new Date(e.date || e.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-semibold uppercase">
+                      Source: {e.paymentSource || 'Cash'}
+                    </div>
+                  </div>
+                ))}
+
+                {filteredExpenses.length === 0 && (
+                  <div className="text-center py-10 text-slate-400 text-xs">
+                    No expense records found for this period.
+                  </div>
+                )}
+
+                {filteredExpenses.length > 0 && (
+                  <div className="p-3 bg-slate-100 border-t border-slate-200 flex justify-between items-center text-xs font-mono font-bold text-slate-800">
+                    <span>Total Expenses:</span>
+                    <span className="text-rose-600 text-sm">৳{expenseMetrics.totalAmount.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {/* TAB 4: STOCK REPORT */}
         {activeTab === 'stock' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 kpi-grid">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Stock Units</span>
-                <p className="text-xl font-bold font-mono text-purple-700 mt-1">{stockMetrics.totalQty.toLocaleString()}</p>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">{stockMetrics.totalSkus} Unique Products</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 kpi-grid">
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Stock Units</span>
+                <p className="text-base sm:text-xl font-black font-mono text-purple-700 mt-1 truncate">{stockMetrics.totalQty.toLocaleString()}</p>
+                <span className="text-[10px] text-slate-500 mt-0.5 block truncate">{stockMetrics.totalSkus} SKUs</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Cost Valuation</span>
-                <p className="text-xl font-bold font-mono text-slate-800 mt-1">৳{stockMetrics.totalCostVal.toLocaleString()}</p>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Capital invested in stock</span>
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Cost Value</span>
+                <p className="text-base sm:text-xl font-black font-mono text-slate-800 mt-1 truncate">৳{stockMetrics.totalCostVal.toLocaleString()}</p>
+                <span className="text-[10px] text-slate-500 mt-0.5 block truncate">Capital in stock</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Retail Valuation</span>
-                <p className="text-xl font-bold font-mono text-blue-700 mt-1">৳{stockMetrics.totalRetailVal.toLocaleString()}</p>
-                <span className="text-[10px] text-emerald-600 mt-0.5 block">Profit: ৳{stockMetrics.potentialProfit.toLocaleString()}</span>
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Retail Value</span>
+                <p className="text-base sm:text-xl font-black font-mono text-blue-700 mt-1 truncate">৳{stockMetrics.totalRetailVal.toLocaleString()}</p>
+                <span className="text-[10px] text-emerald-600 mt-0.5 block truncate">Profit: ৳{stockMetrics.potentialProfit.toLocaleString()}</span>
               </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm kpi-card">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Stock Health Alerts</span>
-                <p className="text-xl font-bold font-mono text-amber-600 mt-1">{stockMetrics.lowStockCount} Low / {stockMetrics.outOfStockCount} Out</p>
-                <span className="text-[10px] text-rose-500 mt-0.5 block">Reorder required</span>
+              <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs kpi-card">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Stock Alerts</span>
+                <p className="text-base sm:text-xl font-black font-mono text-amber-600 mt-1 truncate">{stockMetrics.lowStockCount} Low / {stockMetrics.outOfStockCount} Out</p>
+                <span className="text-[10px] text-rose-500 mt-0.5 block truncate">Reorder alert</span>
               </div>
             </div>
 
-            {/* Stock Valuation Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-                <h3 className="font-bold text-slate-800 text-sm flex items-center space-x-2">
-                  <PackageCheck size={16} className="text-purple-600" />
-                  <span>Itemized Stock Valuation & Inventory Audit ({filteredProducts.length} items)</span>
+            {/* Stock Valuation Section: Desktop Table + Mobile Cards */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="p-3.5 sm:p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                <h3 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center space-x-2">
+                  <PackageCheck size={15} className="text-purple-600 flex-shrink-0" />
+                  <span>Stock Valuation & Inventory Audit ({filteredProducts.length} items)</span>
                 </h3>
               </div>
-              <div className="overflow-x-auto">
+
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
                     <tr>
@@ -956,6 +1056,7 @@ function ReportsContent() {
                       </tr>
                     )}
                   </tbody>
+                  {/* Stock Totals Footer */}
                   {filteredProducts.length > 0 && (
                     <tfoot className="bg-slate-100 font-bold font-mono border-t-2 border-slate-300">
                       <tr>
@@ -969,6 +1070,81 @@ function ReportsContent() {
                     </tfoot>
                   )}
                 </table>
+              </div>
+
+              {/* Mobile Card List */}
+              <div className="block md:hidden divide-y divide-slate-100">
+                {filteredProducts.map((p) => {
+                  const qty = Number(p.quantity) || 0;
+                  const cost = Number(p.costPrice) || 0;
+                  const sell = Number(p.sellingPrice) || 0;
+                  const costVal = cost * qty;
+                  const retailVal = sell * qty;
+                  const isLow = qty > 0 && qty <= (Number(p.minStockAlert) || 5);
+                  const isOut = qty <= 0;
+
+                  return (
+                    <div key={p.id} className="p-3 hover:bg-slate-50 transition space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-slate-900 text-xs leading-tight">{p.name}</p>
+                          <div className="flex items-center space-x-1.5 text-[10px] text-slate-400">
+                            {p.code && <span className="font-mono text-indigo-600 font-bold">{p.code}</span>}
+                            {p.category && <span>• {p.category}</span>}
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          {isOut ? (
+                            <span className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-md">Out of Stock</span>
+                          ) : isLow ? (
+                            <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold rounded-md">Low Stock</span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-md">In Stock</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-xl text-center font-mono text-[11px]">
+                        <div>
+                          <span className="text-[9px] text-slate-400 block uppercase font-sans">Stock</span>
+                          <span className="font-bold text-slate-800">{qty} {p.unit || 'pcs'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 block uppercase font-sans">Cost Val</span>
+                          <span className="font-bold text-purple-700">৳{costVal.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 block uppercase font-sans">Retail Val</span>
+                          <span className="font-bold text-blue-700">৳{retailVal.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-10 text-slate-400 text-xs">
+                    No products found matching filters.
+                  </div>
+                )}
+
+                {/* Mobile Stock Valuation Summary Card */}
+                {filteredProducts.length > 0 && (
+                  <div className="p-3 bg-slate-100 border-t border-slate-200 space-y-1 text-xs font-mono">
+                    <div className="flex justify-between font-bold text-slate-800">
+                      <span>Total Units:</span>
+                      <span className="text-purple-800">{stockMetrics.totalQty.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-700">
+                      <span>Total Cost:</span>
+                      <span className="text-purple-700 font-bold">৳{stockMetrics.totalCostVal.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-700">
+                      <span>Total Retail:</span>
+                      <span className="text-blue-700 font-bold">৳{stockMetrics.totalRetailVal.toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
