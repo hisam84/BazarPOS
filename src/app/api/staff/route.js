@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
 import { verifyApiAuth } from '@/lib/api-auth';
+import { getStoreRoles, getEffectivePermissions } from '@/lib/permissions';
 
 export async function GET(request) {
   try {
@@ -11,8 +12,19 @@ export async function GET(request) {
     const auth = verifyApiAuth(request, { requiredStoreId: storeId });
     if (!auth.authenticated) return auth.errorResponse;
     const storeData = await getStoreData(storeId);
+    const storeRoles = await getStoreRoles(storeId);
 
-    return NextResponse.json({ success: true, staff: storeData.staff || [] });
+    const staffWithPermissions = (storeData.staff || []).map(st => ({
+      ...st,
+      effectivePermissions: getEffectivePermissions(st, storeRoles),
+      hasCustomPermissions: Array.isArray(st.customPermissions) && st.customPermissions.length > 0
+    }));
+
+    return NextResponse.json({
+      success: true,
+      staff: staffWithPermissions,
+      roles: storeRoles
+    });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
@@ -21,7 +33,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { storeId = 'default', name, username, password, email, role = 'cashier', phone = '' } = body;
+    const { storeId = 'default', name, username, password, email, role = 'cashier', phone = '', customPermissions = null } = body;
 
     const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
     if (!auth.authenticated) return auth.errorResponse;
@@ -54,6 +66,7 @@ export async function POST(request) {
       email: email.trim().toLowerCase(),
       password: hashedPassword,
       role: role || 'cashier',
+      customPermissions: Array.isArray(customPermissions) ? customPermissions : null,
       phone: phone ? phone.trim() : '',
       createdAt: new Date().toISOString()
     };
@@ -70,7 +83,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const { storeId = 'default', id, name, username, email, password, role, phone } = body;
+    const { storeId = 'default', id, name, username, email, password, role, phone, customPermissions } = body;
 
     const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
     if (!auth.authenticated) return auth.errorResponse;
@@ -109,6 +122,7 @@ export async function PUT(request) {
       email: email !== undefined ? email.trim().toLowerCase() : (existing.email || ''),
       password: updatedPassword,
       role: role !== undefined ? role : existing.role,
+      customPermissions: customPermissions !== undefined ? customPermissions : existing.customPermissions,
       phone: phone !== undefined ? phone.trim() : (existing.phone || ''),
       updatedAt: new Date().toISOString()
     };

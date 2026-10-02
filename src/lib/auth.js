@@ -1,5 +1,6 @@
 import { getDb, getStores, getStoreData, getNeonSql, initPostgresTables, updateSuperAdminPassword, updateCompany, saveStoreData } from './db';
 import { verifyPassword, hashPassword } from './password';
+import { getStoreRoles, getEffectivePermissions } from './permissions';
 
 export async function authenticateUser(username, password) {
   const sql = getNeonSql();
@@ -27,6 +28,7 @@ export async function authenticateUser(username, password) {
               username: admin.username,
               fullName: admin.full_name || 'System Super Admin',
               role: 'superadmin',
+              permissions: ['*'],
               isDefaultPassword
             }
           };
@@ -51,6 +53,7 @@ export async function authenticateUser(username, password) {
           username: db.superAdmin.username,
           fullName: db.superAdmin.fullName,
           role: 'superadmin',
+          permissions: ['*'],
           isDefaultPassword
         }
       };
@@ -93,6 +96,7 @@ export async function authenticateUser(username, password) {
             storeId: store.id,
             storeName: store.name,
             role: 'owner',
+            permissions: ['*'],
             isDefaultPassword
           }
         };
@@ -100,7 +104,7 @@ export async function authenticateUser(username, password) {
     }
   }
 
-  // 3. Check Store Staff (Manager / Cashier)
+  // 3. Check Store Staff (Manager / Cashier / Custom Roles)
   for (const storeId in stores) {
     const parentStore = stores[storeId];
     if (!parentStore) continue;
@@ -131,6 +135,9 @@ export async function authenticateUser(username, password) {
             await saveStoreData(storeId, storeData);
           }
 
+          const storeRoles = await getStoreRoles(storeId);
+          const effectivePerms = getEffectivePermissions(staffMember, storeRoles);
+
           return {
             success: true,
             role: staffMember.role || 'cashier',
@@ -141,6 +148,7 @@ export async function authenticateUser(username, password) {
               storeId: storeId,
               storeName: parentStore.name || 'Outlet',
               role: staffMember.role || 'cashier',
+              permissions: effectivePerms,
               isDefaultPassword
             }
           };

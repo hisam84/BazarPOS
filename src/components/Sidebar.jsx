@@ -42,10 +42,9 @@ const STORE_TREE_GROUPS = [
     icon: ShoppingBag,
     badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
     items: [
-      { name: 'POS Terminal', href: '/pos', icon: ShoppingCart, badge: 'Live', badgeColor: 'bg-emerald-500 text-white' },
-      { name: 'Sales & Invoices', href: '/vouchers/history', icon: FileText },
-      { name: 'Customers & Due', href: '/clients', icon: Users },
-      { name: 'Invoice Layout Setup', href: '/invoice-settings', icon: Receipt },
+      { name: 'POS Terminal', href: '/pos', icon: ShoppingCart, badge: 'Live', badgeColor: 'bg-emerald-500 text-white', permission: 'pos_terminal' },
+      { name: 'Sales & Invoices', href: '/vouchers/history', icon: FileText, permission: 'view_invoices' },
+      { name: 'Customers & Due', href: '/clients', icon: Users, permission: 'customers_manage' },
     ]
   },
   {
@@ -54,10 +53,10 @@ const STORE_TREE_GROUPS = [
     icon: Package,
     badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
     items: [
-      { name: 'Product Catalog', href: '/inventory', icon: Boxes },
-      { name: 'Stock Adjustments', href: '/stock-adjustment', icon: AlertOctagon },
-      { name: 'Suppliers & PO', href: '/suppliers', icon: Truck },
-      { name: 'Barcode Generator', href: '/barcodes', icon: Barcode },
+      { name: 'Product Catalog', href: '/inventory', icon: Boxes, permission: 'inventory_view' },
+      { name: 'Stock Adjustments', href: '/stock-adjustment', icon: AlertOctagon, permission: 'stock_adjustment' },
+      { name: 'Suppliers & PO', href: '/suppliers', icon: Truck, permission: 'suppliers_manage' },
+      { name: 'Barcode Generator', href: '/barcodes', icon: Barcode, permission: 'barcodes_manage' },
     ]
   },
   {
@@ -66,9 +65,9 @@ const STORE_TREE_GROUPS = [
     icon: DollarSign,
     badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
     items: [
-      { name: 'Daily Cash Register', href: '/cash-register', icon: DollarSign },
-      { name: 'Expense Manager', href: '/expenses', icon: Receipt },
-      { name: 'Branches & Transfer', href: '/branches', icon: Building2 },
+      { name: 'Daily Cash Register', href: '/cash-register', icon: DollarSign, permission: 'cash_register' },
+      { name: 'Expense Manager', href: '/expenses', icon: Receipt, permission: 'expenses_manage' },
+      { name: 'Branches & Transfer', href: '/branches', icon: Building2, permission: 'branches_manage' },
     ]
   },
   {
@@ -77,20 +76,21 @@ const STORE_TREE_GROUPS = [
     icon: BarChart3,
     badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
     items: [
-      { name: 'Income Statement', href: '/reports?type=income', icon: PieChart },
-      { name: 'Expense Summary', href: '/reports?type=expense', icon: Receipt },
-      { name: 'Stock Valuation', href: '/reports?type=stock', icon: Boxes },
-      { name: 'Audit History Logs', href: '/audit-logs', icon: ShieldCheck },
+      { name: 'Income Statement', href: '/reports?type=income', icon: PieChart, permission: 'reports_view' },
+      { name: 'Expense Summary', href: '/reports?type=expense', icon: Receipt, permission: 'reports_view' },
+      { name: 'Stock Valuation', href: '/reports?type=stock', icon: Boxes, permission: 'reports_view' },
+      { name: 'Audit History Logs', href: '/audit-logs', icon: ShieldCheck, permission: 'audit_logs' },
     ]
   },
   {
     id: 'settings_group',
-    title: 'Settings & Admin',
+    title: 'Settings & Administration',
     icon: Settings,
     badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
     items: [
-      { name: 'Company Settings', href: '/settings', icon: Settings },
-      { name: 'Staff & Roles', href: '/staff', icon: Shield },
+      { name: 'Company Settings', href: '/settings', icon: Settings, permission: 'company_settings' },
+      { name: 'Invoice Settings', href: '/invoice-settings', icon: Receipt, permission: 'invoice_settings' },
+      { name: 'Staff, Roles & Permissions', href: '/staff', icon: Shield, permission: 'staff_roles_manage' },
       { name: 'Owner Profile', href: '/profile', icon: User },
     ]
   }
@@ -117,36 +117,40 @@ export default function Sidebar({ user, company, onLogout }) {
   const [collapsed, setCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Track open state of tree groups (default all open for easy access)
+  // Track open state of tree groups - single group open at a time (Accordion)
   const [openGroups, setOpenGroups] = useState({
-    sales_group: true,
-    inventory_group: true,
-    finance_group: true,
-    reports_group: false,
-    settings_group: false,
-    saas_platform: true,
+    sales_group: true
   });
 
   const role = user?.role || 'owner';
   const isSuperAdmin = role === 'superadmin';
   const logoUrl = !isSuperAdmin ? (company?.logoUrl || user?.logoUrl) : null;
+  const userPermissions = user?.permissions || ['*'];
   const treeGroups = isSuperAdmin ? SUPERADMIN_TREE_GROUPS : STORE_TREE_GROUPS;
 
-  // Auto-expand group containing current route on pathname change
+  // Auto-expand the ONE active group containing current route on pathname change
   useEffect(() => {
-    treeGroups.forEach(group => {
+    for (const group of treeGroups) {
       const hasActive = group.items.some(item => {
         const itemPath = item.href.split('?')[0];
         return pathname === itemPath || (itemPath !== '/' && pathname.startsWith(itemPath));
       });
       if (hasActive) {
-        setOpenGroups(prev => ({ ...prev, [group.id]: true }));
+        setOpenGroups({ [group.id]: true });
+        break;
       }
-    });
+    }
   }, [pathname, treeGroups]);
 
+  // Strict Accordion: Toggle group such that only one group is ever open at a time
   const toggleGroup = (groupId) => {
-    setOpenGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+    setOpenGroups(prev => {
+      const isCurrentlyOpen = !!prev[groupId];
+      if (isCurrentlyOpen) {
+        return {}; // close all
+      }
+      return { [groupId]: true }; // open ONLY the clicked group
+    });
   };
 
   const isItemActive = (href) => {
@@ -155,19 +159,35 @@ export default function Sidebar({ user, company, onLogout }) {
     return pathname === basePath || pathname.startsWith(basePath + '/');
   };
 
-  // Filter groups and items if search query is entered
+  // Helper to check item permission
+  const canAccessItem = (item) => {
+    if (isSuperAdmin || role === 'owner') return true;
+    if (!item.permission) return true;
+    if (userPermissions.includes('*')) return true;
+    return userPermissions.includes(item.permission);
+  };
+
+  // Filter groups and items by permission and search query
   const filteredGroups = useMemo(() => {
-    if (!searchQuery.trim()) return treeGroups;
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
     return treeGroups
       .map(group => {
-        const matchingItems = group.items.filter(item =>
-          item.name.toLowerCase().includes(q) || group.title.toLowerCase().includes(q)
-        );
-        return matchingItems.length > 0 ? { ...group, items: matchingItems } : null;
+        // First filter by user permissions
+        const allowedItems = group.items.filter(canAccessItem);
+        if (allowedItems.length === 0) return null;
+
+        // Then filter by search query if present
+        if (q) {
+          const matchingItems = allowedItems.filter(item =>
+            item.name.toLowerCase().includes(q) || group.title.toLowerCase().includes(q)
+          );
+          return matchingItems.length > 0 ? { ...group, items: matchingItems } : null;
+        }
+
+        return { ...group, items: allowedItems };
       })
       .filter(Boolean);
-  }, [searchQuery, treeGroups]);
+  }, [searchQuery, treeGroups, userPermissions, role, isSuperAdmin]);
 
   return (
     <aside
