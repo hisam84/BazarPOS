@@ -10,30 +10,39 @@ import {
   AlertOctagon,
   ShieldCheck,
   Building2,
-  Clock
+  Clock,
+  Menu
 } from 'lucide-react';
 
-export default function Header({ user, onLogout }) {
+export default function Header({ user, onLogout, onToggleMobileSidebar }) {
   const isSuperAdmin = user?.role === 'superadmin';
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs no-print">
-      {/* Store or SaaS Platform Badge */}
-      <div className="flex items-center space-x-3">
-        <div className="flex flex-col">
-          <h2 className="text-sm font-bold text-slate-900 line-clamp-1 flex items-center space-x-2">
+    <header className="h-16 bg-white border-b border-slate-200/80 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs no-print">
+      {/* Mobile Hamburger & Store Badge */}
+      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+        <button
+          onClick={onToggleMobileSidebar}
+          className="p-2 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl lg:hidden transition shrink-0"
+          title="Toggle Navigation Menu"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div className="flex flex-col min-w-0">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-900 truncate flex items-center space-x-1.5 sm:space-x-2">
             {isSuperAdmin ? (
               <>
-                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-                <span>BazarPOS SaaS Super Admin</span>
+                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse shrink-0"></span>
+                <span className="truncate">BazarPOS SaaS Super Admin</span>
               </>
             ) : (
-              user?.storeName || 'Main BazarPOS Store'
+              <span className="truncate">{user?.storeName || 'Main BazarPOS Store'}</span>
             )}
           </h2>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[9px] sm:text-[10px] text-slate-500 font-mono truncate hidden xs:block">
             {isSuperAdmin
-              ? 'Multi-Tenant Company & Subscription Management Platform'
+              ? 'Multi-Tenant Platform'
               : 'Enterprise POS Edition'}
           </span>
         </div>

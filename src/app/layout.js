@@ -21,6 +21,7 @@ export default function RootLayout({ children }) {
   const [company, setCompany] = useState(null);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -155,11 +156,21 @@ export default function RootLayout({ children }) {
         ) : isPublicPage ? (
           <div className="min-h-screen w-full">{children}</div>
         ) : (
-          <div className="flex min-h-screen w-full">
-            <Sidebar user={user} company={company} onLogout={handleLogout} />
+          <div className="flex min-h-screen w-full relative">
+            <Sidebar
+              user={user}
+              company={company}
+              onLogout={handleLogout}
+              mobileOpen={sidebarMobileOpen}
+              setMobileOpen={setSidebarMobileOpen}
+            />
             <div className="flex-1 flex flex-col min-w-0">
-              <Header user={user} onLogout={handleLogout} />
-              <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+              <Header
+                user={user}
+                onLogout={handleLogout}
+                onToggleMobileSidebar={() => setSidebarMobileOpen(!sidebarMobileOpen)}
+              />
+              <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-y-auto">{children}</main>
             </div>
           </div>
         )}

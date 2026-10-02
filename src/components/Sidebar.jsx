@@ -30,7 +30,8 @@ import {
   Search,
   Store,
   Folder,
-  FolderOpen
+  FolderOpen,
+  X
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
@@ -112,7 +113,7 @@ const SUPERADMIN_TREE_GROUPS = [
   }
 ];
 
-export default function Sidebar({ user, company, onLogout }) {
+export default function Sidebar({ user, company, onLogout, mobileOpen, setMobileOpen }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -167,6 +168,12 @@ export default function Sidebar({ user, company, onLogout }) {
     return userPermissions.includes(item.permission);
   };
 
+  const handleLinkClick = () => {
+    if (setMobileOpen) {
+      setMobileOpen(false);
+    }
+  };
+
   // Filter groups and items by permission and search query
   const filteredGroups = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -190,53 +197,74 @@ export default function Sidebar({ user, company, onLogout }) {
   }, [searchQuery, treeGroups, userPermissions, role, isSuperAdmin]);
 
   return (
-    <aside
-      className={`sticky top-0 h-screen flex-shrink-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-100 transition-all duration-300 flex flex-col no-print border-r border-slate-800/80 shadow-2xl z-40 select-none ${
-        collapsed ? 'w-20' : 'w-72'
-      }`}
-    >
-      {/* Brand Header */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40 flex-shrink-0">
-        {!collapsed ? (
-          <div className="flex items-center space-x-3">
-            {logoUrl ? (
-              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center p-0.5 shadow-md shadow-blue-500/10 border border-slate-700 overflow-hidden shrink-0">
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {mobileOpen && (
+        <div
+          onClick={() => setMobileOpen?.(false)}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 lg:sticky lg:top-0 h-screen flex-shrink-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-100 transition-all duration-300 flex flex-col no-print border-r border-slate-800/80 shadow-2xl z-50 select-none ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } ${collapsed ? 'w-20' : 'w-72'}`}
+      >
+        {/* Brand Header */}
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40 flex-shrink-0">
+          {!collapsed ? (
+            <div className="flex items-center space-x-3">
+              {logoUrl ? (
+                <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center p-0.5 shadow-md shadow-blue-500/10 border border-slate-700 overflow-hidden shrink-0">
+                  <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25 border border-blue-400/30 shrink-0">
+                  {isSuperAdmin ? '⚡' : 'B'}
+                </div>
+              )}
+              <div className="min-w-0">
+                <span className="font-bold text-sm tracking-tight text-white block leading-tight truncate">
+                  {isSuperAdmin ? 'SuperAdmin' : (company?.name || user?.storeName || 'BazarPOS')}
+                </span>
+                <span className="text-[10px] font-medium text-blue-400 uppercase tracking-wider block">
+                  {isSuperAdmin ? 'SaaS Central' : 'Retail Cloud ERP'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            logoUrl ? (
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 mx-auto shadow-md border border-slate-700 overflow-hidden">
                 <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25 border border-blue-400/30 shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white mx-auto shadow-md border border-blue-400/30">
                 {isSuperAdmin ? '⚡' : 'B'}
               </div>
-            )}
-            <div className="min-w-0">
-              <span className="font-bold text-sm tracking-tight text-white block leading-tight truncate">
-                {isSuperAdmin ? 'SuperAdmin' : (company?.name || user?.storeName || 'BazarPOS')}
-              </span>
-              <span className="text-[10px] font-medium text-blue-400 uppercase tracking-wider block">
-                {isSuperAdmin ? 'SaaS Central' : 'Retail Cloud ERP'}
-              </span>
-            </div>
-          </div>
-        ) : (
-          logoUrl ? (
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 mx-auto shadow-md border border-slate-700 overflow-hidden">
-              <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
-            </div>
-          ) : (
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white mx-auto shadow-md border border-blue-400/30">
-              {isSuperAdmin ? '⚡' : 'B'}
-            </div>
-          )
-        )}
+            )
+          )}
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition"
-          title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-        >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
-      </div>
+          <div className="flex items-center space-x-1">
+            {/* Desktop Collapse/Expand Button */}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition hidden lg:flex"
+              title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+
+            {/* Mobile Close Drawer Button */}
+            <button
+              onClick={() => setMobileOpen?.(false)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition lg:hidden"
+              title="Close Menu"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
 
       {/* Quick Search Filter (Only when expanded) */}
       {!collapsed && (
@@ -269,6 +297,7 @@ export default function Sidebar({ user, company, onLogout }) {
           <div className="space-y-1">
             <Link
               href="/"
+              onClick={handleLinkClick}
               className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group ${
                 pathname === '/'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25 border border-blue-400/30'
@@ -345,6 +374,7 @@ export default function Sidebar({ user, company, onLogout }) {
                         <Link
                           key={item.href}
                           href={item.href}
+                          onClick={handleLinkClick}
                           className={`relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 group ${
                             active
                               ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/20'
@@ -410,6 +440,7 @@ export default function Sidebar({ user, company, onLogout }) {
             </div>
             <Link
               href="/profile"
+              onClick={handleLinkClick}
               className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
               title="My Profile"
             >
@@ -431,6 +462,7 @@ export default function Sidebar({ user, company, onLogout }) {
         </button>
       </div>
     </aside>
+  </>
   );
 }
 

@@ -17,7 +17,10 @@ import {
   X,
   FileText,
   Mail,
-  Send
+  Send,
+  Boxes,
+  ShoppingCart,
+  ArrowRight
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
 
@@ -36,6 +39,7 @@ export default function POSTerminalPage() {
   const [barcodeInput, setBarcodeInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [mobileTab, setMobileTab] = useState('catalog'); // 'catalog' | 'cart'
   
   // Checkout State
   const [selectedClient, setSelectedClient] = useState('');
@@ -367,9 +371,35 @@ export default function POSTerminalPage() {
   });
 
   return (
-    <div className="h-[calc(100vh-6rem)] flex flex-col lg:flex-row gap-6">
+    <div className="min-h-[calc(100vh-6rem)] lg:h-[calc(100vh-5.5rem)] flex flex-col lg:flex-row gap-4 lg:gap-6 relative pb-16 lg:pb-0">
+      {/* Mobile Tab Switcher */}
+      <div className="flex lg:hidden items-center p-1 bg-slate-200/80 rounded-xl text-xs font-bold gap-1 shrink-0">
+        <button
+          type="button"
+          onClick={() => setMobileTab('catalog')}
+          className={`flex-1 py-2 rounded-lg transition text-center flex items-center justify-center space-x-1.5 ${
+            mobileTab === 'catalog' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Boxes size={15} />
+          <span>Products Catalog</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('cart')}
+          className={`flex-1 py-2 rounded-lg transition text-center flex items-center justify-center space-x-1.5 ${
+            mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <ShoppingCart size={15} />
+          <span>Bill Cart ({cart.length})</span>
+        </button>
+      </div>
+
       {/* LEFT: Product Grid & Search */}
-      <div className="flex-1 bg-white rounded-2xl p-5 border border-slate-200 flex flex-col min-w-0 shadow-sm">
+      <div className={`flex-1 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 flex-col min-w-0 shadow-sm ${
+        mobileTab === 'cart' ? 'hidden lg:flex' : 'flex'
+      }`}>
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <form onSubmit={handleBarcodeSubmit} className="flex-1 relative">
             <Barcode className="absolute left-3.5 top-3 text-slate-400" size={18} />
@@ -419,7 +449,7 @@ export default function POSTerminalPage() {
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 pr-1">
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pr-1">
           {filteredProducts.map((p) => (
             <div
               key={p.id}
@@ -453,8 +483,32 @@ export default function POSTerminalPage() {
         </div>
       </div>
 
+      {/* Floating Mobile Cart Bar when on Catalog Tab */}
+      {mobileTab === 'catalog' && cart.length > 0 && (
+        <div className="fixed bottom-3 left-3 right-3 lg:hidden z-30 animate-fadeIn">
+          <button
+            type="button"
+            onClick={() => setMobileTab('cart')}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold p-3.5 rounded-2xl shadow-xl flex items-center justify-between"
+          >
+            <div className="flex items-center space-x-2">
+              <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                {cart.length}
+              </span>
+              <span className="text-xs">Cart Total:</span>
+              <span className="text-sm font-extrabold">৳{grandTotal.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center space-x-1 text-xs font-bold">
+              <span>View Cart &amp; Checkout &rarr;</span>
+            </div>
+          </button>
+        </div>
+      )}
+
       {/* RIGHT: Cart Drawer */}
-      <div className="w-full lg:w-96 bg-white rounded-2xl border border-slate-200 p-5 flex flex-col shadow-sm">
+      <div className={`w-full lg:w-96 bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 flex-col shadow-sm ${
+        mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'
+      }`}>
         <h2 className="text-base font-bold text-slate-800 pb-3 border-b border-slate-100 flex items-center justify-between">
           <span>Current Bill Cart</span>
           <span className="text-xs bg-blue-100 text-blue-700 font-mono px-2 py-0.5 rounded-full">
