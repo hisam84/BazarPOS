@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   FileText,
   Search,
@@ -26,6 +26,10 @@ export default function VoucherHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [datePreset, setDatePreset] = useState('all'); // 'all' | 'today' | 'yesterday' | '7days' | 'month' | 'last_month' | 'custom'
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [company, setCompany] = useState({});
   const [invoiceSettings, setInvoiceSettings] = useState({});
@@ -109,7 +113,6 @@ export default function VoucherHistoryPage() {
     let clean = String(rawPhone).replace(/[^0-9]/g, '');
     if (!clean) return '';
     if (clean.startsWith('00')) clean = clean.substring(2);
-    // Bangladesh local 11-digit mobile starting with 01 (017, 018, 019, 013, 014, 015, 016)
     if (clean.length === 11 && clean.startsWith('01')) {
       clean = '88' + clean;
     } else if (clean.length === 10 && clean.startsWith('1')) {
@@ -181,14 +184,72 @@ export default function VoucherHistoryPage() {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const filteredVouchers = vouchers.filter(v => {
-    const matchesSearch =
-      v.voucherNo.toLowerCase().includes(search.toLowerCase()) ||
-      v.clientName.toLowerCase().includes(search.toLowerCase()) ||
-      (v.clientPhone && v.clientPhone.includes(search));
-    const matchesStatus = statusFilter === 'ALL' || v.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Date Range Calculation
+  const dateRange = useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    if (datePreset === 'today') {
+      return { start: todayStart, end: todayEnd, label: `Today (${todayStart.toLocaleDateString()})` };
+    }
+    if (datePreset === 'yesterday') {
+      const yStart = new Date(todayStart);
+      yStart.setDate(yStart.getDate() - 1);
+      const yEnd = new Date(todayEnd);
+      yEnd.setDate(yEnd.getDate() - 1);
+      return { start: yStart, end: yEnd, label: `Yesterday (${yStart.toLocaleDateString()})` };
+    }
+    if (datePreset === '7days') {
+      const start7 = new Date(todayStart);
+      start7.setDate(start7.getDate() - 6);
+      return { start: start7, end: todayEnd, label: `Last 7 Days (${start7.toLocaleDateString()} - ${todayEnd.toLocaleDateString()})` };
+    }
+    if (datePreset === 'month') {
+      const mStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      return { start: mStart, end: todayEnd, label: `This Month (${mStart.toLocaleDateString()} - ${todayEnd.toLocaleDateString()})` };
+    }
+    if (datePreset === 'last_month') {
+      const lmStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0);
+      const lmEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      return { start: lmStart, end: lmEnd, label: `Last Month (${lmStart.toLocaleDateString()} - ${lmEnd.toLocaleDateString()})` };
+    }
+    if (datePreset === 'custom' && customStartDate && customEndDate) {
+      const cStart = new Date(customStartDate + 'T00:00:00');
+      const cEnd = new Date(customEndDate + 'T23:59:59');
+      return { start: cStart, end: cEnd, label: `Custom Range (${customStartDate} to ${customEndDate})` };
+    }
+    return { start: null, end: null, label: 'All Time' };
+  }, [datePreset, customStartDate, customEndDate]);
+
+  // Filtered Vouchers
+  const filteredVouchers = useMemo(() => {
+    return vouchers.filter(v => {
+      const vNo = (v.voucherNo || v.voucherNumber || '').toLowerCase();
+      const cName = (v.clientName || '').toLowerCase();
+      const cPhone = (v.clientPhone || '');
+      const s = search.toLowerCase().trim();
+
+      const matchesSearch = !s || vNo.includes(s) || cName.includes(s) || cPhone.includes(s);
+      const matchesStatus = statusFilter === 'ALL' || v.status === statusFilter;
+
+      let matchesDate = true;
+      if (dateRange.start && dateRange.end) {
+        const vDate = new Date(v.date || v.createdAt);
+        matchesDate = vDate >= dateRange.start && vDate <= dateRange.end;
+      }
+
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [vouchers, search, statusFilter, dateRange]);
+
+  // Summary Metrics
+  const summaryMetrics = useMemo(() => {
+    const totalSales = filteredVouchers.reduce((sum, v) => sum + (Number(v.totalAmount) || 0), 0);
+    const totalPaid = filteredVouchers.reduce((sum, v) => sum + (Number(v.paidAmount) || 0), 0);
+    const totalDue = filteredVouchers.reduce((sum, v) => sum + (Number(v.dueAmount) || 0), 0);
+    return { count: filteredVouchers.length, totalSales, totalPaid, totalDue };
+  }, [filteredVouchers]);
 
   return (
     <div className="space-y-6">
@@ -204,30 +265,113 @@ export default function VoucherHistoryPage() {
       </div>
 
       {/* Filter Controls */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3.5 top-3 text-slate-400" size={18} />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by Voucher #, Customer Name, or Phone..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500"
-          />
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
+        {/* Row 1: Search & Status Filter */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3.5 top-3 text-slate-400" size={17} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by Voucher #, Customer Name, or Phone..."
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2 shrink-0">
+            <Filter size={17} className="text-slate-400" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+            >
+              <option value="ALL">All Payment Status</option>
+              <option value="PAID">PAID</option>
+              <option value="PARTIAL">PARTIAL</option>
+              <option value="DUE">DUE</option>
+            </select>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Filter size={18} className="text-slate-400" />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
-          >
-            <option value="ALL">All Payment Status</option>
-            <option value="PAID">PAID</option>
-            <option value="PARTIAL">PARTIAL</option>
-            <option value="DUE">DUE</option>
-          </select>
+        {/* Row 2: Date Presets & Active Range */}
+        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center space-x-1">
+              <Calendar size={14} />
+              <span>Date:</span>
+            </span>
+            {[
+              { id: 'all', label: 'All Time' },
+              { id: 'today', label: 'Today' },
+              { id: 'yesterday', label: 'Yesterday' },
+              { id: '7days', label: 'Last 7 Days' },
+              { id: 'month', label: 'This Month' },
+              { id: 'last_month', label: 'Last Month' },
+              { id: 'custom', label: 'Custom Range' },
+            ].map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setDatePreset(p.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  datePreset === p.id
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="text-xs font-semibold text-slate-500">
+            Period: <span className="font-bold text-blue-600">{dateRange.label}</span>
+          </div>
+        </div>
+
+        {/* Custom Date Range Pickers */}
+        {datePreset === 'custom' && (
+          <div className="pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100/80 animate-in fade-in duration-150">
+            <div className="flex items-center space-x-2">
+              <label className="text-xs font-bold text-slate-600">Start Date:</label>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <label className="text-xs font-bold text-slate-600">End Date:</label>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary KPI Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Invoices</span>
+          <p className="text-base sm:text-lg font-black font-mono text-slate-800 mt-0.5">{summaryMetrics.count}</p>
+        </div>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Invoiced</span>
+          <p className="text-base sm:text-lg font-black font-mono text-blue-600 mt-0.5">৳{summaryMetrics.totalSales.toLocaleString()}</p>
+        </div>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Collected</span>
+          <p className="text-base sm:text-lg font-black font-mono text-emerald-600 mt-0.5">৳{summaryMetrics.totalPaid.toLocaleString()}</p>
+        </div>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Due</span>
+          <p className="text-base sm:text-lg font-black font-mono text-rose-600 mt-0.5">৳{summaryMetrics.totalDue.toLocaleString()}</p>
         </div>
       </div>
 
