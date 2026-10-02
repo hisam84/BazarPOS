@@ -7,7 +7,28 @@ export async function GET(request) {
     const storeId = searchParams.get('storeId') || 'default';
     const storeData = await getStoreData(storeId);
 
-    return NextResponse.json({ success: true, clients: storeData.clients || [] });
+    // Auto-migrate legacy clients to ensure all have customerId
+    let changed = false;
+    const clients = (storeData.clients || []).map((c, index) => {
+      if (!c.customerId && !c.code) {
+        changed = true;
+        return {
+          ...c,
+          customerId: `CUST-${1001 + index}`
+        };
+      }
+      return {
+        ...c,
+        customerId: c.customerId || c.code || `CUST-${1001 + index}`
+      };
+    });
+
+    if (changed) {
+      storeData.clients = clients;
+      await saveStoreData(storeId, storeData);
+    }
+
+    return NextResponse.json({ success: true, clients });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
@@ -16,15 +37,32 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { storeId = 'default', name, phone, email, address, due = 0 } = body;
+    const { storeId = 'default', name, phone, email, address, due = 0, customerId } = body;
 
     if (!name) {
       return NextResponse.json({ success: false, message: 'Client name required' }, { status: 400 });
     }
 
     const storeData = await getStoreData(storeId);
+    storeData.clients = storeData.clients || [];
+
+    // Generate unique Customer ID if not provided
+    let generatedId = customerId?.trim();
+    if (!generatedId) {
+      const existingNumbers = storeData.clients
+        .map(c => {
+          const match = (c.customerId || '').match(/CUST-(\d+)/i);
+          return match ? parseInt(match[1], 10) : null;
+        })
+        .filter(n => n !== null && !isNaN(n));
+
+      const nextNum = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : (1001 + storeData.clients.length);
+      generatedId = `CUST-${nextNum}`;
+    }
+
     const newClient = {
       id: 'c_' + Date.now(),
+      customerId: generatedId,
       name,
       phone: phone || '',
       email: email || '',
@@ -32,7 +70,6 @@ export async function POST(request) {
       due: Number(due) || 0
     };
 
-    storeData.clients = storeData.clients || [];
     storeData.clients.push(newClient);
     await saveStoreData(storeId, storeData);
 
@@ -41,6 +78,7 @@ export async function POST(request) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }
+
 
 export async function PUT(request) {
   try {

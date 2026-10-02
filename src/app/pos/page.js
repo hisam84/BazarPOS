@@ -416,7 +416,9 @@ export default function POSTerminalPage() {
               className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none"
             >
               {clients.map((c) => (
-                <option key={c.id} value={c.name}>{c.name}</option>
+                <option key={c.id} value={c.name}>
+                  {c.name} {c.customerId ? `[${c.customerId}]` : ''} {c.phone ? `(${c.phone})` : ''}
+                </option>
               ))}
             </select>
           </div>
