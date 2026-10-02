@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
+import SecurityWarningBanner from '@/components/SecurityWarningBanner';
 import './globals.css';
 
 const DEFAULT_USER = {
@@ -47,7 +48,6 @@ export default function RootLayout({ children }) {
       router.replace('/');
     }
   }, [pathname]);
-
 
   const handleLogout = async () => {
     try {
@@ -117,6 +117,8 @@ export default function RootLayout({ children }) {
         <meta name="description" content="Modern Point of Sale & Retail Billing Management ERP System" />
       </head>
       <body className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        {!isPublicPage && <SecurityWarningBanner user={user} onUserUpdated={(u) => setUser(u)} />}
+        
         {loading ? (
           <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
             <div className="flex flex-col items-center space-y-4">

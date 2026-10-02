@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getStores, updateCompany, getStoreData, saveStoreData } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const stores = await getStores();
     const store = stores[storeId] || stores['default'] || {};
 
@@ -31,6 +36,9 @@ export async function PUT(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', owner, phone, email, address, username, password } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!storeId) {
       return NextResponse.json({ success: false, message: 'Store ID required' }, { status: 400 });

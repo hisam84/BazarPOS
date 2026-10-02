@@ -5,6 +5,8 @@ export async function authenticateUser(username, password) {
   const sql = getNeonSql();
   const today = new Date().toISOString().slice(0, 10);
 
+  const isDefaultPassword = ['superadmin@123', 'admin', '12345678', 'password', '123456'].includes(password);
+
   // 1. Check Super Admin via PostgreSQL or In-Memory
   if (sql) {
     try {
@@ -24,7 +26,8 @@ export async function authenticateUser(username, password) {
             user: {
               username: admin.username,
               fullName: admin.full_name || 'System Super Admin',
-              role: 'superadmin'
+              role: 'superadmin',
+              isDefaultPassword
             }
           };
         }
@@ -47,7 +50,8 @@ export async function authenticateUser(username, password) {
         user: {
           username: db.superAdmin.username,
           fullName: db.superAdmin.fullName,
-          role: 'superadmin'
+          role: 'superadmin',
+          isDefaultPassword
         }
       };
     }
@@ -88,7 +92,8 @@ export async function authenticateUser(username, password) {
             fullName: store.name,
             storeId: store.id,
             storeName: store.name,
-            role: 'owner'
+            role: 'owner',
+            isDefaultPassword
           }
         };
       }
@@ -135,7 +140,8 @@ export async function authenticateUser(username, password) {
               fullName: staffMember.name,
               storeId: storeId,
               storeName: parentStore.name || 'Outlet',
-              role: staffMember.role || 'cashier'
+              role: staffMember.role || 'cashier',
+              isDefaultPassword
             }
           };
         }

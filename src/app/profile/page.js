@@ -92,7 +92,8 @@ export default function ProfilePage() {
           const updated = {
             ...user,
             fullName: owner.trim() || user.fullName,
-            username: username.trim() || user.username
+            username: username.trim() || user.username,
+            ...(newPassword && newPassword.trim() ? { isDefaultPassword: false } : {})
           };
           localStorage.setItem('bazarpos_user', JSON.stringify(updated));
           setUser(updated);

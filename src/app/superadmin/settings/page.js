@@ -61,6 +61,14 @@ export default function SuperAdminSettingsPage() {
         setPasswordMsg({ type: 'success', text: 'Super Admin password updated successfully!' });
         setNewPassword('');
         setConfirmPassword('');
+        try {
+          const saved = localStorage.getItem('bazarpos_user');
+          if (saved) {
+            const u = JSON.parse(saved);
+            u.isDefaultPassword = false;
+            localStorage.setItem('bazarpos_user', JSON.stringify(u));
+          }
+        } catch (e) {}
       } else {
         setPasswordMsg({ type: 'error', text: data.message || 'Failed to update password' });
       }
