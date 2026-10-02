@@ -22,7 +22,6 @@ import {
   BarChart3,
   Mail,
   Settings,
-  QrCode,
   ChevronRight,
   ChevronDown,
   ChevronLeft,
@@ -193,13 +192,6 @@ const STORE_NAVIGATION_ITEMS = [
       { name: 'Invoice Settings', href: '/invoice-settings', permission: 'invoice_settings' },
       { name: 'Owner Profile', href: '/profile' },
     ]
-  },
-  {
-    id: 'catalogue_qr',
-    type: 'link',
-    title: 'Catalogue QR',
-    icon: QrCode,
-    href: '/barcodes',
   }
 ];
 
