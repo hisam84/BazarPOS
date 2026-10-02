@@ -254,22 +254,22 @@ export default function SuperAdminCompaniesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto px-2 sm:px-0">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
-            <Building2 className="text-indigo-600" size={24} />
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center space-x-2">
+            <Building2 className="text-indigo-600 shrink-0" size={22} />
             <span>SaaS Company Management</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
             Create, configure, monitor, and manage all merchant POS company accounts & validity.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md shadow-indigo-600/25 text-xs"
+          className="inline-flex items-center justify-center space-x-2 px-4 sm:px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md shadow-indigo-600/25 text-xs w-full sm:w-auto shrink-0"
         >
           <Plus size={16} />
           <span>Create New Company</span>
@@ -277,9 +277,9 @@ export default function SuperAdminCompaniesPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="relative flex-1 w-full sm:w-auto">
-          <Search className="absolute left-3.5 top-3 text-slate-400" size={16} />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3.5 top-2.5 text-slate-400" size={16} />
           <input
             type="text"
             placeholder="Search company by name, owner, phone, username..."
@@ -289,17 +289,17 @@ export default function SuperAdminCompaniesPage() {
           />
         </div>
 
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
+        <div className="flex items-center justify-between sm:justify-end space-x-2 w-full sm:w-auto">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none flex-1 sm:flex-none"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active Only</option>
             <option value="suspended">Suspended Only</option>
           </select>
-          <span className="text-xs font-bold text-slate-500 px-2">
+          <span className="text-xs font-bold text-slate-500 px-2 shrink-0">
             Total: {filteredCompanies.length}
           </span>
         </div>
@@ -307,15 +307,15 @@ export default function SuperAdminCompaniesPage() {
 
       {/* Companies List */}
       {loading ? (
-        <div className="p-16 text-center text-slate-400 text-sm bg-white rounded-3xl border border-slate-200">
+        <div className="p-12 sm:p-16 text-center text-slate-400 text-sm bg-white rounded-2xl sm:rounded-3xl border border-slate-200">
           Loading Companies...
         </div>
       ) : filteredCompanies.length === 0 ? (
-        <div className="p-16 text-center text-slate-400 text-sm bg-white rounded-3xl border border-slate-200">
+        <div className="p-12 sm:p-16 text-center text-slate-400 text-sm bg-white rounded-2xl sm:rounded-3xl border border-slate-200">
           No companies found matching criteria.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {filteredCompanies.map((comp) => {
             const sub = comp.subscription || {};
             const today = new Date().toISOString().slice(0, 10);
@@ -326,26 +326,26 @@ export default function SuperAdminCompaniesPage() {
             return (
               <div
                 key={comp.id}
-                className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between space-y-4 relative"
+                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between space-y-4 relative"
               >
                 <div>
                   {/* Top card header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center shrink-0 shadow-inner">
-                        <Building2 size={24} />
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-indigo-50 text-indigo-700 font-bold flex items-center justify-center shrink-0 border border-indigo-100 shadow-inner">
+                        <Building2 size={20} />
                       </div>
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-base line-clamp-1">{comp.name}</h3>
-                        <p className="text-xs text-slate-500 flex items-center space-x-1">
-                          <User size={12} />
-                          <span>{comp.owner || 'Owner'}</span>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">{comp.name}</h3>
+                        <p className="text-[11px] sm:text-xs text-slate-500 flex items-center space-x-1 truncate">
+                          <User size={12} className="shrink-0" />
+                          <span className="truncate">{comp.owner || 'Owner'}</span>
                         </p>
                       </div>
                     </div>
 
                     <span
-                      className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase border ${
+                      className={`px-2 sm:px-2.5 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-bold rounded-full uppercase border shrink-0 ${
                         displayStatus === 'ACTIVE'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                           : displayStatus === 'EXPIRED'
@@ -358,18 +358,18 @@ export default function SuperAdminCompaniesPage() {
                   </div>
 
                   {/* Plan & Subscription Validity Badge */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-medium">Validity:</span>
-                    <div className="flex items-center space-x-1.5">
+                  <div className="mt-3.5 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-1.5 text-xs">
+                    <span className="text-slate-500 font-medium text-[11px] sm:text-xs">Validity:</span>
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <span
-                        className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${getPlanBadgeColor(
+                        className={`px-2 py-0.5 rounded-full font-bold text-[9px] sm:text-[10px] border ${getPlanBadgeColor(
                           sub.planId
                         )}`}
                       >
                         {sub.planName || '1 Year'}
                       </span>
                       {sub.expiryDate && (
-                        <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                        <span className="text-[9px] sm:text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                           {sub.expiryDate} {daysLeft && `(${daysLeft})`}
                         </span>
                       )}
@@ -377,25 +377,25 @@ export default function SuperAdminCompaniesPage() {
                   </div>
 
                   {/* Company Details */}
-                  <div className="mt-3 space-y-1.5 text-xs text-slate-600 font-mono bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <p className="flex items-center space-x-2 text-slate-800">
-                      <KeyRound size={13} className="text-purple-600 shrink-0" />
-                      <span>Username: <strong>{comp.username}</strong></span>
+                  <div className="mt-3 space-y-1.5 text-xs text-slate-600 font-mono bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+                    <p className="flex items-center space-x-2 text-slate-800 truncate">
+                      <KeyRound size={13} className="text-indigo-600 shrink-0" />
+                      <span className="truncate">Username: <strong>{comp.username}</strong></span>
                     </p>
                     {comp.phone && (
-                      <p className="flex items-center space-x-2">
+                      <p className="flex items-center space-x-2 truncate">
                         <Phone size={13} className="text-slate-400 shrink-0" />
-                        <span>{comp.phone}</span>
+                        <span className="truncate">{comp.phone}</span>
                       </p>
                     )}
                     {comp.email && (
-                      <p className="flex items-center space-x-2">
+                      <p className="flex items-center space-x-2 truncate">
                         <Mail size={13} className="text-slate-400 shrink-0" />
                         <span className="truncate">{comp.email}</span>
                       </p>
                     )}
                     {comp.address && (
-                      <p className="flex items-center space-x-2">
+                      <p className="flex items-center space-x-2 truncate">
                         <MapPin size={13} className="text-slate-400 shrink-0" />
                         <span className="truncate">{comp.address}</span>
                       </p>
@@ -404,40 +404,40 @@ export default function SuperAdminCompaniesPage() {
                 </div>
 
                 {/* Card Actions Footer */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                   <div className="flex items-center space-x-1">
                     <button
                       onClick={() => openEditModal(comp)}
-                      className="p-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                      className="p-1.5 sm:p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
                       title="Edit Company Details"
                     >
-                      <Edit2 size={16} />
+                      <Edit2 size={15} />
                     </button>
                     <button
                       onClick={() => toggleStatus(comp.id, comp.status)}
-                      className={`p-2 rounded-lg transition ${
+                      className={`p-1.5 sm:p-2 rounded-lg transition ${
                         comp.status === 'active'
                           ? 'text-slate-500 hover:text-rose-600 hover:bg-rose-50'
                           : 'text-slate-500 hover:text-emerald-600 hover:bg-emerald-50'
                       }`}
                       title={comp.status === 'active' ? 'Suspend Company' : 'Activate Company'}
                     >
-                      {comp.status === 'active' ? <Ban size={16} /> : <CheckCircle size={16} />}
+                      {comp.status === 'active' ? <Ban size={15} /> : <CheckCircle size={15} />}
                     </button>
                     {comp.id !== 'default' && (
                       <button
                         onClick={() => handleDeleteCompany(comp.id, comp.name)}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        className="p-1.5 sm:p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                         title="Delete Company"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={15} />
                       </button>
                     )}
                   </div>
 
                   <Link
                     href={`/superadmin/subscriptions?company=${comp.id}`}
-                    className="inline-flex items-center space-x-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition"
+                    className="inline-flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] sm:text-xs font-semibold rounded-xl transition shrink-0"
                   >
                     <CreditCard size={13} />
                     <span>Validity & Plans</span>

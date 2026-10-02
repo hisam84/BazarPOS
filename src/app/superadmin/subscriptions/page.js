@@ -208,22 +208,22 @@ export default function SuperAdminSubscriptionsPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-5 sm:space-y-6 max-w-7xl mx-auto px-2 sm:px-0">
       {/* Top Banner */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
-            <Clock className="text-indigo-600" size={24} />
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center space-x-2">
+            <Clock className="text-indigo-600 shrink-0" size={22} />
             <span>Subscription & Validity Management</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
             Manage software access validity periods for each client company. All financial billing occurs externally.
           </p>
         </div>
 
         <button
           onClick={loadSubscriptions}
-          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition border border-slate-200"
+          className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition border border-slate-200 w-full sm:w-auto shrink-0"
         >
           <RefreshCw size={13} />
           <span>Refresh Data</span>
@@ -231,56 +231,56 @@ export default function SuperAdminSubscriptionsPage() {
       </div>
 
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Total Tenants</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Building2 size={16} />
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Total Tenants</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Building2 size={15} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900">{stats.totalCompanies}</p>
-          <span className="text-[11px] text-slate-500 font-medium">Registered businesses</span>
+          <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.totalCompanies}</p>
+          <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Registered businesses</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Active Validity</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <CheckCircle size={16} />
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Active Validity</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <CheckCircle size={15} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900">{stats.activeSubscriptions}</p>
-          <span className="text-[11px] text-indigo-600 font-medium">Valid store licenses</span>
+          <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.activeSubscriptions}</p>
+          <span className="text-[10px] sm:text-[11px] text-indigo-600 font-medium">Valid store licenses</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Expiring in 7 Days</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Clock size={16} />
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Expiring in 7 Days</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <Clock size={15} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900">{stats.expiringSoon}</p>
-          <span className="text-[11px] text-amber-600 font-medium">Needs time extension</span>
+          <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.expiringSoon}</p>
+          <span className="text-[10px] sm:text-[11px] text-amber-600 font-medium">Needs time extension</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Expired Accounts</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-              <AlertTriangle size={16} />
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">Expired Accounts</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <AlertTriangle size={15} />
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900">{stats.expiredSubscriptions}</p>
-          <span className="text-[11px] text-rose-600 font-medium">Require renewal</span>
+          <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.expiredSubscriptions}</p>
+          <span className="text-[10px] sm:text-[11px] text-rose-600 font-medium">Require renewal</span>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="relative flex-1 w-full sm:w-auto">
-          <Search className="absolute left-3.5 top-3 text-slate-400" size={16} />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3.5 top-2.5 text-slate-400" size={16} />
           <input
             type="text"
             placeholder="Search company by name, owner, phone..."
@@ -294,7 +294,7 @@ export default function SuperAdminSubscriptionsPage() {
           <select
             value={planFilter}
             onChange={(e) => setPlanFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none flex-1 sm:flex-none"
           >
             <option value="all">All Tiers</option>
             <option value="trial">Free Trial (14d)</option>
@@ -308,7 +308,7 @@ export default function SuperAdminSubscriptionsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none"
+            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none flex-1 sm:flex-none"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
@@ -322,27 +322,27 @@ export default function SuperAdminSubscriptionsPage() {
               className="px-2.5 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-xl text-xs font-bold transition flex items-center space-x-1"
             >
               <X size={14} />
-              <span>Clear Filter</span>
+              <span>Clear</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Subscriptions Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[850px] text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
-                <th className="py-4 px-6">Company &amp; Owner</th>
-                <th className="py-4 px-4">Validity Tier</th>
-                <th className="py-4 px-4">Start Date</th>
-                <th className="py-4 px-4">Expiry Date</th>
-                <th className="py-4 px-4">Time Remaining</th>
-                <th className="py-4 px-4">Status</th>
-                <th className="py-4 px-4">Payment Info</th>
-                <th className="py-4 px-4">External Notes</th>
-                <th className="py-4 px-6 text-right">Actions</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px] sm:text-[11px]">
+                <th className="py-3.5 px-4 sm:px-6">Company &amp; Owner</th>
+                <th className="py-3.5 px-3 sm:px-4">Validity Tier</th>
+                <th className="py-3.5 px-3 sm:px-4">Start Date</th>
+                <th className="py-3.5 px-3 sm:px-4">Expiry Date</th>
+                <th className="py-3.5 px-3 sm:px-4">Time Remaining</th>
+                <th className="py-3.5 px-3 sm:px-4">Status</th>
+                <th className="py-3.5 px-3 sm:px-4">Payment Info</th>
+                <th className="py-3.5 px-3 sm:px-4">External Notes</th>
+                <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -366,14 +366,14 @@ export default function SuperAdminSubscriptionsPage() {
                   return (
                     <tr key={item.companyId} className="hover:bg-slate-50/70 transition">
                       {/* Company Name */}
-                      <td className="py-4 px-6">
+                      <td className="py-3.5 px-4 sm:px-6">
                         <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-50 text-indigo-700 font-bold flex items-center justify-center shrink-0 border border-indigo-100">
                             <Building2 size={16} />
                           </div>
                           <div>
-                            <p className="font-bold text-slate-900 text-sm">{item.companyName}</p>
-                            <p className="text-slate-500 text-[11px]">
+                            <p className="font-bold text-slate-900 text-xs sm:text-sm">{item.companyName}</p>
+                            <p className="text-slate-500 text-[10px] sm:text-[11px] whitespace-nowrap">
                               {item.owner} {item.phone && `• ${item.phone}`}
                             </p>
                           </div>
@@ -381,9 +381,9 @@ export default function SuperAdminSubscriptionsPage() {
                       </td>
 
                       {/* Plan Badge */}
-                      <td className="py-4 px-4">
+                      <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap">
                         <span
-                          className={`inline-block px-2.5 py-1 rounded-full font-bold text-[10px] uppercase border ${getPlanBadgeColor(
+                          className={`inline-block px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-bold text-[9px] sm:text-[10px] uppercase border ${getPlanBadgeColor(
                             sub.planId
                           )}`}
                         >
@@ -392,24 +392,24 @@ export default function SuperAdminSubscriptionsPage() {
                       </td>
 
                       {/* Start Date */}
-                      <td className="py-4 px-4 font-mono text-slate-600">
+                      <td className="py-3.5 px-3 sm:px-4 font-mono text-slate-600 whitespace-nowrap">
                         {sub.startDate || 'N/A'}
                       </td>
 
                       {/* Expiry Date */}
-                      <td className="py-4 px-4 font-mono font-bold text-slate-900">
+                      <td className="py-3.5 px-3 sm:px-4 font-mono font-bold text-slate-900 whitespace-nowrap">
                         {sub.expiryDate || 'N/A'}
                       </td>
 
                       {/* Remaining Days */}
-                      <td className="py-4 px-4">
+                      <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] ${remaining.badgeClass}`}>
                           {remaining.text}
                         </span>
                       </td>
 
                       {/* Sub Status */}
-                      <td className="py-4 px-4">
+                      <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                             sub.status === 'active'
@@ -422,7 +422,7 @@ export default function SuperAdminSubscriptionsPage() {
                       </td>
 
                       {/* Payment Info */}
-                      <td className="py-4 px-4">
+                      <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap">
                         {sub.paidAmount || sub.paymentMethod || sub.paymentStatus ? (
                           <div className="space-y-0.5">
                             <div className="flex items-center space-x-1">
@@ -455,15 +455,15 @@ export default function SuperAdminSubscriptionsPage() {
                       </td>
 
                       {/* External Notes */}
-                      <td className="py-4 px-4 text-slate-500 text-[11px] max-w-xs truncate">
+                      <td className="py-3.5 px-3 sm:px-4 text-slate-500 text-[11px] max-w-[140px] truncate">
                         {sub.notes || '—'}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-6 text-right">
+                      <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
                         <button
                           onClick={() => openRenewModal(item)}
-                          className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition shadow-xs text-xs"
+                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-xs text-xs"
                         >
                           Extend / Set Date
                         </button>
@@ -478,13 +478,13 @@ export default function SuperAdminSubscriptionsPage() {
       </div>
 
       {/* Available Plans Guide */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-4">
+      <div className="bg-slate-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4">
         <div className="flex items-center space-x-2">
-          <Sparkles className="text-purple-400" size={20} />
-          <h3 className="font-bold text-base">Subscription Validity Tiers & Outlets Limits</h3>
+          <Sparkles className="text-indigo-400" size={18} />
+          <h3 className="font-bold text-sm sm:text-base">Subscription Validity Tiers & Outlets Limits</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3 pt-1">
           {plans.map((p) => (
             <div
               key={p.id}
@@ -492,7 +492,7 @@ export default function SuperAdminSubscriptionsPage() {
             >
               <div>
                 <h4 className="font-bold text-white text-xs">{p.name}</h4>
-                <p className="text-[11px] font-mono text-purple-400 font-semibold">{p.durationDays} Days</p>
+                <p className="text-[11px] font-mono text-indigo-400 font-semibold">{p.durationDays} Days</p>
                 <p className="text-[10px] text-slate-400 mt-1">
                   Outlets: <strong>{p.maxBranches}</strong> | Staff: <strong>{p.maxStaff}</strong>
                 </p>

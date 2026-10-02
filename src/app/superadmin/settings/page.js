@@ -99,26 +99,26 @@ export default function SuperAdminSettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-5 sm:space-y-6 max-w-5xl mx-auto px-2 sm:px-0">
       {/* Top Banner */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <ShieldCheck className="text-purple-600" size={24} />
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <ShieldCheck className="text-indigo-600 shrink-0" size={22} />
             <span>Super Admin Security & Platform Settings</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
             Manage your Super Admin master access credentials, recovery email, and review SaaS system architecture status.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
         {/* Security & Password Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center space-x-2">
-            <KeyRound className="text-purple-600" size={20} />
-            <h2 className="text-base font-bold text-slate-800">Master Credentials & Profile</h2>
+            <KeyRound className="text-indigo-600 shrink-0" size={20} />
+            <h2 className="text-sm sm:text-base font-bold text-slate-800">Master Credentials & Profile</h2>
           </div>
           <p className="text-xs text-slate-500">
             Current account: <strong className="text-slate-800 font-mono">{adminProfile.username}</strong>
@@ -145,7 +145,7 @@ export default function SuperAdminSettingsPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="System Super Admin"
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-purple-500 text-xs font-semibold text-slate-800"
+                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 text-xs font-semibold text-slate-800"
               />
             </div>
 
@@ -157,7 +157,7 @@ export default function SuperAdminSettingsPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="superadmin@bazarpos.com"
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-purple-500 text-xs font-semibold text-slate-800"
+                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-indigo-500 text-xs font-semibold text-slate-800"
               />
             </div>
 
@@ -169,7 +169,7 @@ export default function SuperAdminSettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Leave blank to keep current"
-                  className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 font-mono"
+                  className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono"
                 />
                 <button
                   type="button"
@@ -190,7 +190,7 @@ export default function SuperAdminSettingsPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter new password"
-                  className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 font-mono"
+                  className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 font-mono"
                 />
                 <button
                   type="button"
@@ -206,7 +206,7 @@ export default function SuperAdminSettingsPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition shadow-md shadow-purple-600/30 disabled:opacity-50"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md shadow-indigo-600/30 disabled:opacity-50"
             >
               {loading ? 'Saving Changes...' : 'Update Master Profile & Credentials'}
             </button>
@@ -214,21 +214,21 @@ export default function SuperAdminSettingsPage() {
         </div>
 
         {/* Platform Information Card */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center space-x-2">
-              <Server className="text-blue-600" size={20} />
-              <h2 className="text-base font-bold text-slate-800">SaaS Multi-Tenant Infrastructure</h2>
+              <Server className="text-blue-600 shrink-0" size={20} />
+              <h2 className="text-sm sm:text-base font-bold text-slate-800">SaaS Multi-Tenant Infrastructure</h2>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2.5 sm:space-y-3 text-xs">
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-slate-500 font-medium">Multi-Tenant Architecture</span>
                 <span className="font-bold text-slate-800">Isolated Tenant Scopes</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-slate-500 font-medium">Super Admin Access Level</span>
-                <span className="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200 text-[10px]">
+                <span className="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 text-[10px]">
                   SaaS Platform Owner (Level 0)
                 </span>
               </div>
@@ -246,8 +246,8 @@ export default function SuperAdminSettingsPage() {
           {/* Database & Tables Initialization Card */}
           <DatabaseStatusCard />
 
-          <div className="bg-gradient-to-br from-slate-900 to-purple-950 text-white p-6 rounded-3xl shadow-xl space-y-2">
-            <h3 className="font-bold text-sm flex items-center space-x-2 text-purple-300">
+          <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl space-y-2">
+            <h3 className="font-bold text-xs sm:text-sm flex items-center space-x-2 text-indigo-300">
               <Sparkles size={16} />
               <span>BazarPOS SaaS Platform</span>
             </h3>
@@ -307,15 +307,15 @@ function DatabaseStatusCard() {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Database className="text-emerald-600" size={20} />
-          <h2 className="text-base font-bold text-slate-800">PostgreSQL Database Connection</h2>
+          <Database className="text-emerald-600 shrink-0" size={20} />
+          <h2 className="text-sm sm:text-base font-bold text-slate-800">PostgreSQL Database Connection</h2>
         </div>
         <button
           onClick={checkStatus}
-          className="text-xs text-purple-600 hover:text-purple-700 font-semibold"
+          className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold"
         >
           Check Status
         </button>
@@ -344,7 +344,7 @@ function DatabaseStatusCard() {
             <p className="font-bold text-emerald-900">
               Tables in Database: {dbStatus.tables.length}
             </p>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto">
               {dbStatus.tables.map((t) => (
                 <span
                   key={t}

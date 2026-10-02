@@ -82,20 +82,20 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto px-2 sm:px-0">
       {/* Top Welcome & Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 p-8 text-white shadow-xl border border-indigo-900/30">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 p-5 sm:p-8 text-white shadow-xl border border-indigo-900/30">
         {/* Subtle radial ambient glows */}
         <div className="pointer-events-none absolute -right-12 -top-12 h-80 w-80 rounded-full bg-indigo-500/15 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 right-1/3 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
 
-        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2.5">
-            <div className="inline-flex items-center space-x-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3.5 py-1 text-xs font-semibold text-indigo-300 backdrop-blur-md">
+        <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <div className="inline-flex items-center space-x-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300 backdrop-blur-md">
               <Sparkles size={13} className="text-indigo-400" />
               <span>SaaS Platform Control Hub</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
               Super Admin Management
             </h1>
             <p className="max-w-2xl text-xs sm:text-sm text-slate-300/90 leading-relaxed">
@@ -103,17 +103,17 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <Link
               href="/superadmin/companies"
-              className="inline-flex items-center space-x-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-500 hover:shadow-indigo-600/35"
+              className="inline-flex items-center justify-center space-x-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-600/25 transition hover:bg-indigo-500 hover:shadow-indigo-600/35"
             >
               <Plus size={15} />
               <span>Create Company</span>
             </Link>
             <Link
               href="/superadmin/subscriptions"
-              className="inline-flex items-center space-x-2 rounded-xl border border-slate-700/80 bg-slate-800/80 px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-slate-700 hover:text-white"
+              className="inline-flex items-center justify-center space-x-2 rounded-xl border border-slate-700/80 bg-slate-800/80 px-4 py-2.5 text-xs font-bold text-slate-200 transition hover:bg-slate-700 hover:text-white"
             >
               <Clock size={15} className="text-indigo-400" />
               <span>Subscriptions & Validity</span>
@@ -123,100 +123,100 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Metrics Row - Refined Clean Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
         {/* Total Companies */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Tenants</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Building2 size={16} />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Tenants</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Building2 size={15} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-900">{stats.totalCompanies}</p>
-            <span className="text-[11px] text-slate-500 font-medium">Registered stores</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.totalCompanies}</p>
+            <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Registered stores</span>
           </div>
         </div>
 
         {/* Active Companies */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-200 hover:shadow-sm transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle2 size={16} />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-200 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 size={15} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-900">{stats.activeCompanies}</p>
-            <span className="text-[11px] text-emerald-600 font-medium">Operational</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.activeCompanies}</p>
+            <span className="text-[10px] sm:text-[11px] text-emerald-600 font-medium">Operational</span>
           </div>
         </div>
 
         {/* Active Subscriptions */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-200 hover:shadow-sm transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active License</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Layers size={16} />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-200 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active License</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <Layers size={15} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-900">{stats.activeSubscriptions}</p>
-            <span className="text-[11px] text-indigo-600 font-medium">Valid validity</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.activeSubscriptions}</p>
+            <span className="text-[10px] sm:text-[11px] text-indigo-600 font-medium">Valid validity</span>
           </div>
         </div>
 
         {/* Expiring Soon */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-amber-200 hover:shadow-sm transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expiring Soon</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Clock size={16} />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-amber-200 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expiring Soon</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <Clock size={15} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-900">{stats.expiringSoon}</p>
-            <span className="text-[11px] text-amber-600 font-medium">Within 7 days</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.expiringSoon}</p>
+            <span className="text-[10px] sm:text-[11px] text-amber-600 font-medium">Within 7 days</span>
           </div>
         </div>
 
         {/* Expired Accounts */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-rose-200 hover:shadow-sm transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expired</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-              <AlertTriangle size={16} />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-rose-200 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expired</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <AlertTriangle size={15} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-900">{stats.expiredSubscriptions}</p>
-            <span className="text-[11px] text-rose-600 font-medium">Needs renewal</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.expiredSubscriptions}</p>
+            <span className="text-[10px] sm:text-[11px] text-rose-600 font-medium">Needs renewal</span>
           </div>
         </div>
 
         {/* Suspended */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Suspended</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
-              <Ban size={16} />
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Suspended</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+              <Ban size={15} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-900">{stats.suspendedCompanies}</p>
-            <span className="text-[11px] text-slate-500 font-medium">Access disabled</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900">{stats.suspendedCompanies}</p>
+            <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Access disabled</span>
           </div>
         </div>
       </div>
 
       {/* Main Section: Companies Overview & Validity Tiers */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Left 2 Cols: Registered Companies List */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/40">
+        <div className="lg:col-span-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/40">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Merchant Companies</h2>
-              <p className="text-xs text-slate-500">Live overview of registered businesses & validity</p>
+              <p className="text-[11px] sm:text-xs text-slate-500">Live overview of registered businesses & validity</p>
             </div>
             <Link
               href="/superadmin/companies"
@@ -227,7 +227,7 @@ export default function SuperAdminDashboard() {
             </Link>
           </div>
 
-          <div className="p-5">
+          <div className="p-3.5 sm:p-5">
             {loading ? (
               <div className="py-12 text-center text-slate-400 text-sm">Loading Companies...</div>
             ) : companies.length === 0 ? (
@@ -243,27 +243,27 @@ export default function SuperAdminDashboard() {
                   return (
                     <div
                       key={comp.id}
-                      className="p-4 rounded-2xl border border-slate-200/80 hover:border-indigo-200 hover:shadow-xs transition bg-slate-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      className="p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 hover:border-indigo-200 hover:shadow-xs transition bg-slate-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
                     >
-                      <div className="flex items-center space-x-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center shrink-0 border border-indigo-100">
+                      <div className="flex items-start sm:items-center space-x-3">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center shrink-0 border border-indigo-100">
                           <Building2 size={18} />
                         </div>
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-bold text-slate-900 text-sm">{comp.name}</h3>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <h3 className="font-bold text-slate-900 text-xs sm:text-sm truncate max-w-[200px] sm:max-w-none">{comp.name}</h3>
                             <span
-                              className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${getPlanBadgeColor(
+                              className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-md border ${getPlanBadgeColor(
                                 sub.planId
                               )}`}
                             >
                               {sub.planName || 'Standard'}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-0.5 flex items-center space-x-2">
+                          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                             <span>Owner: <strong className="text-slate-700 font-medium">{comp.owner || 'Admin'}</strong></span>
                             {sub.expiryDate && (
-                              <span className="text-slate-400 font-mono text-[11px]">
+                              <span className="text-slate-400 font-mono text-[10px] sm:text-[11px]">
                                 • Expires: <strong className="text-slate-600 font-semibold">{sub.expiryDate}</strong>
                               </span>
                             )}
@@ -271,9 +271,9 @@ export default function SuperAdminDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2.5 self-end sm:self-center">
+                      <div className="flex items-center justify-between sm:justify-end space-x-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         <span
-                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase border ${
+                          className={`px-2.5 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-full uppercase border ${
                             isSuspended
                               ? 'bg-slate-100 text-slate-700 border-slate-200'
                               : isExpired
@@ -300,10 +300,10 @@ export default function SuperAdminDashboard() {
         </div>
 
         {/* Right 1 Col: Validity Tiers Overview */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-sm flex items-center space-x-2">
+              <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center space-x-2">
                 <Clock size={16} className="text-indigo-600" />
                 <span>Subscription Validity Tiers</span>
               </h3>
@@ -359,7 +359,7 @@ export default function SuperAdminDashboard() {
           </div>
 
           {/* Quick Notice */}
-          <div className="bg-slate-900 text-white rounded-3xl p-5 shadow-xs space-y-2.5 border border-slate-800">
+          <div className="bg-slate-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-2.5 border border-slate-800">
             <h4 className="font-bold text-xs flex items-center space-x-2 text-indigo-300">
               <ShieldCheck size={15} />
               <span>Time-Based Licensing System</span>
