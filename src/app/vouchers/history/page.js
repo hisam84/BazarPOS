@@ -351,10 +351,21 @@ export default function VoucherHistoryPage() {
                     </thead>
                     <tbody>
                       {(selectedVoucher.items || []).map((item, idx) => (
-                        <tr key={idx}>
-                          <td className="py-1">{item.name}</td>
-                          <td className="py-1 text-center">{item.quantity}</td>
-                          <td className="py-1 text-right">৳{item.unitPrice * item.quantity}</td>
+                        <tr key={idx} className="border-b border-slate-100">
+                          <td className="py-1">
+                            <p className="font-semibold">{item.name}</p>
+                            {item.warranty && (
+                              <p className="text-[9px] text-blue-600 font-medium">Warranty: {item.warranty}</p>
+                            )}
+                            {(item.serialNumber || item.serialNo) && (
+                              <p className="text-[9px] text-purple-700 font-mono font-medium">S/N: {item.serialNumber || item.serialNo}</p>
+                            )}
+                            {item.description && (
+                              <p className="text-[9px] text-slate-500 italic leading-tight">{item.description}</p>
+                            )}
+                          </td>
+                          <td className="py-1 text-center align-top">{item.quantity}</td>
+                          <td className="py-1 text-right align-top">৳{item.unitPrice * item.quantity}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -31,7 +31,9 @@ export async function POST(request) {
           <td style="padding: 10px 8px; font-size: 13px; color: #1e293b;">
             <strong>${it.name}</strong>
             ${it.unit ? `<span style="font-size: 11px; color: #64748b;"> (${it.unit})</span>` : ''}
-            ${it.warranty ? `<div style="font-size: 11px; color: #2563eb;">🛡️ Warranty: ${it.warranty}</div>` : ''}
+            ${it.warranty ? `<div style="font-size: 11px; color: #2563eb; margin-top: 2px;">🛡️ Warranty: ${it.warranty}</div>` : ''}
+            ${(it.serialNumber || it.serialNo) ? `<div style="font-size: 11px; color: #7c3aed; font-family: monospace; margin-top: 2px;">🔢 S/N: ${it.serialNumber || it.serialNo}</div>` : ''}
+            ${it.description ? `<div style="font-size: 11px; color: #64748b; font-style: italic; margin-top: 2px;">${it.description}</div>` : ''}
           </td>
           <td style="padding: 10px 8px; font-size: 13px; text-align: center; color: #334155;">${it.quantity}</td>
           <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #0f172a; font-weight: bold;">৳${((it.quantity || 1) * (it.unitPrice || 0)).toLocaleString()}</td>

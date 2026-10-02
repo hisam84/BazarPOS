@@ -132,6 +132,7 @@ export default function POSTerminalPage() {
           unit: product.unit || 'Pcs',
           warranty: product.warranty || '',
           description: product.description || '',
+          serialNumber: product.serialNumber || '',
           costPrice: product.costPrice || 0,
           unitPrice: product.sellingPrice || 0,
           quantity: 1,
@@ -139,6 +140,12 @@ export default function POSTerminalPage() {
         }
       ];
     });
+  };
+
+  const updateItemSerialNumber = (id, serialNumber) => {
+    setCart((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, serialNumber } : item))
+    );
   };
 
   const updateQuantity = (id, delta) => {
@@ -509,29 +516,53 @@ export default function POSTerminalPage() {
               Cart is empty. Click products or scan barcode to add!
             </div>
           ) : (
-            cart.map((item) => (
-              <div key={item.id} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
-                <div className="min-w-0 flex-1 pr-2">
-                  <p className="font-semibold text-xs text-slate-800 truncate">{item.name}</p>
-                  <p className="text-[10px] text-slate-500">৳{item.unitPrice} × {item.quantity}</p>
-                </div>
+            cart.map((item) => {
+              const hasWarranty = item.warranty && item.warranty.trim() !== '' && item.warranty.toLowerCase() !== 'no' && item.warranty.toLowerCase() !== 'none';
+              return (
+                <div key={item.id} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1 pr-2">
+                      <p className="font-semibold text-xs text-slate-800 truncate">{item.name}</p>
+                      <p className="text-[10px] text-slate-500">৳{item.unitPrice} × {item.quantity}</p>
+                    </div>
 
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center border border-slate-300 rounded-lg bg-white">
-                    <button onClick={() => updateQuantity(item.id, -1)} className="p-1 text-slate-600 hover:bg-slate-100">
-                      <Minus size={12} />
-                    </button>
-                    <span className="px-2 text-xs font-bold">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)} className="p-1 text-slate-600 hover:bg-slate-100">
-                      <Plus size={12} />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center border border-slate-300 rounded-lg bg-white">
+                        <button onClick={() => updateQuantity(item.id, -1)} className="p-1 text-slate-600 hover:bg-slate-100">
+                          <Minus size={12} />
+                        </button>
+                        <span className="px-2 text-xs font-bold">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.id, 1)} className="p-1 text-slate-600 hover:bg-slate-100">
+                          <Plus size={12} />
+                        </button>
+                      </div>
+                      <button onClick={() => removeFromCart(item.id)} className="text-rose-500 hover:text-rose-700 p-1">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => removeFromCart(item.id)} className="text-rose-500 hover:text-rose-700 p-1">
-                    <Trash2 size={14} />
-                  </button>
+
+                  {/* Serial / IMEI input if product has warranty */}
+                  {hasWarranty && (
+                    <div className="pt-1.5 border-t border-slate-200/80 bg-blue-50/50 p-2 rounded-lg border border-blue-100/80">
+                      <div className="flex items-center justify-between text-[10px] mb-1">
+                        <span className="text-blue-700 font-bold flex items-center gap-1">
+                          🛡️ Warranty: {item.warranty}
+                        </span>
+                        <span className="text-slate-500 font-medium">Serial / IMEI</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={item.serialNumber || ''}
+                        onChange={(e) => updateItemSerialNumber(item.id, e.target.value)}
+                        placeholder="Enter Serial No / IMEI..."
+                        className="w-full px-2.5 py-1 bg-white border border-blue-200 rounded-md text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -943,6 +974,9 @@ export default function POSTerminalPage() {
                             <p className="font-semibold">{item.name}</p>
                             {item.warranty && (
                               <p className="text-[9px] text-blue-600 font-medium">Warranty: {item.warranty}</p>
+                            )}
+                            {(item.serialNumber || item.serialNo) && (
+                              <p className="text-[9px] text-purple-700 font-mono font-medium">S/N: {item.serialNumber || item.serialNo}</p>
                             )}
                             {item.description && (
                               <p className="text-[9px] text-slate-500 italic leading-tight">{item.description}</p>

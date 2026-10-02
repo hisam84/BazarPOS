@@ -295,7 +295,7 @@ export default function InvoiceA4({
                   <td className="py-2 px-3">
                     <span className="font-semibold text-slate-900 block leading-tight">{item.name}</span>
                     
-                    {/* Unit & Warranty badges */}
+                    {/* Unit, Warranty & Serial Number badges */}
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[10px] text-slate-500">
                       {item.unit && settings?.showItemUnit && (
                         <span>Unit: <strong className="text-slate-700 font-medium">{item.unit}</strong></span>
@@ -303,6 +303,11 @@ export default function InvoiceA4({
                       {item.warranty && item.warranty.trim() !== '' && (
                         <span className="text-blue-700 font-medium bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/80 inline-flex items-center space-x-0.5">
                           <span>🛡️ Warranty: {item.warranty}</span>
+                        </span>
+                      )}
+                      {(item.serialNumber || item.serialNo) && (item.serialNumber || item.serialNo).trim() !== '' && (
+                        <span className="text-purple-700 font-medium bg-purple-50 px-1.5 py-0.2 rounded border border-purple-200/80 inline-flex items-center space-x-0.5 font-mono">
+                          <span>🔢 S/N: {item.serialNumber || item.serialNo}</span>
                         </span>
                       )}
                     </div>
