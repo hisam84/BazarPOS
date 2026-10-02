@@ -549,9 +549,9 @@ function ReportsContent() {
       </div>
 
       {/* PRINTABLE AREA (A4 Standard Format) */}
-      <div className="printable-report space-y-6">
+      <div className="printable-area printable-report space-y-6">
         {/* Printable Business Header (visible in print & on screen) */}
-        <div className="print-header hidden sm:block bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="print-header block bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">{storeInfo.name}</h2>

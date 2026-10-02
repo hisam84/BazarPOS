@@ -57,11 +57,11 @@ body {
   background: #94a3b8;
 }
 
-/* POS & A4 Invoice Styles for Print */
+/* POS, Reports & A4 Invoice Styles for Print */
 @media print {
   @page {
     size: auto;
-    margin: 8mm;
+    margin: 10mm;
   }
   
   html, body {
@@ -73,15 +73,25 @@ body {
     print-color-adjust: exact !important;
   }
 
+  /* Hide background elements, navigation, sidebar, and non-printable UI */
   body * {
     visibility: hidden;
   }
-  
-  .printable-area, .printable-area * {
-    visibility: visible;
+
+  .no-print, .no-print *, aside, header, nav, button, .date-filter-bar {
+    display: none !important;
+  }
+
+  /* Ensure all printable areas and their children are fully visible */
+  .printable-area, .printable-area *,
+  .printable-report, .printable-report *,
+  .print-area, .print-area * {
+    visibility: visible !important;
   }
   
-  .printable-area {
+  /* Invoices and modals positioned for 1-page/slip print */
+  .printable-area:not(.printable-report),
+  .print-area {
     position: absolute;
     left: 0;
     top: 0;
@@ -91,6 +101,59 @@ body {
     background: #ffffff !important;
   }
 
+  /* Full Document Reports: Natural flow for multi-page tables & KPIs */
+  .printable-report {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .print-header {
+    display: block !important;
+    margin-bottom: 16px !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 10px !important;
+    background: #ffffff !important;
+  }
+
+  .kpi-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .kpi-card {
+    border: 1px solid #cbd5e1 !important;
+    padding: 8px !important;
+    border-radius: 6px !important;
+    background: #f8fafc !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+  }
+
+  td {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 6px 8px !important;
+  }
+
   .a4-invoice-sheet {
     box-shadow: none !important;
     border: none !important;
@@ -98,10 +161,6 @@ body {
     width: 100% !important;
     min-height: auto !important;
     padding: 0 !important;
-  }
-  
-  .no-print {
-    display: none !important;
   }
 }
 

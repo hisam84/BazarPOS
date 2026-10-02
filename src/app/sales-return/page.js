@@ -766,7 +766,7 @@ function SalesReturnContent() {
             </div>
 
             {/* Printable Voucher Content */}
-            <div className="p-6 overflow-y-auto space-y-4 text-xs font-sans print-area bg-white text-slate-900">
+            <div className="p-6 overflow-y-auto space-y-4 text-xs font-sans printable-area print-area bg-white text-slate-900">
               {/* Store & Header */}
               <div className="text-center border-b pb-3 space-y-1">
                 <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
