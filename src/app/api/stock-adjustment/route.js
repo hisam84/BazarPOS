@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({
       success: true,
@@ -25,7 +25,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Valid product code and quantity required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     const prodIdx = (storeData.products || []).findIndex(p => p.code === productCode);
 
     if (prodIdx === -1) {
@@ -56,9 +56,9 @@ export async function POST(request) {
 
     storeData.stockAdjustments = storeData.stockAdjustments || [];
     storeData.stockAdjustments.unshift(adjustmentRecord);
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
-    logAuditAction(
+    await logAuditAction(
       storeId,
       username,
       'STOCK_ADJUSTMENT',

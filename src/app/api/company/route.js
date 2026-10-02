@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({ success: true, company: storeData.company || {} });
   } catch (error) {
@@ -18,13 +18,13 @@ export async function POST(request) {
     const body = await request.json();
     const { storeId = 'default', ...companyInfo } = body;
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     storeData.company = {
       ...storeData.company,
       ...companyInfo
     };
 
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, company: storeData.company });
   } catch (error) {

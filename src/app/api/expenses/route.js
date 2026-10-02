@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({
       success: true,
@@ -25,7 +25,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Type and valid amount required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     storeData.externalIncomeExpense = storeData.externalIncomeExpense || { income: [], expense: [] };
 
     const entry = {
@@ -42,7 +42,7 @@ export async function POST(request) {
       storeData.externalIncomeExpense.expense.unshift(entry);
     }
 
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, entry });
   } catch (error) {

@@ -3,8 +3,8 @@ import { getCompanies, getSaaSStats, getSubscriptionPlans, updateCompanySubscrip
 
 export async function GET() {
   try {
-    const companies = getCompanies();
-    const stats = getSaaSStats();
+    const companies = await getCompanies();
+    const stats = await getSaaSStats();
     const plans = getSubscriptionPlans();
 
     const subscriptions = companies.map(c => ({
@@ -19,7 +19,7 @@ export async function GET() {
         planName: '1 Year Full Access',
         durationDays: 365,
         status: 'active',
-        startDate: c.createdAt ? c.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+        startDate: c.createdAt ? String(c.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10),
         expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
         notes: ''
       }
@@ -45,7 +45,7 @@ export async function PUT(request) {
       return NextResponse.json({ success: false, message: 'companyId is required' }, { status: 400 });
     }
 
-    const updated = updateCompanySubscription(companyId, subscriptionUpdates);
+    const updated = await updateCompanySubscription(companyId, subscriptionUpdates);
     if (!updated) {
       return NextResponse.json({ success: false, message: 'Company not found' }, { status: 404 });
     }

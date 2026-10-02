@@ -203,7 +203,7 @@ export default function SuperAdminSettingsPage() {
               <span>BazarPOS SaaS Platform</span>
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              সুপার এডমিন প্যানেল থেকে মার্চেন্ট কোম্পানি অনবোর্ডিং, লাইসেন্স মেয়াদ ও ডাটাবেজ ব্যাকেন্ড সিঙ্ক নিয়ন্ত্রণ করা যায়।
+              Control merchant company onboarding, license validity periods, and database backend synchronization from the Super Admin console.
             </p>
           </div>
         </div>

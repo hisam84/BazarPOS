@@ -37,7 +37,7 @@ export default function LoginPage() {
       if (data.user?.role === 'superadmin') {
         router.push('/superadmin/dashboard');
       } else {
-        router.push('/dashboard');
+        router.push('/');
       }
     } catch (err) {
       setError('Connection error. Please try again.');

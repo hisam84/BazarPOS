@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     const registers = storeData.cashRegisters || [];
     const openRegister = registers.find(r => r.status === 'open');
@@ -24,7 +24,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', username = 'admin', action = 'open', openingCash, closingCashActual, note } = body;
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     storeData.cashRegisters = storeData.cashRegisters || [];
 
@@ -49,9 +49,9 @@ export async function POST(request) {
       };
 
       storeData.cashRegisters.unshift(newRegister);
-      saveStoreData(storeId, storeData);
+      await saveStoreData(storeId, storeData);
 
-      logAuditAction(storeId, username, 'REGISTER_OPEN', `Opened cash drawer with ৳${newRegister.openingCash}`);
+      await logAuditAction(storeId, username, 'REGISTER_OPEN', `Opened cash drawer with ৳${newRegister.openingCash}`);
 
       return NextResponse.json({ success: true, register: newRegister });
     } else if (action === 'close') {
@@ -78,9 +78,9 @@ export async function POST(request) {
       storeData.cashRegisters[openIdx].status = 'closed';
       storeData.cashRegisters[openIdx].closingNote = note || '';
 
-      saveStoreData(storeId, storeData);
+      await saveStoreData(storeId, storeData);
 
-      logAuditAction(
+      await logAuditAction(
         storeId,
         username,
         'REGISTER_CLOSE',

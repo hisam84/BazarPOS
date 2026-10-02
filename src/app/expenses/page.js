@@ -131,8 +131,8 @@ export default function ExpensesPage() {
               <div>
                 <label className="block text-slate-600 mb-1">Transaction Type</label>
                 <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold">
-                  <option value="expense">Expense (খরচ)</option>
-                  <option value="income">External Income (অন্যান্য আয়)</option>
+                  <option value="expense">Expense</option>
+                  <option value="income">External Income</option>
                 </select>
               </div>
               <div>

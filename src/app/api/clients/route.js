@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({ success: true, clients: storeData.clients || [] });
   } catch (error) {
@@ -22,7 +22,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Client name required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     const newClient = {
       id: 'c_' + Date.now(),
       name,
@@ -34,7 +34,7 @@ export async function POST(request) {
 
     storeData.clients = storeData.clients || [];
     storeData.clients.push(newClient);
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, client: newClient });
   } catch (error) {
@@ -51,7 +51,7 @@ export async function PUT(request) {
       return NextResponse.json({ success: false, message: 'Client ID required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     const index = (storeData.clients || []).findIndex(c => c.id === id);
 
     if (index === -1) {
@@ -73,7 +73,7 @@ export async function PUT(request) {
       due: newDue
     };
 
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, client: storeData.clients[index] });
   } catch (error) {

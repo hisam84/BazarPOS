@@ -17,14 +17,14 @@ export default function Header({ user, onLogout }) {
   const isSuperAdmin = user?.role === 'superadmin';
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs no-print">
+    <header className="h-16 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs no-print">
       {/* Store or SaaS Platform Badge */}
       <div className="flex items-center space-x-3">
         <div className="flex flex-col">
-          <h2 className="text-sm font-bold text-slate-800 line-clamp-1 flex items-center space-x-2">
+          <h2 className="text-sm font-bold text-slate-900 line-clamp-1 flex items-center space-x-2">
             {isSuperAdmin ? (
               <>
-                <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
                 <span>BazarPOS SaaS Super Admin</span>
               </>
             ) : (
@@ -46,7 +46,7 @@ export default function Header({ user, onLogout }) {
           <div className="hidden md:flex items-center space-x-2 border-r pr-4 border-slate-200 text-xs font-semibold">
             <Link
               href="/superadmin/companies"
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg transition border border-purple-200"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition border border-indigo-200/80"
               title="Add New Company"
             >
               <Building2 size={14} />
@@ -54,10 +54,10 @@ export default function Header({ user, onLogout }) {
             </Link>
             <Link
               href="/superadmin/subscriptions"
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg transition border border-slate-200"
               title="Subscription & Validity Management"
             >
-              <Clock size={14} className="text-purple-600" />
+              <Clock size={14} className="text-indigo-600" />
               <span>Validity</span>
             </Link>
           </div>
@@ -65,7 +65,7 @@ export default function Header({ user, onLogout }) {
           <div className="hidden md:flex items-center space-x-2 border-r pr-4 border-slate-200 text-xs font-semibold text-slate-600">
             <Link
               href="/cash-register"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="Cash Register Reconciliation"
             >
               <DollarSign size={14} className="text-emerald-600" />
@@ -74,7 +74,7 @@ export default function Header({ user, onLogout }) {
 
             <Link
               href="/stock-adjustment"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="Stock Adjustment & Loss"
             >
               <AlertOctagon size={14} className="text-rose-600" />
@@ -83,7 +83,7 @@ export default function Header({ user, onLogout }) {
 
             <Link
               href="/branches"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="Branches & Transfers"
             >
               <Building2 size={14} className="text-blue-600" />
@@ -92,18 +92,18 @@ export default function Header({ user, onLogout }) {
 
             <Link
               href="/audit-logs"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="System Activity Audit Log"
             >
-              <ShieldCheck size={14} className="text-purple-600" />
+              <ShieldCheck size={14} className="text-indigo-600" />
               <span>Audit Logs</span>
             </Link>
           </div>
         )}
 
         {/* User Info */}
-        <div className="flex items-center space-x-2 pl-2">
-          <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-md">
+        <div className="flex items-center space-x-2.5 pl-1">
+          <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
             {user?.fullName?.slice(0, 2).toUpperCase() || 'AD'}
           </div>
 
@@ -115,10 +115,10 @@ export default function Header({ user, onLogout }) {
 
         <button
           onClick={onLogout}
-          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
           title="Logout"
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
         </button>
       </div>
     </header>

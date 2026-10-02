@@ -234,15 +234,15 @@ function ensureDb() {
       fs.mkdirSync(DB_DIR, { recursive: true });
     }
     if (!fs.existsSync(DB_FILE)) {
+      inMemoryDb = JSON.parse(JSON.stringify(INITIAL_DATA));
       fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_DATA, null, 2), 'utf8');
-      inMemoryDb = INITIAL_DATA;
     } else {
       const content = fs.readFileSync(DB_FILE, 'utf8');
       inMemoryDb = JSON.parse(content);
     }
   } catch (err) {
     if (!inMemoryDb) {
-      inMemoryDb = INITIAL_DATA;
+      inMemoryDb = JSON.parse(JSON.stringify(INITIAL_DATA));
     }
   }
   return inMemoryDb;
@@ -264,7 +264,97 @@ export function getDb() {
   return ensureDb();
 }
 
-export function getStoreData(storeId = 'default') {
+function parseJsonField(val, fallback) {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === 'object') return val;
+  try {
+    return JSON.parse(val);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+export async function getStoreData(storeId = 'default') {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await initPostgresTables();
+      const rows = await sql`SELECT * FROM bazarpos_store_data WHERE store_id = ${storeId} LIMIT 1`;
+      if (rows && rows.length > 0) {
+        const row = rows[0];
+        return {
+          company: parseJsonField(row.company, { name: 'Store Outlet', phone: '', address: '' }),
+          products: parseJsonField(row.products, []),
+          categories: parseJsonField(row.categories, ['General']),
+          brands: parseJsonField(row.brands, ['General']),
+          units: parseJsonField(row.units, ['Pcs']),
+          clients: parseJsonField(row.clients, []),
+          salers: parseJsonField(row.salers, []),
+          suppliers: parseJsonField(row.suppliers, []),
+          purchases: parseJsonField(row.purchases, []),
+          staff: parseJsonField(row.staff, []),
+          vouchers: parseJsonField(row.vouchers, []),
+          externalIncomeExpense: parseJsonField(row.external_income_expense, { income: [], expense: [] }),
+          stockAdjustments: parseJsonField(row.stock_adjustments, []),
+          cashRegisters: parseJsonField(row.cash_registers, []),
+          branches: parseJsonField(row.branches, [{ id: 'b1', name: 'Main Outlet', code: 'MAIN', address: '', phone: '', isPrimary: true }]),
+          stockTransfers: parseJsonField(row.stock_transfers, []),
+          auditLogs: parseJsonField(row.audit_logs, []),
+          voucherCounter: row.voucher_counter || 1001
+        };
+      } else {
+        const defaultData = {
+          company: { name: 'Store Outlet', phone: '', address: '' },
+          products: [],
+          categories: ['General'],
+          brands: ['General'],
+          units: ['Pcs'],
+          clients: [{ id: 'c1', name: 'Walk-in Customer', phone: '', address: '', due: 0 }],
+          salers: [{ id: 's1', name: 'Main Saler', phone: '', role: 'Sales Representative' }],
+          suppliers: [],
+          purchases: [],
+          staff: [],
+          vouchers: [],
+          externalIncomeExpense: { income: [], expense: [] },
+          stockAdjustments: [],
+          cashRegisters: [],
+          branches: [{ id: 'b1', name: 'Main Outlet', code: 'MAIN', address: '', phone: '', isPrimary: true }],
+          stockTransfers: [],
+          auditLogs: [],
+          voucherCounter: 1001
+        };
+        await sql`
+          INSERT INTO bazarpos_store_data (
+            store_id, company, products, categories, brands, units, clients, salers, suppliers, purchases, staff, vouchers, external_income_expense, stock_adjustments, cash_registers, branches, stock_transfers, audit_logs, voucher_counter
+          ) VALUES (
+            ${storeId},
+            ${JSON.stringify(defaultData.company)},
+            ${JSON.stringify(defaultData.products)},
+            ${JSON.stringify(defaultData.categories)},
+            ${JSON.stringify(defaultData.brands)},
+            ${JSON.stringify(defaultData.units)},
+            ${JSON.stringify(defaultData.clients)},
+            ${JSON.stringify(defaultData.salers)},
+            ${JSON.stringify(defaultData.suppliers)},
+            ${JSON.stringify(defaultData.purchases)},
+            ${JSON.stringify(defaultData.staff)},
+            ${JSON.stringify(defaultData.vouchers)},
+            ${JSON.stringify(defaultData.externalIncomeExpense)},
+            ${JSON.stringify(defaultData.stockAdjustments)},
+            ${JSON.stringify(defaultData.cashRegisters)},
+            ${JSON.stringify(defaultData.branches)},
+            ${JSON.stringify(defaultData.stockTransfers)},
+            ${JSON.stringify(defaultData.auditLogs)},
+            ${defaultData.voucherCounter}
+          ) ON CONFLICT (store_id) DO NOTHING
+        `;
+        return defaultData;
+      }
+    } catch (err) {
+      console.warn('Neon getStoreData error, falling back to local:', err.message);
+    }
+  }
+
   const db = ensureDb();
   if (!db.storeData[storeId]) {
     db.storeData[storeId] = {
@@ -292,73 +382,71 @@ export function getStoreData(storeId = 'default') {
   return db.storeData[storeId];
 }
 
-export function saveStoreData(storeId, storeData) {
+export async function saveStoreData(storeId, storeData) {
   const db = ensureDb();
   db.storeData[storeId] = storeData;
   saveDb(db);
 
-  // Sync to PostgreSQL if DATABASE_URL active
   const sql = getNeonSql();
   if (sql) {
-    (async () => {
-      try {
-        await sql`
-          INSERT INTO bazarpos_store_data (
-            store_id, company, products, categories, brands, units, clients, salers, suppliers, purchases, staff, vouchers, external_income_expense, stock_adjustments, cash_registers, branches, stock_transfers, audit_logs, voucher_counter, updated_at
-          ) VALUES (
-            ${storeId},
-            ${JSON.stringify(storeData.company || {})},
-            ${JSON.stringify(storeData.products || [])},
-            ${JSON.stringify(storeData.categories || [])},
-            ${JSON.stringify(storeData.brands || [])},
-            ${JSON.stringify(storeData.units || [])},
-            ${JSON.stringify(storeData.clients || [])},
-            ${JSON.stringify(storeData.salers || [])},
-            ${JSON.stringify(storeData.suppliers || [])},
-            ${JSON.stringify(storeData.purchases || [])},
-            ${JSON.stringify(storeData.staff || [])},
-            ${JSON.stringify(storeData.vouchers || [])},
-            ${JSON.stringify(storeData.externalIncomeExpense || { income: [], expense: [] })},
-            ${JSON.stringify(storeData.stockAdjustments || [])},
-            ${JSON.stringify(storeData.cashRegisters || [])},
-            ${JSON.stringify(storeData.branches || [])},
-            ${JSON.stringify(storeData.stockTransfers || [])},
-            ${JSON.stringify(storeData.auditLogs || [])},
-            ${storeData.voucherCounter || 1001},
-            NOW()
-          )
-          ON CONFLICT (store_id) DO UPDATE SET
-            company = EXCLUDED.company,
-            products = EXCLUDED.products,
-            categories = EXCLUDED.categories,
-            brands = EXCLUDED.brands,
-            units = EXCLUDED.units,
-            clients = EXCLUDED.clients,
-            salers = EXCLUDED.salers,
-            suppliers = EXCLUDED.suppliers,
-            purchases = EXCLUDED.purchases,
-            staff = EXCLUDED.staff,
-            vouchers = EXCLUDED.vouchers,
-            external_income_expense = EXCLUDED.external_income_expense,
-            stock_adjustments = EXCLUDED.stock_adjustments,
-            cash_registers = EXCLUDED.cash_registers,
-            branches = EXCLUDED.branches,
-            stock_transfers = EXCLUDED.stock_transfers,
-            audit_logs = EXCLUDED.audit_logs,
-            voucher_counter = EXCLUDED.voucher_counter,
-            updated_at = NOW();
-        `;
-      } catch (e) {
-        console.warn('Postgres store_data sync error:', e.message);
-      }
-    })();
+    try {
+      await initPostgresTables();
+      await sql`
+        INSERT INTO bazarpos_store_data (
+          store_id, company, products, categories, brands, units, clients, salers, suppliers, purchases, staff, vouchers, external_income_expense, stock_adjustments, cash_registers, branches, stock_transfers, audit_logs, voucher_counter, updated_at
+        ) VALUES (
+          ${storeId},
+          ${JSON.stringify(storeData.company || {})},
+          ${JSON.stringify(storeData.products || [])},
+          ${JSON.stringify(storeData.categories || [])},
+          ${JSON.stringify(storeData.brands || [])},
+          ${JSON.stringify(storeData.units || [])},
+          ${JSON.stringify(storeData.clients || [])},
+          ${JSON.stringify(storeData.salers || [])},
+          ${JSON.stringify(storeData.suppliers || [])},
+          ${JSON.stringify(storeData.purchases || [])},
+          ${JSON.stringify(storeData.staff || [])},
+          ${JSON.stringify(storeData.vouchers || [])},
+          ${JSON.stringify(storeData.externalIncomeExpense || { income: [], expense: [] })},
+          ${JSON.stringify(storeData.stockAdjustments || [])},
+          ${JSON.stringify(storeData.cashRegisters || [])},
+          ${JSON.stringify(storeData.branches || [])},
+          ${JSON.stringify(storeData.stockTransfers || [])},
+          ${JSON.stringify(storeData.auditLogs || [])},
+          ${storeData.voucherCounter || 1001},
+          NOW()
+        )
+        ON CONFLICT (store_id) DO UPDATE SET
+          company = EXCLUDED.company,
+          products = EXCLUDED.products,
+          categories = EXCLUDED.categories,
+          brands = EXCLUDED.brands,
+          units = EXCLUDED.units,
+          clients = EXCLUDED.clients,
+          salers = EXCLUDED.salers,
+          suppliers = EXCLUDED.suppliers,
+          purchases = EXCLUDED.purchases,
+          staff = EXCLUDED.staff,
+          vouchers = EXCLUDED.vouchers,
+          external_income_expense = EXCLUDED.external_income_expense,
+          stock_adjustments = EXCLUDED.stock_adjustments,
+          cash_registers = EXCLUDED.cash_registers,
+          branches = EXCLUDED.branches,
+          stock_transfers = EXCLUDED.stock_transfers,
+          audit_logs = EXCLUDED.audit_logs,
+          voucher_counter = EXCLUDED.voucher_counter,
+          updated_at = NOW();
+      `;
+    } catch (e) {
+      console.warn('Postgres store_data sync error:', e.message);
+    }
   }
 
-  return db.storeData[storeId];
+  return storeData;
 }
 
-export function logAuditAction(storeId = 'default', username = 'system', action, details) {
-  const storeData = getStoreData(storeId);
+export async function logAuditAction(storeId = 'default', username = 'system', action, details) {
+  const storeData = await getStoreData(storeId);
   storeData.auditLogs = storeData.auditLogs || [];
   storeData.auditLogs.unshift({
     id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
@@ -367,7 +455,7 @@ export function logAuditAction(storeId = 'default', username = 'system', action,
     action,
     details
   });
-  saveStoreData(storeId, storeData);
+  await saveStoreData(storeId, storeData);
 }
 
 export const DEFAULT_SUBSCRIPTION_PLANS = [
@@ -433,9 +521,59 @@ export const DEFAULT_SUBSCRIPTION_PLANS = [
   }
 ];
 
-export function getStores() {
+export async function getStores() {
+  const sql = getNeonSql();
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (sql) {
+    try {
+      await initPostgresTables();
+      const rows = await sql`SELECT * FROM bazarpos_stores ORDER BY created_at ASC`;
+      const stores = {};
+      rows.forEach(r => {
+        let sub = parseJsonField(r.subscription, null);
+        if (!sub) {
+          sub = {
+            planId: '1year',
+            planName: '1 Year Full Access',
+            durationDays: 365,
+            status: 'active',
+            startDate: r.created_at ? new Date(r.created_at).toISOString().slice(0, 10) : today,
+            expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+            notes: 'Initial activation'
+          };
+        }
+
+        // Real-time validity resolution
+        if (r.status !== 'suspended') {
+          if (sub.expiryDate && sub.expiryDate < today) {
+            sub.status = 'expired';
+          } else if (sub.status === 'expired' && sub.expiryDate && sub.expiryDate >= today) {
+            sub.status = 'active';
+          }
+        }
+
+        stores[r.id] = {
+          id: r.id,
+          name: r.name,
+          owner: r.owner || '',
+          phone: r.phone || '',
+          email: r.email || '',
+          address: r.address || '',
+          username: r.username,
+          password: r.password,
+          status: r.status || 'active',
+          createdAt: r.created_at,
+          subscription: sub
+        };
+      });
+      return stores;
+    } catch (err) {
+      console.warn('Neon getStores error, falling back to local:', err.message);
+    }
+  }
+
   const db = ensureDb();
-  // Ensure subscription duration data exists for each store
   Object.values(db.stores).forEach(st => {
     if (!st.subscription) {
       st.subscription = {
@@ -443,21 +581,29 @@ export function getStores() {
         planName: '1 Year Full Access',
         durationDays: 365,
         status: 'active',
-        startDate: new Date().toISOString().slice(0, 10),
+        startDate: st.createdAt ? st.createdAt.slice(0, 10) : today,
         expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
         notes: 'Initial activation'
       };
+    }
+
+    if (st.status !== 'suspended') {
+      if (st.subscription.expiryDate && st.subscription.expiryDate < today) {
+        st.subscription.status = 'expired';
+      } else if (st.subscription.status === 'expired' && st.subscription.expiryDate && st.subscription.expiryDate >= today) {
+        st.subscription.status = 'active';
+      }
     }
   });
   return db.stores;
 }
 
-export function getCompanies() {
-  const stores = getStores();
+export async function getCompanies() {
+  const stores = await getStores();
   return Object.values(stores);
 }
 
-export function createCompany({
+export async function createCompany({
   name,
   owner = '',
   phone = '',
@@ -469,9 +615,7 @@ export function createCompany({
   customDurationDays = null,
   notes = ''
 }) {
-  const db = ensureDb();
   const companyId = 'comp_' + Date.now();
-
   const plan = DEFAULT_SUBSCRIPTION_PLANS.find(p => p.id === planId) || DEFAULT_SUBSCRIPTION_PLANS[1];
   const days = customDurationDays && !isNaN(customDurationDays) ? Number(customDurationDays) : plan.durationDays;
 
@@ -500,8 +644,7 @@ export function createCompany({
     }
   };
 
-  db.stores[companyId] = newCompany;
-  db.storeData[companyId] = {
+  const initialStoreData = {
     company: { name, phone, address, email, website: '', logoUrl: '' },
     products: [],
     categories: ['General'],
@@ -530,177 +673,206 @@ export function createCompany({
     voucherCounter: 1001
   };
 
-  saveDb(db);
-
-  // Sync store creation to PostgreSQL
   const sql = getNeonSql();
   if (sql) {
-    (async () => {
-      try {
-        await sql`
-          INSERT INTO bazarpos_stores (id, name, owner, phone, email, address, username, password, status, subscription)
-          VALUES (
-            ${companyId},
-            ${newCompany.name},
-            ${newCompany.owner || ''},
-            ${newCompany.phone || ''},
-            ${newCompany.email || ''},
-            ${newCompany.address || ''},
-            ${newCompany.username},
-            ${newCompany.password},
-            ${newCompany.status},
-            ${JSON.stringify(newCompany.subscription)}
-          )
-          ON CONFLICT (id) DO UPDATE SET
-            name = EXCLUDED.name,
-            owner = EXCLUDED.owner,
-            phone = EXCLUDED.phone,
-            email = EXCLUDED.email,
-            address = EXCLUDED.address,
-            username = EXCLUDED.username,
-            password = EXCLUDED.password,
-            status = EXCLUDED.status,
-            subscription = EXCLUDED.subscription;
-        `;
-      } catch (e) {
-        console.warn('Postgres create company sync error:', e.message);
-      }
-    })();
+    try {
+      await initPostgresTables();
+      await sql`
+        INSERT INTO bazarpos_stores (id, name, owner, phone, email, address, username, password, status, subscription)
+        VALUES (
+          ${companyId},
+          ${newCompany.name},
+          ${newCompany.owner || ''},
+          ${newCompany.phone || ''},
+          ${newCompany.email || ''},
+          ${newCompany.address || ''},
+          ${newCompany.username},
+          ${newCompany.password},
+          ${newCompany.status},
+          ${JSON.stringify(newCompany.subscription)}
+        )
+      `;
+
+      await sql`
+        INSERT INTO bazarpos_store_data (
+          store_id, company, products, categories, brands, units, clients, salers, suppliers, purchases, staff, vouchers, external_income_expense, stock_adjustments, cash_registers, branches, stock_transfers, audit_logs, voucher_counter
+        ) VALUES (
+          ${companyId},
+          ${JSON.stringify(initialStoreData.company)},
+          ${JSON.stringify(initialStoreData.products)},
+          ${JSON.stringify(initialStoreData.categories)},
+          ${JSON.stringify(initialStoreData.brands)},
+          ${JSON.stringify(initialStoreData.units)},
+          ${JSON.stringify(initialStoreData.clients)},
+          ${JSON.stringify(initialStoreData.salers)},
+          ${JSON.stringify(initialStoreData.suppliers)},
+          ${JSON.stringify(initialStoreData.purchases)},
+          ${JSON.stringify(initialStoreData.staff)},
+          ${JSON.stringify(initialStoreData.vouchers)},
+          ${JSON.stringify(initialStoreData.externalIncomeExpense)},
+          ${JSON.stringify(initialStoreData.stockAdjustments)},
+          ${JSON.stringify(initialStoreData.cashRegisters)},
+          ${JSON.stringify(initialStoreData.branches)},
+          ${JSON.stringify(initialStoreData.stockTransfers)},
+          ${JSON.stringify(initialStoreData.auditLogs)},
+          ${initialStoreData.voucherCounter}
+        )
+      `;
+    } catch (err) {
+      console.error('Postgres create company error:', err.message);
+    }
   }
+
+  const db = ensureDb();
+  db.stores[companyId] = newCompany;
+  db.storeData[companyId] = initialStoreData;
+  saveDb(db);
 
   return newCompany;
 }
 
-export function updateCompany(companyId, updates) {
-  const db = ensureDb();
-  if (!db.stores[companyId]) return null;
-
-  db.stores[companyId] = {
-    ...db.stores[companyId],
-    ...updates,
-    id: companyId // ensure id immutable
-  };
-
-  if (updates.name && db.storeData[companyId]?.company) {
-    db.storeData[companyId].company.name = updates.name;
-  }
-  if (updates.phone && db.storeData[companyId]?.company) {
-    db.storeData[companyId].company.phone = updates.phone;
-  }
-  if (updates.address && db.storeData[companyId]?.company) {
-    db.storeData[companyId].company.address = updates.address;
-  }
-
-  saveDb(db);
-
+export async function updateCompany(companyId, updates) {
   const sql = getNeonSql();
   if (sql) {
-    (async () => {
-      try {
-        const store = db.stores[companyId];
+    try {
+      await initPostgresTables();
+      const existing = await sql`SELECT * FROM bazarpos_stores WHERE id = ${companyId} LIMIT 1`;
+      if (existing.length > 0) {
+        const row = existing[0];
+        const updatedName = updates.name !== undefined ? updates.name : row.name;
+        const updatedOwner = updates.owner !== undefined ? updates.owner : row.owner;
+        const updatedPhone = updates.phone !== undefined ? updates.phone : row.phone;
+        const updatedEmail = updates.email !== undefined ? updates.email : row.email;
+        const updatedAddress = updates.address !== undefined ? updates.address : row.address;
+        const updatedUsername = updates.username !== undefined ? updates.username : row.username;
+        const updatedPassword = updates.password !== undefined && updates.password.trim() !== '' ? updates.password : row.password;
+        const updatedStatus = updates.status !== undefined ? updates.status : row.status;
+
         await sql`
           UPDATE bazarpos_stores SET
-            name = ${store.name},
-            owner = ${store.owner || ''},
-            phone = ${store.phone || ''},
-            email = ${store.email || ''},
-            address = ${store.address || ''},
-            username = ${store.username},
-            password = ${store.password},
-            status = ${store.status},
-            subscription = ${JSON.stringify(store.subscription || {})}
-          WHERE id = ${companyId};
+            name = ${updatedName},
+            owner = ${updatedOwner || ''},
+            phone = ${updatedPhone || ''},
+            email = ${updatedEmail || ''},
+            address = ${updatedAddress || ''},
+            username = ${updatedUsername},
+            password = ${updatedPassword},
+            status = ${updatedStatus}
+          WHERE id = ${companyId}
         `;
-      } catch (e) {
-        console.warn('Postgres update company sync error:', e.message);
       }
-    })();
+    } catch (e) {
+      console.warn('Postgres update company error:', e.message);
+    }
   }
 
-  return db.stores[companyId];
+  const db = ensureDb();
+  if (db.stores[companyId]) {
+    db.stores[companyId] = {
+      ...db.stores[companyId],
+      ...updates,
+      id: companyId
+    };
+    saveDb(db);
+  }
+
+  const stores = await getStores();
+  return stores[companyId] || null;
 }
 
-export function deleteCompany(companyId) {
-  const db = ensureDb();
+export async function deleteCompany(companyId) {
   if (companyId === 'default') {
     throw new Error('Default main store cannot be deleted');
   }
+
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await initPostgresTables();
+      await sql`DELETE FROM bazarpos_stores WHERE id = ${companyId}`;
+      await sql`DELETE FROM bazarpos_store_data WHERE store_id = ${companyId}`;
+    } catch (e) {
+      console.warn('Postgres delete company error:', e.message);
+    }
+  }
+
+  const db = ensureDb();
   if (db.stores[companyId]) {
     delete db.stores[companyId];
     if (db.storeData[companyId]) {
       delete db.storeData[companyId];
     }
     saveDb(db);
-
-    const sql = getNeonSql();
-    if (sql) {
-      (async () => {
-        try {
-          await sql`DELETE FROM bazarpos_stores WHERE id = ${companyId};`;
-          await sql`DELETE FROM bazarpos_store_data WHERE store_id = ${companyId};`;
-        } catch (e) {
-          console.warn('Postgres delete company sync error:', e.message);
-        }
-      })();
-    }
-
     return true;
   }
-  return false;
+  return true;
 }
 
-export function updateCompanySubscription(companyId, subscriptionUpdates) {
-  const db = ensureDb();
-  if (!db.stores[companyId]) return null;
+export async function updateCompanySubscription(companyId, subscriptionUpdates) {
+  const stores = await getStores();
+  const target = stores[companyId];
+  if (!target) return null;
 
-  const currentSub = db.stores[companyId].subscription || {};
-  db.stores[companyId].subscription = {
+  const currentSub = target.subscription || {};
+  const today = new Date().toISOString().slice(0, 10);
+
+  const updatedSub = {
     ...currentSub,
     ...subscriptionUpdates
   };
 
-  // If status is suspended or active, sync company status too
-  if (subscriptionUpdates.status === 'suspended') {
-    db.stores[companyId].status = 'suspended';
-  } else if (subscriptionUpdates.status === 'active' && db.stores[companyId].status === 'suspended') {
-    db.stores[companyId].status = 'active';
+  if (updatedSub.expiryDate) {
+    if (updatedSub.expiryDate >= today && updatedSub.status === 'expired') {
+      updatedSub.status = 'active';
+    } else if (updatedSub.expiryDate < today) {
+      updatedSub.status = 'expired';
+    }
   }
 
-  saveDb(db);
+  let nextStoreStatus = target.status;
+  if (subscriptionUpdates.status === 'suspended') {
+    nextStoreStatus = 'suspended';
+  } else if (subscriptionUpdates.status === 'active' && target.status === 'suspended') {
+    nextStoreStatus = 'active';
+  }
 
   const sql = getNeonSql();
   if (sql) {
-    (async () => {
-      try {
-        const store = db.stores[companyId];
-        await sql`
-          UPDATE bazarpos_stores SET
-            status = ${store.status},
-            subscription = ${JSON.stringify(store.subscription || {})}
-          WHERE id = ${companyId};
-        `;
-      } catch (e) {
-        console.warn('Postgres update subscription sync error:', e.message);
-      }
-    })();
+    try {
+      await initPostgresTables();
+      await sql`
+        UPDATE bazarpos_stores SET
+          status = ${nextStoreStatus},
+          subscription = ${JSON.stringify(updatedSub)}
+        WHERE id = ${companyId}
+      `;
+    } catch (e) {
+      console.warn('Postgres update subscription error:', e.message);
+    }
   }
 
-  return db.stores[companyId].subscription;
+  const db = ensureDb();
+  if (db.stores[companyId]) {
+    db.stores[companyId].subscription = updatedSub;
+    db.stores[companyId].status = nextStoreStatus;
+    saveDb(db);
+  }
+
+  return updatedSub;
 }
 
 export function getSubscriptionPlans() {
   return DEFAULT_SUBSCRIPTION_PLANS;
 }
 
-export function getSaaSStats() {
-  const db = ensureDb();
-  const companies = Object.values(db.stores);
+export async function getSaaSStats() {
+  const companies = await getCompanies();
+  const today = new Date().toISOString().slice(0, 10);
   const total = companies.length;
-  const active = companies.filter(c => c.status === 'active').length;
+  const active = companies.filter(c => c.status === 'active' && c.subscription?.status !== 'expired').length;
   const suspended = companies.filter(c => c.status === 'suspended').length;
 
-  const now = new Date();
-  const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000);
+  const sevenDaysFromNow = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
 
   let activeSubs = 0;
   let expiringSoon = 0;
@@ -709,19 +881,15 @@ export function getSaaSStats() {
   companies.forEach(c => {
     const sub = c.subscription;
     if (sub) {
-      if (sub.status === 'active') {
-        activeSubs++;
-      } else if (sub.status === 'expired') {
+      const isExpired = sub.status === 'expired' || (sub.expiryDate && sub.expiryDate < today);
+      if (isExpired) {
         expiredSubs++;
+      } else if (c.status === 'active') {
+        activeSubs++;
       }
 
-      if (sub.expiryDate) {
-        const exp = new Date(sub.expiryDate);
-        if (exp < now) {
-          // expired
-        } else if (exp <= sevenDaysFromNow) {
-          expiringSoon++;
-        }
+      if (sub.expiryDate && !isExpired && sub.expiryDate <= sevenDaysFromNow) {
+        expiringSoon++;
       }
     }
   });
@@ -736,7 +904,23 @@ export function getSaaSStats() {
   };
 }
 
-export function getSuperAdmin() {
+export async function getSuperAdmin() {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await initPostgresTables();
+      const rows = await sql`SELECT username, full_name FROM bazarpos_superadmin WHERE username = 'superadmin' LIMIT 1`;
+      if (rows.length > 0) {
+        return {
+          username: rows[0].username,
+          fullName: rows[0].full_name || 'System Super Admin'
+        };
+      }
+    } catch (e) {
+      console.warn('Postgres getSuperAdmin error:', e.message);
+    }
+  }
+
   const db = ensureDb();
   return {
     username: db.superAdmin.username,
@@ -744,19 +928,27 @@ export function getSuperAdmin() {
   };
 }
 
-export function updateSuperAdminPassword(newPassword) {
+export async function updateSuperAdminPassword(newPassword) {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await initPostgresTables();
+      await sql`UPDATE bazarpos_superadmin SET password = ${newPassword} WHERE username = 'superadmin'`;
+    } catch (e) {
+      console.warn('Postgres updateSuperAdminPassword error:', e.message);
+    }
+  }
+
   const db = ensureDb();
   db.superAdmin.password = newPassword;
   saveDb(db);
   return true;
 }
 
-export function createStore(args) {
+export async function createStore(args) {
   return createCompany(args);
 }
 
-export function updateStoreStatus(storeId, status) {
+export async function updateStoreStatus(storeId, status) {
   return updateCompany(storeId, { status });
 }
-
-

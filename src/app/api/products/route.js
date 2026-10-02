@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({
       success: true,
@@ -26,7 +26,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Code, Name, and Selling Price required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     
     // Generate barcode if missing
     let finalBarcode = barcode;
@@ -57,7 +57,7 @@ export async function POST(request) {
       storeData.categories.push(category);
     }
 
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, product: newProduct });
   } catch (error) {
@@ -74,7 +74,7 @@ export async function PUT(request) {
       return NextResponse.json({ success: false, message: 'Product ID required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     const index = (storeData.products || []).findIndex(p => p.id === id);
 
     if (index === -1) {
@@ -90,7 +90,7 @@ export async function PUT(request) {
       minQuantity: updates.minQuantity !== undefined ? Number(updates.minQuantity) : storeData.products[index].minQuantity,
     };
 
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, product: storeData.products[index] });
   } catch (error) {
@@ -108,9 +108,9 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, message: 'Product ID required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     storeData.products = (storeData.products || []).filter(p => p.id !== id);
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, message: 'Product deleted' });
   } catch (error) {

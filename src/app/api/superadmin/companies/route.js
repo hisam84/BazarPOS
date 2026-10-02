@@ -3,7 +3,7 @@ import { getCompanies, createCompany, updateCompany, deleteCompany } from '@/lib
 
 export async function GET() {
   try {
-    const companies = getCompanies();
+    const companies = await getCompanies();
     return NextResponse.json({ success: true, companies });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -22,7 +22,7 @@ export async function POST(request) {
       );
     }
 
-    const newCompany = createCompany({
+    const newCompany = await createCompany({
       name,
       owner,
       phone,
@@ -50,7 +50,7 @@ export async function PUT(request) {
       return NextResponse.json({ success: false, message: 'Company ID required' }, { status: 400 });
     }
 
-    const updated = updateCompany(id, updates);
+    const updated = await updateCompany(id, updates);
     if (!updated) {
       return NextResponse.json({ success: false, message: 'Company not found' }, { status: 404 });
     }
@@ -70,7 +70,7 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, message: 'Company ID required' }, { status: 400 });
     }
 
-    deleteCompany(id);
+    await deleteCompany(id);
     return NextResponse.json({ success: true, message: 'Company deleted successfully' });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

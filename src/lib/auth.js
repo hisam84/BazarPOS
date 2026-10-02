@@ -1,10 +1,32 @@
-import { getDb, getStores, getStoreData } from './db';
+import { getDb, getStores, getStoreData, getNeonSql, initPostgresTables } from './db';
 
-export function authenticateUser(username, password) {
+export async function authenticateUser(username, password) {
+  const sql = getNeonSql();
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 1. Check Super Admin via PostgreSQL or In-Memory
+  if (sql) {
+    try {
+      await initPostgresTables();
+      const admins = await sql`SELECT * FROM bazarpos_superadmin WHERE username = ${username} AND password = ${password} LIMIT 1`;
+      if (admins.length > 0) {
+        return {
+          success: true,
+          role: 'superadmin',
+          user: {
+            username: admins[0].username,
+            fullName: admins[0].full_name || 'System Super Admin',
+            role: 'superadmin'
+          }
+        };
+      }
+    } catch (e) {
+      console.warn('Neon SuperAdmin check error:', e.message);
+    }
+  }
+
   const db = getDb();
-
-  // 1. Check Super Admin
-  if (username === db.superAdmin.username && password === db.superAdmin.password) {
+  if (username === db.superAdmin?.username && password === db.superAdmin?.password) {
     return {
       success: true,
       role: 'superadmin',
@@ -17,16 +39,23 @@ export function authenticateUser(username, password) {
   }
 
   // 2. Check Store Owners (Full Store Admin)
-  const stores = getStores();
+  const stores = await getStores();
   for (const storeId in stores) {
     const store = stores[storeId];
     if (store.username === username && store.password === password) {
-      if (store.status !== 'active') {
-        return { success: false, message: 'This company store account is suspended. Contact Super Admin.' };
+      if (store.status === 'suspended') {
+        return { success: false, message: 'This company account has been suspended. Please contact Super Admin.' };
       }
-      if (store.subscription?.status === 'expired') {
-        return { success: false, message: 'Your company subscription has expired. Please contact Super Admin to renew.' };
+      
+      const expiry = store.subscription?.expiryDate;
+      const isExpired = store.subscription?.status === 'expired' || (expiry && expiry < today);
+      if (isExpired) {
+        return { 
+          success: false, 
+          message: `Your company subscription validity expired on ${expiry || 'date'}. Please contact Super Admin to renew.` 
+        };
       }
+
       return {
         success: true,
         role: 'owner',
@@ -45,17 +74,26 @@ export function authenticateUser(username, password) {
   // 3. Check Store Staff (Manager / Cashier)
   for (const storeId in stores) {
     const parentStore = stores[storeId];
-    if (parentStore && parentStore.status !== 'active') {
-      continue;
-    }
-    const storeData = getStoreData(storeId);
+    if (!parentStore) continue;
+
+    const storeData = await getStoreData(storeId);
     const staffMember = (storeData.staff || []).find(
       s => s.username === username && s.password === password
     );
     if (staffMember) {
-      if (parentStore && parentStore.subscription?.status === 'expired') {
-        return { success: false, message: 'Store subscription is expired. Contact Super Admin to renew.' };
+      if (parentStore.status === 'suspended') {
+        return { success: false, message: 'This company account has been suspended. Please contact Super Admin.' };
       }
+
+      const expiry = parentStore.subscription?.expiryDate;
+      const isExpired = parentStore.subscription?.status === 'expired' || (expiry && expiry < today);
+      if (isExpired) {
+        return { 
+          success: false, 
+          message: `Store subscription validity expired on ${expiry || 'date'}. Please contact Super Admin to renew.` 
+        };
+      }
+
       return {
         success: true,
         role: staffMember.role || 'cashier',
@@ -64,7 +102,7 @@ export function authenticateUser(username, password) {
           username: staffMember.username,
           fullName: staffMember.name,
           storeId: storeId,
-          storeName: stores[storeId]?.name || 'Outlet',
+          storeName: parentStore.name || 'Outlet',
           role: staffMember.role || 'cashier'
         }
       };

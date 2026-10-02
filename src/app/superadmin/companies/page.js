@@ -224,20 +224,20 @@ export default function SuperAdminCompaniesPage() {
     switch (planId) {
       case '1year':
       case 'enterprise':
-        return 'bg-amber-100 text-amber-800 border-amber-300';
+        return 'bg-amber-50 text-amber-800 border-amber-200/80';
       case '6months':
-        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+        return 'bg-indigo-50 text-indigo-800 border-indigo-200/80';
       case '3months':
       case 'standard':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
+        return 'bg-violet-50 text-violet-800 border-violet-200/80';
       case '1month':
       case 'starter':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
       case 'lifetime':
-        return 'bg-teal-100 text-teal-800 border-teal-300';
+        return 'bg-teal-50 text-teal-800 border-teal-200/80';
       case 'trial':
       default:
-        return 'bg-blue-100 text-blue-800 border-blue-300';
+        return 'bg-sky-50 text-sky-800 border-sky-200/80';
     }
   };
 
@@ -252,11 +252,11 @@ export default function SuperAdminCompaniesPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <Building2 className="text-purple-600" size={24} />
-            <span>SaaS Company Management (কম্পানি ম্যানেজমেন্ট)</span>
+          <h1 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
+            <Building2 className="text-indigo-600" size={24} />
+            <span>SaaS Company Management</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Create, configure, monitor, and manage all merchant POS company accounts & validity.
@@ -265,15 +265,15 @@ export default function SuperAdminCompaniesPage() {
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition shadow-md shadow-purple-600/30 text-xs"
+          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md shadow-indigo-600/25 text-xs"
         >
           <Plus size={16} />
-          <span>+ Create New Company</span>
+          <span>Create New Company</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="relative flex-1 w-full sm:w-auto">
           <Search className="absolute left-3.5 top-3 text-slate-400" size={16} />
           <input
@@ -281,7 +281,7 @@ export default function SuperAdminCompaniesPage() {
             placeholder="Search company by name, owner, phone, username..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-purple-500 transition"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-500 transition"
           />
         </div>
 
@@ -314,6 +314,10 @@ export default function SuperAdminCompaniesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredCompanies.map((comp) => {
             const sub = comp.subscription || {};
+            const today = new Date().toISOString().slice(0, 10);
+            const isExpired = sub.status === 'expired' || (sub.expiryDate && sub.expiryDate < today);
+            const isSuspended = comp.status === 'suspended';
+            const displayStatus = isSuspended ? 'SUSPENDED' : isExpired ? 'EXPIRED' : 'ACTIVE';
             const daysLeft = calculateDaysLeft(sub.expiryDate);
             return (
               <div
@@ -338,12 +342,14 @@ export default function SuperAdminCompaniesPage() {
 
                     <span
                       className={`px-2.5 py-1 text-[10px] font-bold rounded-full uppercase border ${
-                        comp.status === 'active'
+                        displayStatus === 'ACTIVE'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-rose-50 text-rose-700 border-rose-200'
+                          : displayStatus === 'EXPIRED'
+                          ? 'bg-amber-50 text-amber-800 border-amber-300 font-bold'
+                          : 'bg-rose-50 text-rose-700 border-rose-200 font-bold'
                       }`}
                     >
-                      {comp.status}
+                      {displayStatus}
                     </span>
                   </div>
 

@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({ success: true, staff: storeData.staff || [] });
   } catch (error) {
@@ -22,7 +22,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Name, username, and password required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     const newStaff = {
       id: 'st_' + Date.now(),
       name,
@@ -33,7 +33,7 @@ export async function POST(request) {
 
     storeData.staff = storeData.staff || [];
     storeData.staff.push(newStaff);
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, staff: newStaff });
   } catch (error) {

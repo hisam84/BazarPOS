@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({
       success: true,
@@ -37,7 +37,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Voucher must have at least one item' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     storeData.voucherCounter = (storeData.voucherCounter || 1000) + 1;
     const voucherNo = 'INV-' + storeData.voucherCounter;
 
@@ -95,7 +95,7 @@ export async function POST(request) {
     storeData.vouchers = storeData.vouchers || [];
     storeData.vouchers.unshift(newVoucher);
 
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, voucher: newVoucher });
   } catch (error) {
@@ -113,9 +113,9 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, message: 'Voucher ID required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     storeData.vouchers = (storeData.vouchers || []).filter(v => v.id !== id);
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, message: 'Voucher deleted' });
   } catch (error) {

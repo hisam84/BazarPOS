@@ -156,9 +156,9 @@ export default function StockAdjustmentPage() {
               <div>
                 <label className="block text-slate-600 mb-1 font-semibold">Adjustment Type *</label>
                 <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold">
-                  <option value="damage">Damage (ক্ষতিগ্রস্ত/নষ্ট)</option>
-                  <option value="loss">Loss / Theft (হারানো/চুরি)</option>
-                  <option value="addition">Audit Addition (স্টক বৃদ্ধি)</option>
+                  <option value="damage">Damage / Expired</option>
+                  <option value="loss">Loss / Theft</option>
+                  <option value="addition">Audit Addition (Stock Increase)</option>
                 </select>
               </div>
 

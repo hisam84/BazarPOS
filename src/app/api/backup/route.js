@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({
       version: '4.0.0',
@@ -28,7 +28,7 @@ export async function POST(request) {
     }
 
     const restoredData = backupData.data || backupData;
-    saveStoreData(storeId, restoredData);
+    await saveStoreData(storeId, restoredData);
 
     return NextResponse.json({ success: true, message: 'Store database successfully restored!' });
   } catch (error) {

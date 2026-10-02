@@ -79,7 +79,7 @@ export default function Sidebar({ user, onLogout }) {
           /* ================= SUPER ADMIN SAAS NAVIGATION ================= */
           <div>
             {!collapsed && (
-              <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider mb-2 px-3 flex items-center space-x-1">
+              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2 px-3 flex items-center space-x-1">
                 <Shield size={12} />
                 <span>SaaS Management</span>
               </p>
@@ -89,7 +89,7 @@ export default function Sidebar({ user, onLogout }) {
                 href="/superadmin/dashboard"
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
                   pathname === '/superadmin/dashboard'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:bg-slate-800'
                 } ${collapsed ? 'justify-center space-x-0' : ''}`}
                 title="Platform Overview"
@@ -102,7 +102,7 @@ export default function Sidebar({ user, onLogout }) {
                 href="/superadmin/companies"
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
                   pathname === '/superadmin/companies'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:bg-slate-800'
                 } ${collapsed ? 'justify-center space-x-0' : ''}`}
                 title="Manage Companies"
@@ -119,7 +119,7 @@ export default function Sidebar({ user, onLogout }) {
                 href="/superadmin/subscriptions"
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
                   pathname === '/superadmin/subscriptions'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:bg-slate-800'
                 } ${collapsed ? 'justify-center space-x-0' : ''}`}
                 title="Subscription & Validity Management"
@@ -132,7 +132,7 @@ export default function Sidebar({ user, onLogout }) {
                 href="/superadmin/settings"
                 className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
                   pathname === '/superadmin/settings'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:bg-slate-800'
                 } ${collapsed ? 'justify-center space-x-0' : ''}`}
                 title="Admin Security Settings"

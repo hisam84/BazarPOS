@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({ success: true, purchases: storeData.purchases || [] });
   } catch (error) {
@@ -22,7 +22,7 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Product code and valid quantity required' }, { status: 400 });
     }
 
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
     
     // Find Product & increase stock!
     const productIndex = (storeData.products || []).findIndex(p => p.code === productCode);
@@ -54,7 +54,7 @@ export async function POST(request) {
     storeData.purchases = storeData.purchases || [];
     storeData.purchases.unshift(purchaseEntry);
 
-    saveStoreData(storeId, storeData);
+    await saveStoreData(storeId, storeData);
 
     return NextResponse.json({ success: true, purchase: purchaseEntry, updatedProduct: storeData.products[productIndex] });
   } catch (error) {

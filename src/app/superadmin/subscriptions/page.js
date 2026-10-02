@@ -155,20 +155,20 @@ export default function SuperAdminSubscriptionsPage() {
     switch (planId) {
       case '1year':
       case 'enterprise':
-        return 'bg-amber-100 text-amber-800 border-amber-300';
+        return 'bg-amber-50 text-amber-800 border-amber-200/80';
       case '6months':
-        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+        return 'bg-indigo-50 text-indigo-800 border-indigo-200/80';
       case '3months':
       case 'standard':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
+        return 'bg-violet-50 text-violet-800 border-violet-200/80';
       case '1month':
       case 'starter':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
       case 'lifetime':
-        return 'bg-teal-100 text-teal-800 border-teal-300';
+        return 'bg-teal-50 text-teal-800 border-teal-200/80';
       case 'trial':
       default:
-        return 'bg-blue-100 text-blue-800 border-blue-300';
+        return 'bg-sky-50 text-sky-800 border-sky-200/80';
     }
   };
 
@@ -191,62 +191,70 @@ export default function SuperAdminSubscriptionsPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Banner */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <Clock className="text-purple-600" size={24} />
-            <span>Subscription & Validity Management (সাবস্ক্রিপশন মেয়াদ পরিচালনা)</span>
+          <h1 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
+            <Clock className="text-indigo-600" size={24} />
+            <span>Subscription & Validity Management</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            ম্যানেজ করুন প্রতিটি ক্লায়েন্ট কোম্পানির সফটওয়্যার এক্সেস মেয়াদ (Validity Time)। আর্থিক লেনদেন সম্পূর্ণ বাইরে/এক্সটার্নাল ভাবে হবে।
+            Manage software access validity periods for each client company. All financial billing occurs externally.
           </p>
         </div>
 
         <button
           onClick={loadSubscriptions}
-          className="inline-flex items-center space-x-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition"
+          className="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition border border-slate-200"
         >
-          <RefreshCw size={14} />
+          <RefreshCw size={13} />
           <span>Refresh Data</span>
         </button>
       </div>
 
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-blue-600 mb-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider">Total Tenants</span>
-            <Building2 size={18} />
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Building2 size={16} />
+            </div>
           </div>
           <p className="text-2xl font-black text-slate-900">{stats.totalCompanies}</p>
-          <span className="text-[10px] text-slate-500">Registered businesses</span>
+          <span className="text-[11px] text-slate-500 font-medium">Registered businesses</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-purple-600 mb-2">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider">Active Validity</span>
-            <CheckCircle size={18} />
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <CheckCircle size={16} />
+            </div>
           </div>
-          <p className="text-2xl font-black text-purple-900">{stats.activeSubscriptions}</p>
-          <span className="text-[10px] text-purple-600/80">Valid store licenses</span>
+          <p className="text-2xl font-black text-slate-900">{stats.activeSubscriptions}</p>
+          <span className="text-[11px] text-indigo-600 font-medium">Valid store licenses</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-amber-500 mb-2">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider">Expiring in 7 Days</span>
-            <Clock size={18} />
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Clock size={16} />
+            </div>
           </div>
-          <p className="text-2xl font-black text-amber-600">{stats.expiringSoon}</p>
-          <span className="text-[10px] text-amber-600/80">Needs time extension</span>
+          <p className="text-2xl font-black text-slate-900">{stats.expiringSoon}</p>
+          <span className="text-[11px] text-amber-600 font-medium">Needs time extension</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-rose-500 mb-2">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider">Expired Accounts</span>
-            <AlertTriangle size={18} />
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <AlertTriangle size={16} />
+            </div>
           </div>
-          <p className="text-2xl font-black text-rose-600">{stats.expiredSubscriptions}</p>
-          <span className="text-[10px] text-rose-500/80">Require license renewal</span>
+          <p className="text-2xl font-black text-slate-900">{stats.expiredSubscriptions}</p>
+          <span className="text-[11px] text-rose-600 font-medium">Require renewal</span>
         </div>
       </div>
 

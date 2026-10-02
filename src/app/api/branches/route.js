@@ -5,7 +5,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     return NextResponse.json({
       success: true,
@@ -21,7 +21,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', username = 'admin', type = 'branch', name, code, address, phone, fromBranch, toBranch, productCode, quantity } = body;
-    const storeData = getStoreData(storeId);
+    const storeData = await getStoreData(storeId);
 
     if (type === 'branch') {
       if (!name || !code) {
@@ -39,9 +39,9 @@ export async function POST(request) {
 
       storeData.branches = storeData.branches || [];
       storeData.branches.push(newBranch);
-      saveStoreData(storeId, storeData);
+      await saveStoreData(storeId, storeData);
 
-      logAuditAction(storeId, username, 'BRANCH_CREATE', `Created branch: ${name} (${code})`);
+      await logAuditAction(storeId, username, 'BRANCH_CREATE', `Created branch: ${name} (${code})`);
 
       return NextResponse.json({ success: true, branch: newBranch });
     } else if (type === 'transfer') {
@@ -70,9 +70,9 @@ export async function POST(request) {
 
       storeData.stockTransfers = storeData.stockTransfers || [];
       storeData.stockTransfers.unshift(transferRecord);
-      saveStoreData(storeId, storeData);
+      await saveStoreData(storeId, storeData);
 
-      logAuditAction(
+      await logAuditAction(
         storeId,
         username,
         'STOCK_TRANSFER',
