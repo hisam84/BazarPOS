@@ -43,7 +43,12 @@ export async function GET(request) {
           daysRemaining: diffDays > 0 ? diffDays : 0,
           isExpired: diffDays <= 0,
           durationDays: rawSub.durationDays || 365,
-          notes: rawSub.notes || ''
+          paymentStatus: rawSub.paymentStatus || 'paid',
+          paidAmount: rawSub.paidAmount || '',
+          paymentMethod: rawSub.paymentMethod || '',
+          transactionId: rawSub.transactionId || '',
+          paymentDate: rawSub.paymentDate || startDate,
+          notes: rawSub.notes || rawSub.paymentNotes || ''
         }
       }
     });

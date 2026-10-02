@@ -15,7 +15,11 @@ import {
   Layers,
   Sparkles,
   CalendarDays,
-  FileText
+  FileText,
+  CreditCard,
+  DollarSign,
+  Wallet,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function SuperAdminSubscriptionsPage() {
@@ -46,6 +50,11 @@ export default function SuperAdminSubscriptionsPage() {
     startDate: '',
     expiryDate: '',
     status: 'active',
+    paymentStatus: 'paid',
+    paidAmount: '',
+    paymentMethod: 'bKash',
+    transactionId: '',
+    paymentDate: '',
     notes: ''
   });
 
@@ -80,6 +89,11 @@ export default function SuperAdminSubscriptionsPage() {
       startDate: sub.startDate || new Date().toISOString().slice(0, 10),
       expiryDate: sub.expiryDate || new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
       status: sub.status || 'active',
+      paymentStatus: sub.paymentStatus || 'paid',
+      paidAmount: sub.paidAmount !== undefined && sub.paidAmount !== null ? String(sub.paidAmount) : '',
+      paymentMethod: sub.paymentMethod || 'bKash',
+      transactionId: sub.transactionId || '',
+      paymentDate: sub.paymentDate || new Date().toISOString().slice(0, 10),
       notes: sub.notes || ''
     });
     setShowRenewModal(true);
@@ -120,6 +134,11 @@ export default function SuperAdminSubscriptionsPage() {
           startDate: renewForm.startDate,
           expiryDate: renewForm.expiryDate,
           status: renewForm.status,
+          paymentStatus: renewForm.paymentStatus,
+          paidAmount: renewForm.paidAmount ? Number(renewForm.paidAmount) : 0,
+          paymentMethod: renewForm.paymentMethod,
+          transactionId: renewForm.transactionId,
+          paymentDate: renewForm.paymentDate,
           notes: renewForm.notes
         })
       });
@@ -315,12 +334,13 @@ export default function SuperAdminSubscriptionsPage() {
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
-                <th className="py-4 px-6">Company & Owner</th>
+                <th className="py-4 px-6">Company &amp; Owner</th>
                 <th className="py-4 px-4">Validity Tier</th>
                 <th className="py-4 px-4">Start Date</th>
                 <th className="py-4 px-4">Expiry Date</th>
                 <th className="py-4 px-4">Time Remaining</th>
                 <th className="py-4 px-4">Status</th>
+                <th className="py-4 px-4">Payment Info</th>
                 <th className="py-4 px-4">External Notes</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
@@ -328,13 +348,13 @@ export default function SuperAdminSubscriptionsPage() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-slate-400">
+                  <td colSpan="9" className="py-12 text-center text-slate-400">
                     Loading Subscriptions...
                   </td>
                 </tr>
               ) : filteredSubscriptions.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-slate-400">
+                  <td colSpan="9" className="py-12 text-center text-slate-400">
                     No subscriptions found.
                   </td>
                 </tr>
@@ -399,6 +419,39 @@ export default function SuperAdminSubscriptionsPage() {
                         >
                           {sub.status || 'active'}
                         </span>
+                      </td>
+
+                      {/* Payment Info */}
+                      <td className="py-4 px-4">
+                        {sub.paidAmount || sub.paymentMethod || sub.paymentStatus ? (
+                          <div className="space-y-0.5">
+                            <div className="flex items-center space-x-1">
+                              <span className={`px-1.5 py-0.2 rounded font-bold text-[9px] uppercase ${
+                                sub.paymentStatus === 'paid'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : sub.paymentStatus === 'due'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : sub.paymentStatus === 'free'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}>
+                                {sub.paymentStatus || 'paid'}
+                              </span>
+                              {Number(sub.paidAmount) > 0 && (
+                                <span className="font-mono font-bold text-slate-900 text-[11px]">
+                                  ৳{Number(sub.paidAmount).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                            {(sub.paymentMethod || sub.transactionId) && (
+                              <p className="text-[10px] text-slate-500 font-mono">
+                                {sub.paymentMethod} {sub.transactionId && `· ${sub.transactionId}`}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 font-mono text-[11px]">—</span>
+                        )}
                       </td>
 
                       {/* External Notes */}
@@ -555,6 +608,84 @@ export default function SuperAdminSubscriptionsPage() {
                 </div>
               </div>
 
+              {/* Payment & Billing Details */}
+              <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-3">
+                <h4 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5 text-purple-900">
+                  <CreditCard size={15} className="text-purple-600" />
+                  <span>Payment &amp; Billing Information</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Status</label>
+                    <select
+                      value={renewForm.paymentStatus}
+                      onChange={(e) => setRenewForm({ ...renewForm, paymentStatus: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-semibold text-slate-800 focus:outline-none focus:border-purple-500"
+                    >
+                      <option value="paid">Paid in Full</option>
+                      <option value="partial">Partially Paid</option>
+                      <option value="due">Payment Due / Pending</option>
+                      <option value="free">Complimentary / Free Trial</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Paid Amount (৳)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-slate-400 font-bold">৳</span>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={renewForm.paidAmount}
+                        onChange={(e) => setRenewForm({ ...renewForm, paidAmount: e.target.value })}
+                        className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded-xl bg-white font-mono font-bold text-slate-800 focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Method</label>
+                    <select
+                      value={renewForm.paymentMethod}
+                      onChange={(e) => setRenewForm({ ...renewForm, paymentMethod: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-semibold text-slate-800 focus:outline-none focus:border-purple-500"
+                    >
+                      <option value="bKash">bKash</option>
+                      <option value="Nagad">Nagad</option>
+                      <option value="Rocket">Rocket</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Card / POS">Card / POS</option>
+                      <option value="Other">Other Gateway</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Transaction ID / Slip #</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 9K28JSL30X"
+                      value={renewForm.transactionId}
+                      onChange={(e) => setRenewForm({ ...renewForm, transactionId: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-slate-800 text-xs focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Date</label>
+                    <input
+                      type="date"
+                      value={renewForm.paymentDate}
+                      onChange={(e) => setRenewForm({ ...renewForm, paymentDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono text-slate-800 text-xs focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Status */}
               <div>
                 <label className="block text-slate-600 font-semibold mb-1">Account License Status</label>
@@ -571,10 +702,10 @@ export default function SuperAdminSubscriptionsPage() {
 
               {/* Notes */}
               <div>
-                <label className="block text-slate-600 font-semibold mb-1">External Payment Reference / Remarks</label>
+                <label className="block text-slate-600 font-semibold mb-1">External Remarks / Payment Note</label>
                 <input
                   type="text"
-                  placeholder="e.g. bKash / Cash payment verified offline, Reference #39281"
+                  placeholder="e.g. Verified via bKash Merchant account, Order #932"
                   value={renewForm.notes}
                   onChange={(e) => setRenewForm({ ...renewForm, notes: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50"
@@ -594,7 +725,7 @@ export default function SuperAdminSubscriptionsPage() {
                   type="submit"
                   className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg shadow-purple-600/30 transition"
                 >
-                  Save Validity
+                  Save Validity &amp; Payment
                 </button>
               </div>
             </form>

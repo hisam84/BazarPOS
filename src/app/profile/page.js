@@ -239,6 +239,37 @@ export default function ProfilePage() {
               />
             </div>
           </div>
+
+          {/* Payment Verification Info */}
+          {(subscription.paidAmount || subscription.paymentMethod || subscription.transactionId) && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs relative z-10">
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Payment Verified:</span>
+                {Number(subscription.paidAmount) > 0 && (
+                  <span className="font-bold font-mono text-emerald-400">৳{Number(subscription.paidAmount).toLocaleString()}</span>
+                )}
+                {subscription.paymentMethod && (
+                  <span className="px-2 py-0.5 bg-white/10 rounded-md font-semibold text-[10px] text-slate-200">
+                    {subscription.paymentMethod}
+                  </span>
+                )}
+                <span className={`px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full ${
+                  subscription.paymentStatus === 'paid'
+                    ? 'bg-emerald-500/20 text-emerald-300'
+                    : subscription.paymentStatus === 'due'
+                    ? 'bg-rose-500/20 text-rose-300'
+                    : 'bg-amber-500/20 text-amber-300'
+                }`}>
+                  {subscription.paymentStatus || 'paid'}
+                </span>
+              </div>
+              {subscription.transactionId && (
+                <div className="text-[10px] font-mono text-slate-300">
+                  TrxID: <span className="text-indigo-300 font-bold">{subscription.transactionId}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
