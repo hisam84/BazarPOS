@@ -184,28 +184,28 @@ export default function SuppliersPage() {
 
       {/* ADD SUPPLIER MODAL */}
       {showSupplierModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base">Add New Supplier Vendor</h3>
-              <button onClick={() => setShowSupplierModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button onClick={() => setShowSupplierModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAddSupplier} className="space-y-3 text-xs font-medium">
+            <form onSubmit={handleAddSupplier} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
               <div>
                 <label className="block text-slate-600 mb-1">Supplier Company Name *</label>
-                <input type="text" required value={supplierForm.name} onChange={e => setSupplierForm({...supplierForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" required value={supplierForm.name} onChange={e => setSupplierForm({...supplierForm, name: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Phone Number</label>
-                <input type="text" value={supplierForm.phone} onChange={e => setSupplierForm({...supplierForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" value={supplierForm.phone} onChange={e => setSupplierForm({...supplierForm, phone: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Address</label>
-                <input type="text" value={supplierForm.address} onChange={e => setSupplierForm({...supplierForm, address: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" value={supplierForm.address} onChange={e => setSupplierForm({...supplierForm, address: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div className="pt-3 border-t flex space-x-3">
-                <button type="button" onClick={() => setShowSupplierModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save Supplier</button>
+                <button type="button" onClick={() => setShowSupplierModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-md transition">Save Supplier</button>
               </div>
             </form>
           </div>
@@ -214,38 +214,38 @@ export default function SuppliersPage() {
 
       {/* RECEIVE PURCHASE STOCK MODAL */}
       {showPurchaseModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base">Receive Purchase Stock Entry</h3>
-              <button onClick={() => setShowPurchaseModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button onClick={() => setShowPurchaseModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><X size={20} /></button>
             </div>
-            <form onSubmit={handleReceiveStock} className="space-y-3 text-xs font-medium">
+            <form onSubmit={handleReceiveStock} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
               <div>
                 <label className="block text-slate-600 mb-1">Select Supplier</label>
-                <select value={purchaseForm.supplierName} onChange={e => setPurchaseForm({...purchaseForm, supplierName: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold">
+                <select value={purchaseForm.supplierName} onChange={e => setPurchaseForm({...purchaseForm, supplierName: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500">
                   {suppliers.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Select Product *</label>
-                <select value={purchaseForm.productCode} onChange={e => setPurchaseForm({...purchaseForm, productCode: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold">
+                <select value={purchaseForm.productCode} onChange={e => setPurchaseForm({...purchaseForm, productCode: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500">
                   {products.map(p => <option key={p.id} value={p.code}>{p.code} - {p.name}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-600 mb-1">Received Quantity *</label>
-                  <input type="number" required min="1" value={purchaseForm.quantity} onChange={e => setPurchaseForm({...purchaseForm, quantity: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold text-emerald-600" />
+                  <input type="number" required min="1" value={purchaseForm.quantity} onChange={e => setPurchaseForm({...purchaseForm, quantity: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold text-emerald-600 focus:bg-white focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
                   <label className="block text-slate-600 mb-1">Unit Purchase Cost (৳)</label>
-                  <input type="number" value={purchaseForm.unitCost} onChange={e => setPurchaseForm({...purchaseForm, unitCost: e.target.value})} placeholder="Cost Price" className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold" />
+                  <input type="number" value={purchaseForm.unitCost} onChange={e => setPurchaseForm({...purchaseForm, unitCost: e.target.value})} placeholder="Cost Price" className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500" />
                 </div>
               </div>
               <div className="pt-3 border-t flex space-x-3">
-                <button type="button" onClick={() => setShowPurchaseModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-emerald-600 text-white font-semibold rounded-xl">Receive Stock & Update Inventory</button>
+                <button type="button" onClick={() => setShowPurchaseModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-md transition">Receive Stock &amp; Update Inventory</button>
               </div>
             </form>
           </div>

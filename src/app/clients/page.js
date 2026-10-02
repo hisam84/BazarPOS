@@ -277,19 +277,19 @@ export default function ClientsPage() {
 
       {/* ADD / EDIT CLIENT MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base flex items-center space-x-2">
                 <Users size={20} className="text-blue-600" />
                 <span>{editingClient ? 'Edit Customer Details' : 'Add New Customer'}</span>
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveClient} className="space-y-3.5 text-xs font-medium">
+            <form onSubmit={handleSaveClient} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
               <div>
                 <label className="block text-slate-700 mb-1 font-bold flex items-center justify-between">
                   <span>Customer Unique ID *</span>
@@ -317,7 +317,7 @@ export default function ClientsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 mb-1 font-bold">Phone Number</label>
                   <input
@@ -384,11 +384,11 @@ export default function ClientsPage() {
 
       {/* COLLECT DUE MODAL */}
       {payModalClient && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200 p-6 space-y-4">
             <div className="flex items-center justify-between border-b pb-3">
               <h3 className="font-bold text-slate-800 text-base">Collect Due Payment</h3>
-              <button onClick={() => setPayModalClient(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setPayModalClient(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
                 <X size={20} />
               </button>
             </div>

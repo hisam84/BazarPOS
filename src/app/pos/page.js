@@ -716,34 +716,34 @@ export default function POSTerminalPage() {
 
       {/* QUICK ADD CUSTOMER MODAL */}
       {showAddClientModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white/95 sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base">Quick Add New Customer</h3>
-              <button onClick={() => setShowAddClientModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button onClick={() => setShowAddClientModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><X size={20} /></button>
             </div>
-            <form onSubmit={handleQuickAddClient} className="space-y-3 text-xs font-medium">
+            <form onSubmit={handleQuickAddClient} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
               <div>
                 <label className="block text-slate-600 mb-1">Customer Name *</label>
-                <input type="text" required value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" placeholder="e.g. Rahim Chowdhury" />
+                <input type="text" required value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" placeholder="e.g. Rahim Chowdhury" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-600 mb-1">Phone Number</label>
-                  <input type="text" value={clientForm.phone} onChange={e => setClientForm({...clientForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-mono" placeholder="01700000000" />
+                  <input type="text" value={clientForm.phone} onChange={e => setClientForm({...clientForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-mono focus:bg-white focus:outline-none focus:border-blue-500" placeholder="01700000000" />
                 </div>
                 <div>
                   <label className="block text-slate-600 mb-1">Email Address</label>
-                  <input type="email" value={clientForm.email} onChange={e => setClientForm({...clientForm, email: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" placeholder="customer@mail.com" />
+                  <input type="email" value={clientForm.email} onChange={e => setClientForm({...clientForm, email: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" placeholder="customer@mail.com" />
                 </div>
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Address</label>
-                <input type="text" value={clientForm.address} onChange={e => setClientForm({...clientForm, address: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" placeholder="e.g. Dhaka, Bangladesh" />
+                <input type="text" value={clientForm.address} onChange={e => setClientForm({...clientForm, address: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" placeholder="e.g. Dhaka, Bangladesh" />
               </div>
               <div className="pt-3 border-t flex space-x-3">
-                <button type="button" onClick={() => setShowAddClientModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl shadow-md">Save &amp; Select</button>
+                <button type="button" onClick={() => setShowAddClientModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-md transition">Save &amp; Select</button>
               </div>
             </form>
           </div>
@@ -753,16 +753,16 @@ export default function POSTerminalPage() {
 
       {/* QUICK ADD PRODUCT MODAL */}
       {showAddProductModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8 border border-slate-100">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white/95 sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base flex items-center space-x-2">
                 <PackagePlus className="text-blue-600" size={20} />
                 <span>Add New Product</span>
               </h3>
-              <button onClick={() => setShowAddProductModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button onClick={() => setShowAddProductModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><X size={20} /></button>
             </div>
-            <form onSubmit={handleQuickAddProduct} className="space-y-3.5 text-xs font-medium">
+            <form onSubmit={handleQuickAddProduct} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
               {/* Row 1: Code & Barcode */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -957,158 +957,160 @@ export default function POSTerminalPage() {
 
       {/* PRINT RECEIPT MODAL */}
       {printModal && completedVoucher && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className={`bg-white rounded-2xl w-full shadow-2xl space-y-4 my-8 ${printLayout === 'A4' ? 'max-w-4xl max-h-[92vh] flex flex-col' : 'max-w-lg'} p-6`}>
-            <div className="flex items-center justify-between no-print border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className={`bg-white rounded-2xl w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[94vh] sm:max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200 ${printLayout === 'A4' ? 'max-w-4xl' : 'max-w-lg'}`}>
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-white sticky top-0 z-10 no-print">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="text-emerald-500" size={20} />
-                <h3 className="font-bold text-slate-800 text-lg">
+                <h3 className="font-bold text-slate-800 text-base sm:text-lg">
                   Invoice Created Successfully!
                 </h3>
               </div>
-              <button onClick={() => setPrintModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setPrintModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
                 <X size={20} />
               </button>
             </div>
 
-            {/* Layout Toggle & Sharing */}
-            <div className="flex flex-wrap items-center justify-between gap-2 no-print">
-              <div className="flex items-center bg-slate-100 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setPrintLayout('A4')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
-                    printLayout === 'A4' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <FileText size={14} />
-                  <span>A4 Paper Invoice</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPrintLayout('thermal')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
-                    printLayout === 'thermal' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Printer size={14} />
-                  <span>Thermal Slip (80mm)</span>
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href={getWhatsAppShareUrl()}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs"
-                >
-                  <Share2 size={13} />
-                  <span>WhatsApp (with Link)</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const client = clients.find(c => c.name === completedVoucher.clientName);
-                    if (client?.email) setRecipientEmail(client.email);
-                    setEmailModal(true);
-                  }}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs"
-                >
-                  <Mail size={13} />
-                  <span>Email Invoice</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSendSMS}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs"
-                >
-                  <MessageSquare size={13} />
-                  <span>SMS</span>
-                </button>
-              </div>
-            </div>
-
-
-            {/* Printable Content Area */}
-            <div className="flex-1 overflow-y-auto max-h-[65vh] p-2 bg-slate-100/60 rounded-xl border border-slate-200">
-              {printLayout === 'A4' ? (
-                <div className="printable-area">
-                  <InvoiceA4
-                    invoice={completedVoucher}
-                    company={company}
-                    settings={invoiceSettings}
-                    isSample={false}
-                  />
+            <div className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4">
+              {/* Layout Toggle & Sharing */}
+              <div className="flex flex-wrap items-center justify-between gap-2 no-print">
+                <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setPrintLayout('A4')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+                      printLayout === 'A4' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText size={14} />
+                    <span>A4 Paper Invoice</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrintLayout('thermal')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+                      printLayout === 'thermal' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Printer size={14} />
+                    <span>Thermal Slip (80mm)</span>
+                  </button>
                 </div>
-              ) : (
-                <div className="printable-area max-w-sm mx-auto border p-4 rounded-xl bg-white font-mono text-xs text-slate-800 space-y-2 shadow-sm">
-                  <div className="text-center pb-2 border-b">
-                    <h2 className="font-bold text-sm text-slate-900">{company?.name || user?.storeName || 'BazarPOS Outlet'}</h2>
-                    {company?.phone && <p>Phone: {company.phone}</p>}
-                    {company?.address && <p className="text-[10px]">{company.address}</p>}
-                    <p className="font-semibold text-blue-600 mt-1">Invoice: {completedVoucher.voucherNo}</p>
-                    <p className="text-[10px] text-slate-500">{new Date(completedVoucher.date).toLocaleString()}</p>
-                  </div>
 
-                  <div className="py-1 border-b text-[11px] space-y-1">
-                    <p>Customer: <span className="font-bold">{completedVoucher.clientName}</span></p>
-                    {completedVoucher.salerName && <p>Sales Rep: {completedVoucher.salerName}</p>}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={getWhatsAppShareUrl()}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs transition"
+                  >
+                    <Share2 size={13} />
+                    <span>WhatsApp (with Link)</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const client = clients.find(c => c.name === completedVoucher.clientName);
+                      if (client?.email) setRecipientEmail(client.email);
+                      setEmailModal(true);
+                    }}
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs transition"
+                  >
+                    <Mail size={13} />
+                    <span>Email Invoice</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendSMS}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs transition"
+                  >
+                    <MessageSquare size={13} />
+                    <span>SMS</span>
+                  </button>
+                </div>
+              </div>
 
-                  <table className="w-full text-left text-[11px] border-b">
-                    <thead>
-                      <tr className="border-b font-bold">
-                        <th className="py-1">Item</th>
-                        <th className="py-1 text-center">Qty</th>
-                        <th className="py-1 text-right">Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {completedVoucher.items.map((item, idx) => (
-                        <tr key={idx} className="border-b border-slate-100">
-                          <td className="py-1">
-                            <p className="font-semibold">{item.name}</p>
-                            {item.warranty && (
-                              <p className="text-[9px] text-blue-600 font-medium">Warranty: {item.warranty}</p>
-                            )}
-                            {(item.serialNumber || item.serialNo) && (
-                              <p className="text-[9px] text-purple-700 font-mono font-medium">S/N: {item.serialNumber || item.serialNo}</p>
-                            )}
-                            {item.description && (
-                              <p className="text-[9px] text-slate-500 italic leading-tight">{item.description}</p>
-                            )}
-                          </td>
-                          <td className="py-1 text-center align-top">{item.quantity}</td>
-                          <td className="py-1 text-right align-top">৳{item.unitPrice * item.quantity}</td>
+
+              {/* Printable Content Area */}
+              <div className="p-2 bg-slate-100/60 rounded-xl border border-slate-200 overflow-x-auto">
+                {printLayout === 'A4' ? (
+                  <div className="printable-area">
+                    <InvoiceA4
+                      invoice={completedVoucher}
+                      company={company}
+                      settings={invoiceSettings}
+                      isSample={false}
+                    />
+                  </div>
+                ) : (
+                  <div className="printable-area max-w-sm mx-auto border p-4 rounded-xl bg-white font-mono text-xs text-slate-800 space-y-2 shadow-sm">
+                    <div className="text-center pb-2 border-b">
+                      <h2 className="font-bold text-sm text-slate-900">{company?.name || user?.storeName || 'BazarPOS Outlet'}</h2>
+                      {company?.phone && <p>Phone: {company.phone}</p>}
+                      {company?.address && <p className="text-[10px]">{company.address}</p>}
+                      <p className="font-semibold text-blue-600 mt-1">Invoice: {completedVoucher.voucherNo}</p>
+                      <p className="text-[10px] text-slate-500">{new Date(completedVoucher.date).toLocaleString()}</p>
+                    </div>
+
+                    <div className="py-1 border-b text-[11px] space-y-1">
+                      <p>Customer: <span className="font-bold">{completedVoucher.clientName}</span></p>
+                      {completedVoucher.salerName && <p>Sales Rep: {completedVoucher.salerName}</p>}
+                    </div>
+
+                    <table className="w-full text-left text-[11px] border-b">
+                      <thead>
+                        <tr className="border-b font-bold">
+                          <th className="py-1">Item</th>
+                          <th className="py-1 text-center">Qty</th>
+                          <th className="py-1 text-right">Price</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {completedVoucher.items.map((item, idx) => (
+                          <tr key={idx} className="border-b border-slate-100">
+                            <td className="py-1">
+                              <p className="font-semibold">{item.name}</p>
+                              {item.warranty && (
+                                <p className="text-[9px] text-blue-600 font-medium">Warranty: {item.warranty}</p>
+                              )}
+                              {(item.serialNumber || item.serialNo) && (
+                                <p className="text-[9px] text-purple-700 font-mono font-medium">S/N: {item.serialNumber || item.serialNo}</p>
+                              )}
+                              {item.description && (
+                                <p className="text-[9px] text-slate-500 italic leading-tight">{item.description}</p>
+                              )}
+                            </td>
+                            <td className="py-1 text-center align-top">{item.quantity}</td>
+                            <td className="py-1 text-right align-top">৳{item.unitPrice * item.quantity}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
 
-                  <div className="pt-2 text-right space-y-1 font-bold">
-                    <p>Subtotal: ৳{completedVoucher.subTotal}</p>
-                    {completedVoucher.discount > 0 && <p>Discount: -৳{completedVoucher.discount}</p>}
-                    <p className="text-sm text-blue-700">Grand Total: ৳{completedVoucher.totalAmount}</p>
-                    <p className="text-emerald-600">Paid ({completedVoucher.paymentMethod}): ৳{completedVoucher.paidAmount}</p>
-                    {completedVoucher.dueAmount > 0 && <p className="text-rose-600">Due: ৳{completedVoucher.dueAmount}</p>}
+                    <div className="pt-2 text-right space-y-1 font-bold">
+                      <p>Subtotal: ৳{completedVoucher.subTotal}</p>
+                      {completedVoucher.discount > 0 && <p>Discount: -৳{completedVoucher.discount}</p>}
+                      <p className="text-sm text-blue-700">Grand Total: ৳{completedVoucher.totalAmount}</p>
+                      <p className="text-emerald-600">Paid ({completedVoucher.paymentMethod}): ৳{completedVoucher.paidAmount}</p>
+                      {completedVoucher.dueAmount > 0 && <p className="text-rose-600">Due: ৳{completedVoucher.dueAmount}</p>}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
-            <div className="flex space-x-3 no-print pt-2 border-t">
+            <div className="px-5 py-3.5 border-t border-slate-100 bg-slate-50/95 flex space-x-3 no-print sticky bottom-0 z-10">
               <button
                 type="button"
                 onClick={() => setPrintModal(false)}
-                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                className="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-2 text-xs shadow-md"
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-2 text-xs shadow-md transition"
               >
                 <Printer size={16} />
                 <span>Print {printLayout === 'A4' ? 'A4 Invoice' : 'Thermal Slip'}</span>
@@ -1120,76 +1122,78 @@ export default function POSTerminalPage() {
 
       {/* SEND EMAIL INVOICE MODAL */}
       {emailModal && completedVoucher && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <div className="flex items-center space-x-2">
                 <Mail className="text-indigo-600" size={20} />
                 <h3 className="font-bold text-slate-800 text-base">
-                  Email Invoice & Download Link
+                  Email Invoice &amp; Download Link
                 </h3>
               </div>
-              <button onClick={() => setEmailModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setEmailModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs text-slate-600 space-y-1">
-              <p className="flex justify-between">
-                <span>Invoice:</span>
-                <span className="font-bold text-slate-900">{completedVoucher.voucherNo}</span>
-              </p>
-              <p className="flex justify-between">
-                <span>Customer:</span>
-                <span className="font-medium text-slate-800">{completedVoucher.clientName}</span>
-              </p>
-              <p className="flex justify-between">
-                <span>Total Amount:</span>
-                <span className="font-bold text-indigo-700">৳{completedVoucher.totalAmount}</span>
-              </p>
-            </div>
-
-            {emailSuccessMsg && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl flex items-center space-x-2 animate-fadeIn">
-                <CheckCircle size={16} />
-                <span>{emailSuccessMsg}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSendEmailInvoice} className="space-y-3.5 text-xs font-medium">
-              <div>
-                <label className="block text-slate-700 mb-1 font-bold">Recipient Customer Email *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="customer@example.com"
-                  value={recipientEmail}
-                  onChange={e => setRecipientEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 text-xs"
-                />
-                <p className="text-[10px] text-slate-400 mt-1">
-                  The recipient will receive an HTML email with the invoice summary and a direct <strong>Download / View Full A4 Invoice</strong> link.
+            <div className="p-5 overflow-y-auto space-y-4 text-xs font-medium">
+              <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs text-slate-600 space-y-1">
+                <p className="flex justify-between">
+                  <span>Invoice:</span>
+                  <span className="font-bold text-slate-900">{completedVoucher.voucherNo}</span>
+                </p>
+                <p className="flex justify-between">
+                  <span>Customer:</span>
+                  <span className="font-medium text-slate-800">{completedVoucher.clientName}</span>
+                </p>
+                <p className="flex justify-between">
+                  <span>Total Amount:</span>
+                  <span className="font-bold text-indigo-700">৳{completedVoucher.totalAmount}</span>
                 </p>
               </div>
 
-              <div className="pt-2 border-t flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setEmailModal(false)}
-                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={sendingEmail}
-                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl flex items-center justify-center space-x-1.5 text-xs shadow-md shadow-indigo-600/20"
-                >
-                  <Send size={14} />
-                  <span>{sendingEmail ? 'Sending...' : 'Send Invoice Email'}</span>
-                </button>
-              </div>
-            </form>
+              {emailSuccessMsg && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl flex items-center space-x-2 animate-fadeIn">
+                  <CheckCircle size={16} />
+                  <span>{emailSuccessMsg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSendEmailInvoice} className="space-y-3.5">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Recipient Customer Email *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="customer@example.com"
+                    value={recipientEmail}
+                    onChange={e => setRecipientEmail(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 text-xs"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    The recipient will receive an HTML email with the invoice summary and a direct <strong>Download / View Full A4 Invoice</strong> link.
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setEmailModal(false)}
+                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={sendingEmail}
+                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl flex items-center justify-center space-x-1.5 text-xs shadow-md shadow-indigo-600/20 transition"
+                  >
+                    <Send size={14} />
+                    <span>{sendingEmail ? 'Sending...' : 'Send Invoice Email'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

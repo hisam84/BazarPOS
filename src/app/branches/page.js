@@ -187,24 +187,24 @@ export default function BranchesPage() {
 
       {/* ADD BRANCH MODAL */}
       {showBranchModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base">Add Branch Outlet</h3>
-              <button onClick={() => setShowBranchModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button onClick={() => setShowBranchModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAddBranch} className="space-y-3 text-xs font-medium">
+            <form onSubmit={handleAddBranch} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
               <div>
                 <label className="block text-slate-600 mb-1">Branch Name *</label>
-                <input type="text" required value={branchForm.name} onChange={e => setBranchForm({...branchForm, name: e.target.value})} placeholder="e.g. Dhanmondi Outlet" className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" required value={branchForm.name} onChange={e => setBranchForm({...branchForm, name: e.target.value})} placeholder="e.g. Dhanmondi Outlet" className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Branch Code *</label>
-                <input type="text" required value={branchForm.code} onChange={e => setBranchForm({...branchForm, code: e.target.value})} placeholder="DHN01" className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-mono font-bold" />
+                <input type="text" required value={branchForm.code} onChange={e => setBranchForm({...branchForm, code: e.target.value})} placeholder="DHN01" className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-mono font-bold focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div className="pt-3 border-t flex space-x-3">
-                <button type="button" onClick={() => setShowBranchModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save Branch</button>
+                <button type="button" onClick={() => setShowBranchModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-md transition">Save Branch</button>
               </div>
             </form>
           </div>
@@ -213,36 +213,36 @@ export default function BranchesPage() {
 
       {/* TRANSFER MODAL */}
       {showTransferModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base">Inter-Branch Stock Transfer</h3>
-              <button onClick={() => setShowTransferModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button onClick={() => setShowTransferModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><X size={20} /></button>
             </div>
-            <form onSubmit={handleTransferStock} className="space-y-3 text-xs font-medium">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleTransferStock} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-600 mb-1">From Outlet</label>
-                  <input type="text" value={transferForm.fromBranch} onChange={e => setTransferForm({...transferForm, fromBranch: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold" />
+                  <input type="text" value={transferForm.fromBranch} onChange={e => setTransferForm({...transferForm, fromBranch: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
                   <label className="block text-slate-600 mb-1">To Target Outlet</label>
-                  <input type="text" value={transferForm.toBranch} onChange={e => setTransferForm({...transferForm, toBranch: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold" />
+                  <input type="text" value={transferForm.toBranch} onChange={e => setTransferForm({...transferForm, toBranch: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500" />
                 </div>
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Product Code *</label>
-                <select value={transferForm.productCode} onChange={e => setTransferForm({...transferForm, productCode: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold">
+                <select value={transferForm.productCode} onChange={e => setTransferForm({...transferForm, productCode: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500">
                   {products.map(p => <option key={p.id} value={p.code}>{p.code} - {p.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Transfer Quantity *</label>
-                <input type="number" required min="1" value={transferForm.quantity} onChange={e => setTransferForm({...transferForm, quantity: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold text-blue-600" />
+                <input type="number" required min="1" value={transferForm.quantity} onChange={e => setTransferForm({...transferForm, quantity: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold text-blue-600 focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div className="pt-3 border-t flex space-x-3">
-                <button type="button" onClick={() => setShowTransferModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-emerald-600 text-white font-semibold rounded-xl">Complete Transfer</button>
+                <button type="button" onClick={() => setShowTransferModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-md transition">Complete Transfer</button>
               </div>
             </form>
           </div>

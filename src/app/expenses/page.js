@@ -121,35 +121,35 @@ export default function ExpensesPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base">Add Financial Transaction</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"><X size={20} /></button>
             </div>
-            <form onSubmit={handleAddEntry} className="space-y-3 text-xs font-medium">
+            <form onSubmit={handleAddEntry} className="p-5 overflow-y-auto space-y-3.5 text-xs font-medium">
               <div>
                 <label className="block text-slate-600 mb-1">Transaction Type</label>
-                <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold">
+                <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500">
                   <option value="expense">Expense</option>
                   <option value="income">External Income</option>
                 </select>
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Category *</label>
-                <input type="text" required value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="e.g. Shop Rent, Electricity Bill, Salary" className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" required value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="e.g. Shop Rent, Electricity Bill, Salary" className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Amount (৳) *</label>
-                <input type="number" required value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold" />
+                <input type="number" required value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 font-bold focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Description / Note</label>
-                <input type="text" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full px-3 py-2.5 border rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-blue-500" />
               </div>
               <div className="pt-3 border-t flex space-x-3">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save Transaction</button>
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-md transition">Save Transaction</button>
               </div>
             </form>
           </div>

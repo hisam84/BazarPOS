@@ -447,22 +447,22 @@ export default function SuperAdminCompaniesPage() {
 
       {/* ================= CREATE COMPANY MODAL ================= */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <div className="flex items-center space-x-2">
                 <Building2 className="text-purple-600" size={20} />
                 <h3 className="font-bold text-slate-800 text-base">Create New Company Account</h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateCompany} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateCompany} className="p-5 overflow-y-auto space-y-4 text-xs">
               {/* Business Name */}
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Company / Business Name *</label>
@@ -638,19 +638,19 @@ export default function SuperAdminCompaniesPage() {
 
       {/* ================= EDIT COMPANY MODAL ================= */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-base">Edit Company Details</h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleUpdateCompany} className="space-y-3.5 text-xs">
+            <form onSubmit={handleUpdateCompany} className="p-5 overflow-y-auto space-y-3.5 text-xs">
               <div>
                 <label className="block text-slate-700 font-bold mb-1">Company Name</label>
                 <input

@@ -323,10 +323,10 @@ export default function InventoryPage() {
 
       {/* ADD / EDIT PRODUCT MODAL (MATCHING REQUESTED DESIGN) */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 my-8 border border-slate-100">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Modal Title Bar */}
-            <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
               <h3 className="font-bold text-slate-800 text-lg flex items-center space-x-2">
                 <Package className="text-blue-600" size={22} />
                 <span>{editProduct ? 'Edit Product Details' : 'Add New Product'}</span>
@@ -340,7 +340,7 @@ export default function InventoryPage() {
             </div>
 
             {/* Form Fields Matching Reference Image */}
-            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs font-medium">
+            <form onSubmit={handleSaveProduct} className="p-6 overflow-y-auto space-y-4 text-xs font-medium">
               {/* Row 1: Product Code * & Barcode */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

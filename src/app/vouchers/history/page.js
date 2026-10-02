@@ -297,16 +297,16 @@ export default function VoucherHistoryPage() {
 
       {/* VIEW / PRINT INVOICE MODAL */}
       {selectedVoucher && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className={`bg-white rounded-2xl w-full shadow-2xl space-y-4 my-8 ${printLayout === 'A4' ? 'max-w-4xl max-h-[92vh] flex flex-col' : 'max-w-lg'} p-6`}>
-            <div className="flex items-center justify-between no-print border-b pb-3">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className={`bg-white rounded-2xl w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[94vh] sm:max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200 ${printLayout === 'A4' ? 'max-w-4xl' : 'max-w-lg'}`}>
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-white sticky top-0 z-10 no-print">
               <div className="flex items-center space-x-2">
                 <FileText className="text-blue-600" size={20} />
-                <h3 className="font-bold text-slate-800 text-lg">
+                <h3 className="font-bold text-slate-800 text-base sm:text-lg">
                   Invoice Details ({selectedVoucher.voucherNo})
                 </h3>
               </div>
-              <button onClick={() => setSelectedVoucher(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedVoucher(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
                 <X size={20} />
               </button>
             </div>
@@ -480,8 +480,8 @@ export default function VoucherHistoryPage() {
 
       {/* EMAIL INVOICE MODAL */}
       {emailModal && selectedVoucher && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200 p-6 space-y-4">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center space-x-2">
                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -497,7 +497,7 @@ export default function VoucherHistoryPage() {
                   setEmailModal(false);
                   setEmailSuccessMsg('');
                 }}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"
               >
                 <X size={18} />
               </button>
