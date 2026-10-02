@@ -272,6 +272,31 @@ export default function SettingsPage() {
     }
   };
 
+  const handleToggleMailEnabled = async () => {
+    const nextState = !mailSettings.enabled;
+    const updated = { ...mailSettings, enabled: nextState };
+    setMailSettings(updated);
+
+    try {
+      await fetch('/api/mail-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: user?.storeId || 'default',
+          mailSettings: updated
+        })
+      });
+      if (nextState) {
+        setMsg('Email Service enabled! You can now configure credentials below.');
+      } else {
+        setMsg('Email Service disabled.');
+      }
+      setTimeout(() => setMsg(''), 3500);
+    } catch (err) {
+      console.error('Failed to toggle email service state:', err);
+    }
+  };
+
   const handleSendTestEmail = async () => {
     if (!testEmail || !testEmail.includes('@')) {
       alert('Please enter a valid recipient email address');
@@ -493,391 +518,423 @@ export default function SettingsPage() {
 
       {/* 2. EMAIL & API MAILING SETTINGS (NEW) */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 gap-3">
           <div>
             <h2 className="text-base font-bold text-slate-800 flex items-center space-x-2">
               <Mail className="text-indigo-600" size={20} />
               <span>Email & API Mailing Gateway Settings</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Configure SMTP, Resend, SendGrid or Gmail to automatically send digital invoices, low stock alerts, and daily summaries.
+              Configure Brevo, SMTP, Resend, SendGrid or Gmail to automatically send digital invoices, password resets, low stock alerts, and daily summaries.
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
-              mailSettings.enabled ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
-            }`}>
-              {mailSettings.enabled ? '● Email Service Active' : '○ Disabled'}
-            </span>
-          </div>
-        </div>
-
-        <form onSubmit={handleSaveMailSettings} className="space-y-6 text-xs font-medium">
-          {/* Provider Selection */}
-          <div>
-            <label className="block text-slate-700 mb-2 font-bold">Select Mailing Protocol / API Provider</label>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {[
-                { id: 'brevo', label: 'Brevo (Bravo)', sub: 'REST API & Relay', icon: Send },
-                { id: 'smtp', label: 'Custom SMTP', sub: 'cPanel / Webmail', icon: Server },
-                { id: 'gmail', label: 'Gmail SMTP', sub: 'App Password', icon: Mail },
-                { id: 'resend', label: 'Resend API', sub: 'Deliverability', icon: Zap },
-                { id: 'sendgrid', label: 'SendGrid API', sub: 'Enterprise API', icon: Send },
-              ].map(prov => {
-                const Icon = prov.icon;
-                const isSelected = mailSettings.provider === prov.id;
-                return (
-                  <button
-                    key={prov.id}
-                    type="button"
-                    onClick={() => {
-                      let updates = { provider: prov.id };
-                      if (prov.id === 'gmail') {
-                        updates.smtpHost = 'smtp.gmail.com';
-                        updates.smtpPort = 587;
-                        updates.smtpSecure = 'tls';
-                      } else if (prov.id === 'brevo' && !mailSettings.smtpHost) {
-                        updates.smtpHost = 'smtp-relay.brevo.com';
-                        updates.smtpPort = 587;
-                        updates.smtpSecure = 'tls';
-                      }
-                      setMailSettings(prev => ({ ...prev, ...updates }));
-                    }}
-                    className={`p-3 rounded-xl border text-left transition relative flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
-                        : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                        <Icon size={16} />
-                      </div>
-                      {isSelected && <Check size={16} className="text-indigo-600 font-bold" />}
-                    </div>
-                    <div>
-                      <p className={`font-bold text-xs ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>{prov.label}</p>
-                      <p className="text-[10px] text-slate-500">{prov.sub}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Sender Details */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-            <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-              <Store size={14} className="text-indigo-600" />
-              <span>Sender Identity</span>
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-slate-700 mb-1 font-semibold">Sender Display Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. BazarPOS Outlet"
-                  value={mailSettings.fromName}
-                  onChange={e => setMailSettings({ ...mailSettings, fromName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-700 mb-1 font-semibold">Sender Email Address *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="e.g. billing@zenmart.com"
-                  value={mailSettings.fromEmail}
-                  onChange={e => setMailSettings({ ...mailSettings, fromEmail: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs font-mono"
-                />
-                {mailSettings.provider === 'brevo' && (
-                  <p className="text-[10px] text-slate-500 mt-1">Note: This email must be verified as a Sender in your Brevo account dashboard.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Provider Specific Configuration */}
-          {mailSettings.provider === 'brevo' ? (
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                  <Send size={14} className="text-indigo-600" />
-                  <span>Brevo (formerly Sendinblue / Bravo) Configuration</span>
-                </h3>
-                <span className="text-[10px] bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">REST API v3</span>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 mb-1 font-semibold">Brevo API Key (Recommended) *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                    value={mailSettings.apiKey}
-                    onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-1 mt-1 text-[10px] text-slate-500">
-                  <span>Get your API Key from Brevo Dashboard &gt; SMTP &amp; API &gt; API Keys</span>
-                  <a
-                    href="https://app.brevo.com/settings/keys/api"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-indigo-600 hover:underline font-semibold"
-                  >
-                    Open Brevo API Keys &rarr;
-                  </a>
-                </div>
-              </div>
-
-              {/* Optional SMTP Fallback */}
-              <div className="pt-2 border-t border-slate-200">
-                <p className="text-[11px] font-semibold text-slate-700 mb-2">Or use Brevo SMTP Relay credentials (Optional fallback):</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-slate-600 mb-0.5 text-[10px]">Host</label>
-                    <input
-                      type="text"
-                      placeholder="smtp-relay.brevo.com"
-                      value={mailSettings.smtpHost}
-                      onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
-                      className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-600 mb-0.5 text-[10px]">Login / User</label>
-                    <input
-                      type="text"
-                      placeholder="your-email@domain.com"
-                      value={mailSettings.smtpUser}
-                      onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
-                      className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-600 mb-0.5 text-[10px]">SMTP Key</label>
-                    <input
-                      type="password"
-                      placeholder="Brevo SMTP Master Key"
-                      value={mailSettings.smtpPassword}
-                      onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
-                      className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (mailSettings.provider === 'smtp' || mailSettings.provider === 'gmail') ? (
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-              <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                <Server size={14} className="text-indigo-600" />
-                <span>SMTP Server Connection Details</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-slate-700 mb-1 font-semibold">SMTP Host *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. smtp.gmail.com or mail.yourdomain.com"
-                    value={mailSettings.smtpHost}
-                    onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 mb-1 font-semibold">Port *</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="587"
-                    value={mailSettings.smtpPort}
-                    onChange={e => setMailSettings({ ...mailSettings, smtpPort: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-700 mb-1 font-semibold">SMTP Username / Email *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. user@yourdomain.com"
-                    value={mailSettings.smtpUser}
-                    onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 mb-1 font-semibold">SMTP Password / App Password *</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      placeholder="••••••••••••••••"
-                      value={mailSettings.smtpPassword}
-                      onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
-                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-              <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                <Zap size={14} className="text-indigo-600" />
-                <span>{mailSettings.provider === 'resend' ? 'Resend API Key' : 'SendGrid API Key'}</span>
-              </h3>
-
-              <div>
-                <label className="block text-slate-700 mb-1 font-semibold">API Key *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder={mailSettings.provider === 'resend' ? 're_123456789...' : 'SG.123456789...'}
-                    value={mailSettings.apiKey}
-                    onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                <p className="text-[10px] text-slate-500 mt-1">
-                  Obtain your API token from {mailSettings.provider === 'resend' ? 'resend.com/api-keys' : 'sendgrid.com/app/settings/api_keys'}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Automated Trigger Options */}
-          <div className="p-4 bg-indigo-50/40 rounded-2xl border border-indigo-100 space-y-3">
-            <h3 className="font-bold text-indigo-950 text-xs flex items-center space-x-1.5">
-              <BellRing size={14} className="text-indigo-600" />
-              <span>Automated Email Notification Triggers</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
-                <input
-                  type="checkbox"
-                  checked={mailSettings.sendInvoiceOnSale}
-                  onChange={e => setMailSettings({ ...mailSettings, sendInvoiceOnSale: e.target.checked })}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                />
-                <div>
-                  <span className="font-bold text-slate-800 block text-xs">Customer Invoices</span>
-                  <span className="text-[10px] text-slate-500 block">Auto-email digital receipt</span>
-                </div>
-              </label>
-
-              <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
-                <input
-                  type="checkbox"
-                  checked={mailSettings.sendLowStockAlert}
-                  onChange={e => setMailSettings({ ...mailSettings, sendLowStockAlert: e.target.checked })}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                />
-                <div>
-                  <span className="font-bold text-slate-800 block text-xs">Low Stock Alerts</span>
-                  <span className="text-[10px] text-slate-500 block">Alert owner on low units</span>
-                </div>
-              </label>
-
-              <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
-                <input
-                  type="checkbox"
-                  checked={mailSettings.sendDailySummary}
-                  onChange={e => setMailSettings({ ...mailSettings, sendDailySummary: e.target.checked })}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                />
-                <div>
-                  <span className="font-bold text-slate-800 block text-xs">Daily Summary</span>
-                  <span className="text-[10px] text-slate-500 block">Closing revenue report</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
-            <button
-              type="submit"
-              disabled={savingMail}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-indigo-600/20"
-            >
-              <Save size={16} />
-              <span>{savingMail ? 'Saving Mail Gateway...' : 'Save Mailing Configuration'}</span>
-            </button>
-          </div>
-        </form>
-
-        {/* Live Test Email Tool */}
-        <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
-          <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-            <Send size={14} className="text-emerald-600" />
-            <span>Test Mail Dispatch & Live Diagnostic</span>
-          </h3>
-
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="email"
-              placeholder="Enter recipient email (e.g. yourname@gmail.com)"
-              value={testEmail}
-              onChange={e => setTestEmail(e.target.value)}
-              className="flex-1 px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-indigo-500"
-            />
+          <div className="flex items-center space-x-3 self-start sm:self-auto">
             <button
               type="button"
-              onClick={handleSendTestEmail}
-              disabled={sendingTest}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-sm transition"
+              onClick={handleToggleMailEnabled}
+              className={`flex items-center space-x-2.5 px-3.5 py-1.5 rounded-full border text-xs font-bold transition-all shadow-xs ${
+                mailSettings.enabled
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
+                  : 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200'
+              }`}
             >
-              <Send size={14} />
-              <span>{sendingTest ? 'Sending Test...' : 'Send Test Email'}</span>
+              <span className={`w-2 h-2 rounded-full ${mailSettings.enabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+              <span>{mailSettings.enabled ? 'Enabled' : 'Disabled'}</span>
+              <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${mailSettings.enabled ? 'bg-emerald-600' : 'bg-slate-300'} flex items-center`}>
+                <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${mailSettings.enabled ? 'translate-x-3.5' : 'translate-x-0'}`} />
+              </div>
             </button>
           </div>
-
-          {testResult && (
-            <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 animate-fadeIn ${
-              testResult.success
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
-            }`}>
-              {testResult.success ? <CheckCircle size={16} className="text-emerald-600 shrink-0" /> : <AlertCircle size={16} className="text-rose-600 shrink-0" />}
-              <span>{testResult.message}</span>
-            </div>
-          )}
         </div>
+
+        {!mailSettings.enabled ? (
+          <div className="bg-slate-50/80 border border-dashed border-slate-300 rounded-2xl p-6 text-center">
+            <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+              <Mail size={22} />
+            </div>
+            <h3 className="font-bold text-slate-700 text-sm mb-1">Email Service is Currently Disabled</h3>
+            <p className="text-xs text-slate-500 max-w-md mx-auto mb-4 leading-relaxed">
+              Automated invoice emails, password reset links, low stock warnings, and daily summaries are currently turned off.
+            </p>
+            <button
+              type="button"
+              onClick={handleToggleMailEnabled}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition inline-flex items-center space-x-2 shadow-md shadow-indigo-600/20"
+            >
+              <Zap size={15} />
+              <span>Enable &amp; Configure Mailing Gateway</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <form onSubmit={handleSaveMailSettings} className="space-y-6 text-xs font-medium">
+              {/* Provider Selection */}
+              <div>
+                <label className="block text-slate-700 mb-2 font-bold">Select Mailing Protocol / API Provider</label>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  {[
+                    { id: 'brevo', label: 'Brevo (Bravo)', sub: 'REST API & Relay', icon: Send },
+                    { id: 'smtp', label: 'Custom SMTP', sub: 'cPanel / Webmail', icon: Server },
+                    { id: 'gmail', label: 'Gmail SMTP', sub: 'App Password', icon: Mail },
+                    { id: 'resend', label: 'Resend API', sub: 'Deliverability', icon: Zap },
+                    { id: 'sendgrid', label: 'SendGrid API', sub: 'Enterprise API', icon: Send },
+                  ].map(prov => {
+                    const Icon = prov.icon;
+                    const isSelected = mailSettings.provider === prov.id;
+                    return (
+                      <button
+                        key={prov.id}
+                        type="button"
+                        onClick={() => {
+                          let updates = { provider: prov.id };
+                          if (prov.id === 'gmail') {
+                            updates.smtpHost = 'smtp.gmail.com';
+                            updates.smtpPort = 587;
+                            updates.smtpSecure = 'tls';
+                          } else if (prov.id === 'brevo' && !mailSettings.smtpHost) {
+                            updates.smtpHost = 'smtp-relay.brevo.com';
+                            updates.smtpPort = 587;
+                            updates.smtpSecure = 'tls';
+                          }
+                          setMailSettings(prev => ({ ...prev, ...updates }));
+                        }}
+                        className={`p-3 rounded-xl border text-left transition relative flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
+                            : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                            <Icon size={16} />
+                          </div>
+                          {isSelected && <Check size={16} className="text-indigo-600 font-bold" />}
+                        </div>
+                        <div>
+                          <p className={`font-bold text-xs ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>{prov.label}</p>
+                          <p className="text-[10px] text-slate-500">{prov.sub}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Sender Details */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                  <Store size={14} className="text-indigo-600" />
+                  <span>Sender Identity</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-semibold">Sender Display Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. BazarPOS Outlet"
+                      value={mailSettings.fromName}
+                      onChange={e => setMailSettings({ ...mailSettings, fromName: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-semibold">Sender Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. billing@zenmart.com"
+                      value={mailSettings.fromEmail}
+                      onChange={e => setMailSettings({ ...mailSettings, fromEmail: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs font-mono"
+                    />
+                    {mailSettings.provider === 'brevo' && (
+                      <p className="text-[10px] text-slate-500 mt-1">Note: This email must be verified as a Sender in your Brevo account dashboard.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Provider Specific Configuration */}
+              {mailSettings.provider === 'brevo' ? (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                      <Send size={14} className="text-indigo-600" />
+                      <span>Brevo (formerly Sendinblue / Bravo) Configuration</span>
+                    </h3>
+                    <span className="text-[10px] bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">REST API v3</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-semibold">Brevo API Key (Recommended) *</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        value={mailSettings.apiKey}
+                        onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-1 mt-1 text-[10px] text-slate-500">
+                      <span>Get your API Key from Brevo Dashboard &gt; SMTP &amp; API &gt; API Keys</span>
+                      <a
+                        href="https://app.brevo.com/settings/keys/api"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-indigo-600 hover:underline font-semibold"
+                      >
+                        Open Brevo API Keys &rarr;
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Optional SMTP Fallback */}
+                  <div className="pt-2 border-t border-slate-200">
+                    <p className="text-[11px] font-semibold text-slate-700 mb-2">Or use Brevo SMTP Relay credentials (Optional fallback):</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-slate-600 mb-0.5 text-[10px]">Host</label>
+                        <input
+                          type="text"
+                          placeholder="smtp-relay.brevo.com"
+                          value={mailSettings.smtpHost}
+                          onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-600 mb-0.5 text-[10px]">Login / User</label>
+                        <input
+                          type="text"
+                          placeholder="your-email@domain.com"
+                          value={mailSettings.smtpUser}
+                          onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-600 mb-0.5 text-[10px]">SMTP Key</label>
+                        <input
+                          type="password"
+                          placeholder="Brevo SMTP Master Key"
+                          value={mailSettings.smtpPassword}
+                          onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
+                          className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (mailSettings.provider === 'smtp' || mailSettings.provider === 'gmail') ? (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                  <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                    <Server size={14} className="text-indigo-600" />
+                    <span>SMTP Server Connection Details</span>
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="block text-slate-700 mb-1 font-semibold">SMTP Host *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. smtp.gmail.com or mail.yourdomain.com"
+                        value={mailSettings.smtpHost}
+                        onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-semibold">Port *</label>
+                      <input
+                        type="number"
+                        required
+                        placeholder="587"
+                        value={mailSettings.smtpPort}
+                        onChange={e => setMailSettings({ ...mailSettings, smtpPort: Number(e.target.value) })}
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-semibold">SMTP Username / Email *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. user@yourdomain.com"
+                        value={mailSettings.smtpUser}
+                        onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-semibold">SMTP Password / App Password *</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          placeholder="••••••••••••••••"
+                          value={mailSettings.smtpPassword}
+                          onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
+                          className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                  <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                    <Zap size={14} className="text-indigo-600" />
+                    <span>{mailSettings.provider === 'resend' ? 'Resend API Key' : 'SendGrid API Key'}</span>
+                  </h3>
+
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-semibold">API Key *</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        placeholder={mailSettings.provider === 'resend' ? 're_123456789...' : 'SG.123456789...'}
+                        value={mailSettings.apiKey}
+                        onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Obtain your API token from {mailSettings.provider === 'resend' ? 'resend.com/api-keys' : 'sendgrid.com/app/settings/api_keys'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Automated Trigger Options */}
+              <div className="p-4 bg-indigo-50/40 rounded-2xl border border-indigo-100 space-y-3">
+                <h3 className="font-bold text-indigo-950 text-xs flex items-center space-x-1.5">
+                  <BellRing size={14} className="text-indigo-600" />
+                  <span>Automated Email Notification Triggers</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
+                    <input
+                      type="checkbox"
+                      checked={mailSettings.sendInvoiceOnSale}
+                      onChange={e => setMailSettings({ ...mailSettings, sendInvoiceOnSale: e.target.checked })}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-800 block text-xs">Customer Invoices</span>
+                      <span className="text-[10px] text-slate-500 block">Auto-email digital receipt</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
+                    <input
+                      type="checkbox"
+                      checked={mailSettings.sendLowStockAlert}
+                      onChange={e => setMailSettings({ ...mailSettings, sendLowStockAlert: e.target.checked })}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-800 block text-xs">Low Stock Alerts</span>
+                      <span className="text-[10px] text-slate-500 block">Alert owner on low units</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
+                    <input
+                      type="checkbox"
+                      checked={mailSettings.sendDailySummary}
+                      onChange={e => setMailSettings({ ...mailSettings, sendDailySummary: e.target.checked })}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-800 block text-xs">Daily Summary</span>
+                      <span className="text-[10px] text-slate-500 block">Closing revenue report</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
+                <button
+                  type="submit"
+                  disabled={savingMail}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-indigo-600/20"
+                >
+                  <Save size={16} />
+                  <span>{savingMail ? 'Saving Mail Gateway...' : 'Save Mailing Configuration'}</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Live Test Email Tool */}
+            <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
+              <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                <Send size={14} className="text-emerald-600" />
+                <span>Test Mail Dispatch &amp; Live Diagnostic</span>
+              </h3>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="email"
+                  placeholder="Enter recipient email (e.g. yourname@gmail.com)"
+                  value={testEmail}
+                  onChange={e => setTestEmail(e.target.value)}
+                  className="flex-1 px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-indigo-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendTestEmail}
+                  disabled={sendingTest}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-sm transition"
+                >
+                  <Send size={14} />
+                  <span>{sendingTest ? 'Sending Test...' : 'Send Test Email'}</span>
+                </button>
+              </div>
+
+              {testResult && (
+                <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 animate-fadeIn ${
+                  testResult.success
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-rose-50 border-rose-200 text-rose-800'
+                }`}>
+                  {testResult.success ? <CheckCircle size={16} className="text-emerald-600 shrink-0" /> : <AlertCircle size={16} className="text-rose-600 shrink-0" />}
+                  <span>{testResult.message}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 3. STORE BRANDING & RECEIPT DETAILS */}
