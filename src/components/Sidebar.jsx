@@ -316,7 +316,7 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-50 flex flex-col bg-[#161b2e] text-slate-300 border-r border-[#222944] shadow-2xl transition-all duration-200 ease-in-out select-none ${
+        className={`fixed inset-y-0 left-0 z-50 lg:static lg:z-30 lg:h-screen lg:sticky lg:top-0 flex flex-col bg-[#161b2e] text-slate-300 border-r border-[#222944] shadow-2xl lg:shadow-none transition-all duration-200 ease-in-out select-none shrink-0 ${
           collapsed ? 'w-20' : 'w-64'
         } ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
