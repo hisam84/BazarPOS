@@ -495,36 +495,36 @@ export default function POSTerminalPage() {
   });
 
   return (
-    <div className="min-h-[calc(100vh-5.5rem)] flex flex-col lg:flex-row gap-3.5 sm:gap-4 lg:gap-5 relative pb-16 lg:pb-0">
+    <div className="min-h-[calc(100vh-5.5rem)] flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-5 relative pb-20 lg:pb-0 overflow-x-hidden">
       {/* Mobile Tab Switcher */}
-      <div className="flex lg:hidden items-center p-1 bg-slate-200/80 rounded-xl text-xs font-bold gap-1 shrink-0">
+      <div className="flex lg:hidden items-center p-1 bg-slate-200/90 rounded-2xl text-xs font-bold gap-1 shrink-0 shadow-inner">
         <button
           type="button"
           onClick={() => setMobileTab('catalog')}
-          className={`flex-1 py-2 rounded-lg transition text-center flex items-center justify-center space-x-1.5 ${
-            mobileTab === 'catalog' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          className={`flex-1 py-2.5 rounded-xl transition text-center flex items-center justify-center space-x-1.5 ${
+            mobileTab === 'catalog' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Boxes size={15} />
-          <span>Products Catalog</span>
+          <Boxes size={16} />
+          <span className="truncate">Catalog ({products.length})</span>
         </button>
         <button
           type="button"
           onClick={() => setMobileTab('cart')}
-          className={`flex-1 py-2 rounded-lg transition text-center flex items-center justify-center space-x-1.5 ${
-            mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          className={`flex-1 py-2.5 rounded-xl transition text-center flex items-center justify-center space-x-1.5 ${
+            mobileTab === 'cart' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <ShoppingCart size={15} />
-          <span>Bill Cart ({cart.length})</span>
+          <ShoppingCart size={16} />
+          <span className="truncate">Cart ({cart.length}) {cart.length > 0 ? `• ৳${grandTotal.toLocaleString()}` : ''}</span>
         </button>
       </div>
 
       {/* LEFT: Product Grid & Search */}
-      <div className={`flex-1 bg-white rounded-2xl p-3.5 sm:p-4 md:p-5 border border-slate-200/90 flex flex-col min-w-0 shadow-sm ${
+      <div className={`flex-1 bg-white rounded-2xl p-3 sm:p-4 md:p-5 border border-slate-200/90 flex flex-col min-w-0 shadow-sm ${
         mobileTab === 'cart' ? 'hidden lg:flex' : 'flex'
       }`}>
-        <div className="flex flex-col sm:flex-row gap-2.5 mb-3.5">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5 mb-3">
           <form onSubmit={handleBarcodeSubmit} className="flex-1 relative min-w-0 flex items-center">
             <div className="relative flex-1">
               <Barcode className="absolute left-3 top-2.5 text-slate-400" size={17} />
@@ -533,41 +533,45 @@ export default function POSTerminalPage() {
                 type="text"
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
-                placeholder="Scan barcode / enter code..."
+                placeholder="Scan barcode / code..."
                 className="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
               />
               <button
                 type="button"
                 onClick={() => setShowCameraScanner(true)}
-                className="absolute right-1.5 top-1.5 p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                title="Open Mobile Camera Barcode Scanner"
+                className="absolute right-1 top-1 p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                title="Open Camera Scanner"
               >
                 <Camera size={16} />
               </button>
             </div>
           </form>
 
-          <div className="flex-1 relative min-w-0">
-            <Search className="absolute left-3 top-2.5 text-slate-400" size={17} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search product name..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
-            />
-          </div>
+          <div className="flex gap-2 min-w-0">
+            <div className="flex-1 relative min-w-0">
+              <Search className="absolute left-3 top-2.5 text-slate-400" size={17} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search product..."
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
+              />
+            </div>
 
-          <button
-            onClick={() => setShowAddProductModal(true)}
-            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 whitespace-nowrap shrink-0 shadow-sm shadow-blue-500/10 transition"
-          >
-            <PackagePlus size={15} />
-            <span>+ Add Product</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setShowAddProductModal(true)}
+              className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1 whitespace-nowrap shrink-0 shadow-sm shadow-blue-500/10 transition"
+            >
+              <PackagePlus size={15} />
+              <span className="hidden sm:inline">+ Add Product</span>
+              <span className="sm:hidden">+ Product</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-1.5 overflow-x-auto pb-2.5 mb-2.5 no-scrollbar shrink-0">
+        <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 mb-2.5 no-scrollbar shrink-0">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -583,16 +587,16 @@ export default function POSTerminalPage() {
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3.5 pr-1 content-start">
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2 sm:gap-3 pr-1 content-start">
           {filteredProducts.map((p) => (
             <div
               key={p.id}
               onClick={() => addToCart(p)}
-              className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-xl p-3 cursor-pointer hover:border-blue-500 hover:shadow-md transition flex flex-col justify-between group select-none min-w-0"
+              className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-xl p-2.5 sm:p-3 cursor-pointer hover:border-blue-500 hover:shadow-md transition flex flex-col justify-between group select-none min-w-0"
             >
               <div className="min-w-0">
                 <div className="flex items-center justify-between gap-1">
-                  <span className="text-[10px] font-mono font-bold bg-slate-200/90 text-slate-700 px-1.5 py-0.5 rounded truncate max-w-[50%]">
+                  <span className="text-[10px] font-mono font-bold bg-slate-200/90 text-slate-700 px-1.5 py-0.5 rounded truncate max-w-[55%]">
                     {p.code}
                   </span>
                   <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap ${
@@ -601,12 +605,12 @@ export default function POSTerminalPage() {
                     Stock: {p.quantity}
                   </span>
                 </div>
-                <h4 className="font-bold text-slate-800 text-xs mt-2 line-clamp-2 min-h-[30px] group-hover:text-blue-600 transition leading-snug break-words">
+                <h4 className="font-bold text-slate-800 text-xs mt-1.5 sm:mt-2 line-clamp-2 min-h-[28px] sm:min-h-[30px] group-hover:text-blue-600 transition leading-snug break-words">
                   {p.name}
                 </h4>
               </div>
 
-              <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-200/80">
+              <div className="mt-2 flex items-center justify-between pt-1.5 sm:pt-2 border-t border-slate-200/80">
                 <span className="font-black text-xs sm:text-sm text-blue-600 truncate">৳{Number(p.sellingPrice).toLocaleString()}</span>
                 <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition shrink-0">
                   <Plus size={13} />
@@ -623,34 +627,34 @@ export default function POSTerminalPage() {
           <button
             type="button"
             onClick={() => setMobileTab('cart')}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold p-3.5 rounded-2xl shadow-xl flex items-center justify-between"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold p-3 sm:p-3.5 rounded-2xl shadow-xl flex items-center justify-between"
           >
-            <div className="flex items-center space-x-2">
-              <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs">
+            <div className="flex items-center space-x-2 truncate pr-2">
+              <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold shrink-0">
                 {cart.length}
               </span>
-              <span className="text-xs">Cart Total:</span>
-              <span className="text-sm font-extrabold">৳{grandTotal.toLocaleString()}</span>
+              <span className="text-xs truncate">Total:</span>
+              <span className="text-sm font-black whitespace-nowrap">৳{grandTotal.toLocaleString()}</span>
             </div>
-            <div className="flex items-center space-x-1 text-xs font-bold">
-              <span>View Cart &amp; Checkout &rarr;</span>
+            <div className="flex items-center space-x-1 text-xs font-bold shrink-0">
+              <span>View Cart &rarr;</span>
             </div>
           </button>
         </div>
       )}
 
       {/* RIGHT: Cart Drawer */}
-      <div className={`w-full lg:w-[360px] xl:w-[400px] 2xl:w-[420px] bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 md:p-5 flex flex-col min-w-0 shadow-sm shrink-0 ${
+      <div className={`w-full lg:w-[360px] xl:w-[400px] 2xl:w-[420px] bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 md:p-5 flex flex-col min-w-0 shadow-sm shrink-0 ${
         mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'
       }`}>
-        <h2 className="text-base font-bold text-slate-800 pb-3 border-b border-slate-100 flex items-center justify-between">
+        <h2 className="text-sm sm:text-base font-bold text-slate-800 pb-2.5 sm:pb-3 border-b border-slate-100 flex items-center justify-between">
           <span>Current Bill Cart</span>
           <span className="text-xs bg-blue-100 text-blue-700 font-mono px-2 py-0.5 rounded-full">
             {cart.length} items
           </span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2.5 my-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-2.5 my-2.5">
           <div className="relative" ref={clientDropdownRef}>
             <div className="flex items-center justify-between mb-1">
               <label className="text-[11px] font-semibold text-slate-500">Customer</label>
@@ -724,7 +728,7 @@ export default function POSTerminalPage() {
 
               {/* Optimized Searchable Dropdown Popup */}
               {clientDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 w-[340px] sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-3 space-y-2.5 max-h-96 flex flex-col animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute left-0 top-full mt-2 w-[300px] sm:w-[380px] max-w-[calc(100vw-2.5rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-3 space-y-2.5 max-h-96 flex flex-col animate-in fade-in zoom-in-95 duration-150">
                   {/* Search Bar */}
                   <div className="relative">
                     <Search className="absolute left-3 top-2.5 text-slate-400 pointer-events-none" size={14} />
