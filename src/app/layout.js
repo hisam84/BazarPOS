@@ -61,13 +61,52 @@ export default function RootLayout({ children }) {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const isLoginPage = pathname === '/login';
+  const getPageTitle = () => {
+    if (isLoginPage) return 'Login | BazarPOS Cloud ERP';
+    if (currentUserRole === 'superadmin') {
+      if (pathname.startsWith('/superadmin/companies')) return 'Manage Companies | SuperAdmin SaaS';
+      if (pathname.startsWith('/superadmin/subscriptions')) return 'Subscriptions & Validity | SuperAdmin SaaS';
+      if (pathname.startsWith('/superadmin/settings')) return 'Security Settings | SuperAdmin SaaS';
+      return 'SaaS Platform Overview | SuperAdmin';
+    }
+    
+    const store = user?.storeName || 'BazarPOS';
+    const routeTitles = {
+      '/': `Dashboard | ${store}`,
+      '/pos': `POS Terminal | ${store}`,
+      '/inventory': `Inventory Catalog | ${store}`,
+      '/vouchers/history': `Sales & Invoices | ${store}`,
+      '/invoice-settings': `Invoice Settings | ${store}`,
+      '/clients': `Customer Due Register | ${store}`,
+      '/suppliers': `Suppliers & PO | ${store}`,
+      '/barcodes': `Barcode Generator | ${store}`,
+      '/cash-register': `Cash Register | ${store}`,
+      '/expenses': `Expense Manager | ${store}`,
+      '/branches': `Branches & Transfer | ${store}`,
+      '/reports': `Financial Reports | ${store}`,
+      '/audit-logs': `System Audit Logs | ${store}`,
+      '/settings': `Store Settings | ${store}`,
+      '/profile': `Store Profile | ${store}`,
+      '/staff': `Staff & Roles | ${store}`,
+      '/stock-adjustment': `Stock Adjustment | ${store}`
+    };
+
+    return routeTitles[pathname] || `${store} | Retail POS ERP`;
+  };
+
+  const currentUserRole = user?.role || 'owner';
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.title = getPageTitle();
+    }
+  }, [pathname, user]);
 
   return (
     <html lang="en">
       <head>
-        <title>BazarPOS - Next.js Multi-Store POS Software</title>
-        <meta name="description" content="Modern Point of Sale & Billing Management System" />
+        <title>{getPageTitle()}</title>
+        <meta name="description" content="Modern Point of Sale & Retail Billing Management ERP System" />
       </head>
       <body className="min-h-screen bg-slate-50 flex flex-col font-sans">
         {loading ? (
