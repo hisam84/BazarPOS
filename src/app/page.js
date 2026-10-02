@@ -24,7 +24,8 @@ import {
   ChevronDown,
   CheckCircle2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  PieChart
 } from 'lucide-react';
 
 export default function Dashboard() {
