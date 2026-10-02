@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   MessageSquare,
   Zap,
@@ -17,9 +17,15 @@ import {
   BellRing,
   Info,
   Layers,
-  Code
+  Code,
+  RotateCcw,
+  Sparkles,
+  Receipt,
+  UserPlus,
+  ShieldCheck
 } from 'lucide-react';
-import { DEFAULT_SMS_SETTINGS } from '@/lib/sms-constants';
+import { DEFAULT_SMS_SETTINGS, SMS_AVAILABLE_VARIABLES } from '@/lib/sms-constants';
+import { renderTemplate } from '@/lib/email-templates';
 
 const SMS_PROVIDERS = [
   { id: 'bulksmsbd', name: 'BulkSMS BD', sub: 'Popular BD Gateway', icon: Smartphone, defaultUrl: 'https://bulksmsbd.net/api/smsapi' },
@@ -29,15 +35,30 @@ const SMS_PROVIDERS = [
   { id: 'custom', name: 'Custom Gateway', sub: 'Any HTTP REST / GET / POST', icon: Server, defaultUrl: '' },
 ];
 
-const SMS_TEMPLATE_VARS = [
-  { key: '{{customer_name}}', desc: 'Customer Name' },
-  { key: '{{company_name}}', desc: 'Store Name' },
-  { key: '{{invoice_no}}', desc: 'Invoice Number' },
-  { key: '{{total_amount}}', desc: 'Grand Total' },
-  { key: '{{paid_amount}}', desc: 'Paid Amount' },
-  { key: '{{due_amount}}', desc: 'Due Balance' },
-  { key: '{{invoice_link}}', desc: 'Online Invoice URL' },
+const SMS_TEMPLATE_TABS = [
+  { id: 'invoice', name: 'Sales Receipt SMS', icon: Receipt, tag: 'POS Checkout' },
+  { id: 'due_reminder', name: 'Due Balance Reminder', icon: AlertCircle, tag: 'Accounts Due' },
+  { id: 'welcome_customer', name: 'Welcome Customer', icon: UserPlus, tag: 'CRM Greeting' },
+  { id: 'low_stock', name: 'Low Stock Alert', icon: Layers, tag: 'Inventory Notice' },
+  { id: 'otp', name: 'Security OTP SMS', icon: ShieldCheck, tag: 'Auth Code' }
 ];
+
+const SAMPLE_SMS_DATA = {
+  customer_name: 'Rahim Chowdhury',
+  customer_id: 'CUST-1045',
+  company_name: 'BazarPOS Superstore',
+  company_phone: '01711223344',
+  invoice_no: 'INV-2026-0892',
+  total_amount: '৳7,850',
+  paid_amount: '৳5,000',
+  due_amount: '৳2,850',
+  invoice_link: 'https://bazarpos.app/invoice/v_demo123',
+  product_name: 'Wireless Barcode Scanner',
+  product_code: 'PRD-SCN-01',
+  current_stock: '2',
+  otp_code: '492815',
+  date: new Date().toLocaleDateString('en-GB')
+};
 
 export default function SMSGatewaySettings({ storeId = 'default', companyInfo = {} }) {
   const [smsSettings, setSmsSettings] = useState(DEFAULT_SMS_SETTINGS);
@@ -48,7 +69,10 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
   const [sendingTest, setSendingTest] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [feedback, setFeedback] = useState(null);
-  const [selectedTpl, setSelectedTpl] = useState('invoice'); // 'invoice' | 'due_reminder'
+  const [selectedTpl, setSelectedTpl] = useState('invoice');
+  const [copiedVar, setCopiedVar] = useState(null);
+
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     loadSettings();
@@ -60,7 +84,14 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
       const res = await fetch(`/api/sms/settings?storeId=${storeId}`);
       const data = await res.json();
       if (data.success && data.smsSettings) {
-        setSmsSettings(data.smsSettings);
+        setSmsSettings(prev => ({
+          ...DEFAULT_SMS_SETTINGS,
+          ...data.smsSettings,
+          templates: {
+            ...DEFAULT_SMS_SETTINGS.templates,
+            ...(data.smsSettings.templates || {})
+          }
+        }));
       }
     } catch (e) {
       console.error('Failed to load SMS settings:', e);
@@ -102,7 +133,7 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
       });
       const data = await res.json();
       if (data.success) {
-        setFeedback({ type: 'success', message: 'SMS Gateway configuration saved successfully!' });
+        setFeedback({ type: 'success', message: 'SMS Gateway and notification templates saved successfully!' });
         setTimeout(() => setFeedback(null), 3500);
       } else {
         setFeedback({ type: 'error', message: data.message || 'Failed to save SMS settings' });
@@ -114,6 +145,60 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
     }
   };
 
+  const handleResetTemplate = (tplKey) => {
+    const defaultText = DEFAULT_SMS_SETTINGS.templates[tplKey] || '';
+    setSmsSettings(prev => ({
+      ...prev,
+      templates: {
+        ...(prev.templates || {}),
+        [tplKey]: defaultText
+      }
+    }));
+    setFeedback({ type: 'success', message: `Template reset to default!` });
+    setTimeout(() => setFeedback(null), 3000);
+  };
+
+  const handleInsertVariable = (varKey) => {
+    const textarea = textareaRef.current;
+    const currentText = smsSettings.templates?.[selectedTpl] || '';
+    if (!textarea) {
+      const updated = currentText + ' ' + varKey;
+      setSmsSettings(prev => ({
+        ...prev,
+        templates: {
+          ...(prev.templates || {}),
+          [selectedTpl]: updated
+        }
+      }));
+      navigator.clipboard?.writeText(varKey);
+      setCopiedVar(varKey);
+      setTimeout(() => setCopiedVar(null), 2000);
+      return;
+    }
+
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const newText = currentText.substring(0, start) + varKey + currentText.substring(end);
+
+    setSmsSettings(prev => ({
+      ...prev,
+      templates: {
+        ...(prev.templates || {}),
+        [selectedTpl]: newText
+      }
+    }));
+    navigator.clipboard?.writeText(varKey);
+    setCopiedVar(varKey);
+    setTimeout(() => setCopiedVar(null), 2000);
+
+    setTimeout(() => {
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(start + varKey.length, start + varKey.length);
+      }
+    }, 50);
+  };
+
   const handleSendTestSMS = async () => {
     if (!testPhone || testPhone.length < 9) {
       alert('Please enter a valid mobile number (e.g. 01712345678)');
@@ -123,13 +208,19 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
     setSendingTest(true);
     setTestResult(null);
     try {
+      const liveRendered = renderTemplate(smsSettings.templates?.[selectedTpl] || '', {
+        ...SAMPLE_SMS_DATA,
+        company_name: companyInfo?.name || 'BazarPOS Store',
+        company_phone: companyInfo?.phone || '01700000000'
+      });
+
       const res = await fetch('/api/sms/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           storeId,
           phone: testPhone,
-          testMessage: `[BazarPOS Test] Hello! SMS gateway is active for ${companyInfo.name || 'your store'}. Test sent at ${new Date().toLocaleTimeString()}`
+          testMessage: liveRendered
         })
       });
       const data = await res.json();
@@ -141,33 +232,29 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
     }
   };
 
-  const handleInsertVariable = (varKey) => {
-    const currentText = smsSettings.templates?.[selectedTpl] || '';
-    const updatedText = currentText + ' ' + varKey;
-    setSmsSettings(prev => ({
-      ...prev,
-      templates: {
-        ...(prev.templates || {}),
-        [selectedTpl]: updatedText
-      }
-    }));
-  };
-
-  const currentTemplateText = smsSettings.templates?.[selectedTpl] || '';
+  const currentTemplateText = smsSettings.templates?.[selectedTpl] || DEFAULT_SMS_SETTINGS.templates[selectedTpl] || '';
   const charCount = currentTemplateText.length;
-  const smsParts = Math.ceil(charCount / 160) || 1;
+  const isUnicode = /[^\u0000-\u007F]/.test(currentTemplateText);
+  const maxCharsPerPart = isUnicode ? 70 : 160;
+  const smsParts = Math.ceil(charCount / maxCharsPerPart) || 1;
+
+  const previewRenderedText = renderTemplate(currentTemplateText, {
+    ...SAMPLE_SMS_DATA,
+    company_name: companyInfo?.name || 'BazarPOS Store',
+    company_phone: companyInfo?.phone || '01711223344'
+  });
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6 text-xs">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 gap-3">
         <div>
           <h2 className="text-base font-bold text-slate-800 flex items-center space-x-2">
             <MessageSquare className="text-emerald-600" size={20} />
-            <span>SMS Gateway &amp; Automated Messaging Settings</span>
+            <span>SMS Gateway &amp; Notification Templates</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Configure BulkSMS BD, Greenweb, MimiSMS, Twilio or Custom HTTP Gateway to automatically send sales receipts and customer notifications via SMS.
+            Configure SMS API providers and customize editable SMS notifications with dynamic tags.
           </p>
         </div>
 
@@ -182,7 +269,7 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
             }`}
           >
             <span className={`w-2 h-2 rounded-full ${smsSettings.enabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
-            <span>{smsSettings.enabled ? 'SMS Active' : 'Disabled'}</span>
+            <span>{smsSettings.enabled ? 'SMS Gateway Active' : 'Disabled'}</span>
             <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${smsSettings.enabled ? 'bg-emerald-600' : 'bg-slate-300'} flex items-center`}>
               <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${smsSettings.enabled ? 'translate-x-3.5' : 'translate-x-0'}`} />
             </div>
@@ -220,7 +307,7 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
           </button>
         </div>
       ) : (
-        <div className="space-y-6 text-xs">
+        <div className="space-y-6">
           <form onSubmit={handleSave} className="space-y-6 font-medium">
             {/* Provider Selection */}
             <div>
@@ -363,20 +450,6 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
                       />
                     </div>
                   </div>
-
-                  {smsSettings.httpMethod === 'POST_JSON' && (
-                    <div>
-                      <label className="block text-slate-700 mb-1 font-semibold">JSON Body Template</label>
-                      <input
-                        type="text"
-                        value={smsSettings.customBodyTemplate || ''}
-                        onChange={e => setSmsSettings({ ...smsSettings, customBodyTemplate: e.target.value })}
-                        className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs"
-                        placeholder='{"recipient": "{{phone}}", "message": "{{message}}", "sender_id": "{{sender_id}}"}'
-                      />
-                      <p className="text-[10px] text-slate-500 mt-1">Placeholders: <code className="font-bold font-mono">{`{{phone}}`}</code>, <code className="font-bold font-mono">{`{{message}}`}</code>, <code className="font-bold font-mono">{`{{api_key}}`}</code>, <code className="font-bold font-mono">{`{{sender_id}}`}</code></p>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -439,7 +512,7 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
                   />
                   <div>
                     <span className="font-bold text-slate-800 block text-xs">Auto-SMS on Sale</span>
-                    <span className="text-[10px] text-slate-500 block">Send digital receipt to customer</span>
+                    <span className="text-[10px] text-slate-500 block">Send receipt SMS upon POS sale</span>
                   </div>
                 </label>
 
@@ -451,8 +524,8 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
                     className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
                   />
                   <div>
-                    <span className="font-bold text-slate-800 block text-xs">Customer Due Reminders</span>
-                    <span className="text-[10px] text-slate-500 block">Alert customer on outstanding balance</span>
+                    <span className="font-bold text-slate-800 block text-xs">Due Reminders</span>
+                    <span className="text-[10px] text-slate-500 block">Alert customers on due balance</span>
                   </div>
                 </label>
 
@@ -465,91 +538,129 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
                   />
                   <div>
                     <span className="font-bold text-slate-800 block text-xs">Low Stock Alerts</span>
-                    <span className="text-[10px] text-slate-500 block">SMS owner on critical units</span>
+                    <span className="text-[10px] text-slate-500 block">Alert owner on critical stock units</span>
                   </div>
                 </label>
               </div>
             </div>
 
-            {/* SMS Templates Editor with Variable Chips */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2">
+            {/* EDITABLE SMS & NOTIFICATION TEMPLATES STUDIO */}
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
                 <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                  <Code size={14} className="text-emerald-600" />
-                  <span>SMS Message Templates &amp; Variables</span>
+                  <Code size={15} className="text-emerald-600" />
+                  <span>Editable Notification &amp; SMS Templates</span>
                 </h3>
 
-                <div className="flex space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTpl('invoice')}
-                    className={`px-3 py-1 rounded-lg font-bold text-xs transition ${
-                      selectedTpl === 'invoice' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white border text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    Sale Invoice SMS
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTpl('due_reminder')}
-                    className={`px-3 py-1 rounded-lg font-bold text-xs transition ${
-                      selectedTpl === 'due_reminder' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white border text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    Due Reminder SMS
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => handleResetTemplate(selectedTpl)}
+                  className="text-[11px] text-slate-600 hover:text-slate-900 font-semibold flex items-center space-x-1"
+                >
+                  <RotateCcw size={12} />
+                  <span>Reset Current Template</span>
+                </button>
+              </div>
+
+              {/* Template Tabs */}
+              <div className="flex flex-wrap gap-2">
+                {SMS_TEMPLATE_TABS.map(tab => {
+                  const Icon = tab.icon;
+                  const isSelected = selectedTpl === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setSelectedTpl(tab.id)}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-bold transition border ${
+                        isSelected
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Icon size={14} />
+                      <span>{tab.name}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Dynamic Variable Chips */}
-              <div>
-                <span className="text-[11px] font-semibold text-slate-600 block mb-1.5">Click to insert dynamic variable:</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {SMS_TEMPLATE_VARS.map(v => (
+              <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-700">Click variable tag to insert into message template:</span>
+                  {copiedVar && (
+                    <span className="text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-bold">
+                      Inserted {copiedVar}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {SMS_AVAILABLE_VARIABLES.map(v => (
                     <button
                       key={v.key}
                       type="button"
                       onClick={() => handleInsertVariable(v.key)}
-                      className="px-2 py-1 bg-white hover:bg-emerald-600 hover:text-white border border-emerald-200 rounded-md text-[11px] font-mono font-bold text-emerald-700 transition shadow-xs"
+                      className="px-2 py-1 bg-slate-50 hover:bg-emerald-600 hover:text-white border border-slate-200 hover:border-emerald-600 rounded-lg text-[11px] font-mono font-bold text-emerald-800 transition shadow-xs"
                       title={`${v.desc} - Click to insert`}
                     >
-                      {v.key}
+                      <span>{v.key}</span>
+                      <span className="font-normal font-sans text-[9px] text-slate-400 ml-1">({v.desc})</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Textarea & Live Character Counter */}
-              <div className="space-y-1.5">
-                <textarea
-                  rows={4}
-                  value={smsSettings.templates?.[selectedTpl] || ''}
-                  onChange={e => {
-                    const text = e.target.value;
-                    setSmsSettings(prev => ({
-                      ...prev,
-                      templates: {
-                        ...(prev.templates || {}),
-                        [selectedTpl]: text
-                      }
-                    }));
-                  }}
-                  className="w-full p-3.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-sans text-xs focus:outline-none focus:border-emerald-500 leading-relaxed"
-                  placeholder="Type your SMS message..."
-                />
+              {/* Dual Column: Editor & Mobile Screen Preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                {/* Textarea Editor */}
+                <div className="lg:col-span-7 space-y-2">
+                  <label className="block text-slate-700 font-bold text-xs">Template Text Message Content:</label>
+                  <textarea
+                    ref={textareaRef}
+                    rows={6}
+                    value={smsSettings.templates?.[selectedTpl] || ''}
+                    onChange={e => {
+                      const text = e.target.value;
+                      setSmsSettings(prev => ({
+                        ...prev,
+                        templates: {
+                          ...(prev.templates || {}),
+                          [selectedTpl]: text
+                        }
+                      }));
+                    }}
+                    className="w-full p-3.5 border border-slate-300 rounded-xl bg-white text-slate-900 font-sans text-xs focus:outline-none focus:border-emerald-500 leading-relaxed font-medium"
+                    placeholder="Type your SMS message..."
+                  />
 
-                <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                  <span>Standard SMS size: 160 characters (GSM 7-bit)</span>
-                  <span className={`font-mono font-bold px-2 py-0.5 rounded ${
-                    charCount > 160 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {charCount} chars • {smsParts} SMS {smsParts > 1 ? 'Parts' : 'Part'}
-                  </span>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <span>Encoding: <strong className="text-slate-700">{isUnicode ? 'Unicode (70 char limit)' : 'Standard GSM (160 char limit)'}</strong></span>
+                    <span className={`font-mono font-bold px-2 py-0.5 rounded ${
+                      charCount > maxCharsPerPart ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      {charCount} chars • {smsParts} SMS {smsParts > 1 ? 'Parts' : 'Part'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Simulated Phone Screen Preview */}
+                <div className="lg:col-span-5 bg-slate-900 p-3 rounded-2xl text-white shadow-md">
+                  <div className="text-center pb-2 border-b border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
+                    <span>Simulated Phone SMS</span>
+                    <span className="font-mono text-emerald-400">Preview</span>
+                  </div>
+                  <div className="py-4 px-2 space-y-2">
+                    <div className="bg-emerald-700/30 border border-emerald-500/40 p-3 rounded-2xl rounded-tl-none text-[11px] text-slate-100 leading-relaxed shadow-sm">
+                      {previewRenderedText}
+                    </div>
+                    <span className="text-[9px] text-slate-500 block text-right">Just now • SMS</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Save Button */}
+            {/* Save Configuration Button */}
             <div className="flex justify-end pt-2">
               <button
                 type="submit"
@@ -557,7 +668,7 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
                 className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center space-x-2 text-xs shadow-md shadow-emerald-600/20"
               >
                 <Save size={16} />
-                <span>{saving ? 'Saving SMS Settings...' : 'Save SMS Gateway Configuration'}</span>
+                <span>{saving ? 'Saving SMS Settings...' : 'Save SMS Gateway & Templates'}</span>
               </button>
             </div>
           </form>
@@ -581,10 +692,10 @@ export default function SMSGatewaySettings({ storeId = 'default', companyInfo = 
                 type="button"
                 onClick={handleSendTestSMS}
                 disabled={sendingTest}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-sm transition"
+                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-sm transition"
               >
                 <Send size={14} />
-                <span>{sendingTest ? 'Sending SMS...' : 'Send Test SMS'}</span>
+                <span>{sendingTest ? 'Sending SMS...' : 'Send Live Test SMS'}</span>
               </button>
             </div>
 

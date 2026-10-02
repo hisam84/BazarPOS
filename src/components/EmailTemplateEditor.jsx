@@ -16,11 +16,18 @@ import {
   BarChart3,
   CheckCircle2,
   HelpCircle,
-  Code
+  Code,
+  Smartphone,
+  Monitor,
+  Send,
+  UserPlus,
+  Receipt,
+  Layers,
+  Palette
 } from 'lucide-react';
 import { DEFAULT_EMAIL_TEMPLATES, renderTemplate } from '@/lib/email-templates';
 
-// Sample test data for live preview interpolation
+// Sample preview data for live interpolation
 const PREVIEW_SAMPLE_DATA = {
   invoice: {
     company_name: 'BazarPOS Superstore',
@@ -30,6 +37,7 @@ const PREVIEW_SAMPLE_DATA = {
     logo_url: '',
     customer_name: 'Rahim Chowdhury',
     customer_phone: '+880 1812-345678',
+    customer_email: 'rahim@example.com',
     invoice_no: 'INV-2026-0892',
     invoice_date: new Date().toLocaleDateString('en-GB'),
     invoice_link: '#preview-link',
@@ -37,8 +45,8 @@ const PREVIEW_SAMPLE_DATA = {
       <tr style="border-bottom: 1px solid #f1f5f9;">
         <td style="padding: 10px 8px; font-size: 13px; color: #1e293b;">
           <strong>Wireless Bluetooth Barcode Scanner</strong>
-          <div style="font-size: 11px; color: #2563eb; margin-top: 2px;">🛡️ 1 Year Warranty</div>
-          <div style="font-size: 11px; color: #7c3aed; font-family: monospace; margin-top: 2px;">🔢 S/N: SN-88392019</div>
+          <div style="font-size: 11px; color: #2563eb; margin-top: 2px;">🛡️ 1 Year Replacement Warranty</div>
+          <div style="font-size: 11px; color: #7c3aed; font-family: monospace; margin-top: 2px;">🔢 S/N: SN-88392019 | Brand: Honeywell</div>
         </td>
         <td style="padding: 10px 8px; font-size: 13px; text-align: center; color: #334155;">2 pcs</td>
         <td style="padding: 10px 8px; font-size: 13px; text-align: right; color: #0f172a; font-weight: bold;">৳6,400</td>
@@ -54,11 +62,27 @@ const PREVIEW_SAMPLE_DATA = {
     subtotal: '৳7,200',
     discount: '৳200',
     tax: '৳350',
-    total_amount: '৳7,350',
-    paid_amount: '৳7,350',
+    previous_due: '৳500',
+    total_amount: '৳7,850',
+    paid_amount: '৳7,850',
     due_amount: '৳0',
-    payment_status: 'PAID',
+    payment_status: 'PAID IN FULL',
+    payment_method: 'bKash / Cash',
+    sale_note: 'Deliver with fragile packaging.',
+    payment_note: 'TrxID: 9X9284KL10',
     saler_name: 'Tanvir Ahmed (POS Counter 1)'
+  },
+  due_reminder: {
+    company_name: 'BazarPOS Superstore',
+    company_phone: '+880 1711-223344',
+    company_email: 'accounts@bazarpos.com',
+    customer_name: 'Haji Karim Traders',
+    invoice_no: 'INV-2026-0740',
+    total_amount: '৳15,400',
+    paid_amount: '৳10,000',
+    due_amount: '৳5,400',
+    invoice_link: '#due-link',
+    date: new Date().toLocaleDateString('en-GB')
   },
   password_reset: {
     company_name: 'BazarPOS Outlet',
@@ -73,10 +97,19 @@ const PREVIEW_SAMPLE_DATA = {
     company_name: 'BazarPOS Outlet',
     product_name: 'Samsung 24" IPS Borderless Monitor',
     product_code: 'PRD-SAM-24',
+    brand: 'Samsung',
     current_stock: '2',
     reorder_level: '5',
     unit: 'units',
     date: new Date().toLocaleString()
+  },
+  welcome_customer: {
+    company_name: 'BazarPOS Mega Mall',
+    company_phone: '+880 1711-223344',
+    company_email: 'support@bazarpos.com',
+    customer_name: 'Tanima Rahman',
+    customer_id: 'CUST-1045',
+    date: new Date().toLocaleDateString('en-GB')
   },
   daily_summary: {
     company_name: 'BazarPOS Mega Mall',
@@ -91,9 +124,11 @@ const PREVIEW_SAMPLE_DATA = {
 };
 
 const TEMPLATE_META = [
-  { id: 'invoice', name: 'Digital Sales Invoice', icon: Mail, tag: 'Customer Receipt' },
+  { id: 'invoice', name: 'Digital Sales Invoice', icon: Receipt, tag: 'Billing & POS' },
+  { id: 'due_reminder', name: 'Due Balance Reminder', icon: AlertTriangle, tag: 'Accounts Due' },
+  { id: 'welcome_customer', name: 'New Customer Welcome', icon: UserPlus, tag: 'CRM & Growth' },
   { id: 'password_reset', name: 'Password Reset OTP', icon: ShieldCheck, tag: 'Auth & Security' },
-  { id: 'low_stock', name: 'Low Stock Alert', icon: AlertTriangle, tag: 'Inventory Warning' },
+  { id: 'low_stock', name: 'Low Stock Alert', icon: Layers, tag: 'Inventory Alert' },
   { id: 'daily_summary', name: 'Daily Business Summary', icon: BarChart3, tag: 'Owner Digest' },
 ];
 
@@ -103,8 +138,14 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview'
+  const [previewDevice, setPreviewDevice] = useState('desktop'); // 'desktop' | 'mobile'
   const [copiedVar, setCopiedVar] = useState(null);
   const [feedback, setFeedback] = useState(null);
+
+  // Quick Test Email Send
+  const [testRecipient, setTestRecipient] = useState('');
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testFeedback, setTestFeedback] = useState(null);
 
   const textareaRef = useRef(null);
 
@@ -118,7 +159,10 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
       const res = await fetch(`/api/mail-templates?storeId=${storeId}`);
       const data = await res.json();
       if (data.success && data.templates) {
-        setTemplates(data.templates);
+        setTemplates(prev => ({
+          ...DEFAULT_EMAIL_TEMPLATES,
+          ...data.templates
+        }));
       }
     } catch (e) {
       console.error('Failed to load email templates:', e);
@@ -133,7 +177,7 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
     setTemplates(prev => ({
       ...prev,
       [selectedId]: {
-        ...prev[selectedId],
+        ...(prev[selectedId] || DEFAULT_EMAIL_TEMPLATES[selectedId] || {}),
         [field]: value
       }
     }));
@@ -158,7 +202,6 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
     setCopiedVar(varKey);
     setTimeout(() => setCopiedVar(null), 2000);
 
-    // Reposition cursor after inserted variable
     setTimeout(() => {
       if (textarea) {
         textarea.focus();
@@ -181,7 +224,7 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
       });
       const data = await res.json();
       if (data.success) {
-        setFeedback({ type: 'success', message: 'Email templates saved successfully!' });
+        setFeedback({ type: 'success', message: 'Email template customization saved successfully!' });
         setTimeout(() => setFeedback(null), 3500);
       } else {
         setFeedback({ type: 'error', message: data.message || 'Failed to save templates' });
@@ -194,7 +237,7 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
   };
 
   const handleResetToDefault = async () => {
-    if (!confirm(`Are you sure you want to reset the '${currentTemplate.name}' template to default? Custom modifications will be replaced.`)) {
+    if (!confirm(`Are you sure you want to reset '${currentTemplate.name}' to factory default template? Custom code changes will be replaced.`)) {
       return;
     }
 
@@ -226,6 +269,41 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
     }
   };
 
+  // Dispatch live test email with the edited template
+  const handleSendTestMail = async () => {
+    if (!testRecipient || !testRecipient.includes('@')) {
+      alert('Please enter a valid test recipient email address (e.g. yourname@gmail.com)');
+      return;
+    }
+    setSendingTest(true);
+    setTestFeedback(null);
+    try {
+      const renderedSubject = renderTemplate(currentTemplate.subject, previewData);
+      const renderedHtml = renderTemplate(currentTemplate.bodyHtml, previewData);
+
+      const res = await fetch('/api/mail/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId,
+          to: testRecipient,
+          subject: `[Template Test: ${currentTemplate.name}] ${renderedSubject}`,
+          html: renderedHtml
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestFeedback({ type: 'success', message: `Test email dispatched to ${testRecipient}! Please check your inbox.` });
+      } else {
+        setTestFeedback({ type: 'error', message: data.message || 'Failed to dispatch test email. Please verify SMTP settings.' });
+      }
+    } catch (err) {
+      setTestFeedback({ type: 'error', message: 'Error connecting to mail test server.' });
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   // Prepare Live Preview Sample Variables
   const previewData = {
     ...(PREVIEW_SAMPLE_DATA[selectedId] || {}),
@@ -241,15 +319,15 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden text-xs">
-      {/* Header */}
-      <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-50 via-indigo-50/20 to-white">
+      {/* Top Banner Header */}
+      <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-50 via-indigo-50/25 to-white">
         <div>
           <h3 className="text-base font-bold text-slate-800 flex items-center space-x-2">
             <Sparkles className="text-indigo-600" size={20} />
-            <span>Email Templates &amp; Dynamic Variable Builder</span>
+            <span>Email &amp; Notification Template Studio</span>
           </h3>
           <p className="text-slate-500 text-xs mt-1">
-            Customize HTML email layouts, subjects, and dynamic placeholders (e.g. <code className="bg-slate-200/80 px-1 py-0.5 rounded text-indigo-700 font-mono font-bold">{`{{customer_name}}`}</code>, <code className="bg-slate-200/80 px-1 py-0.5 rounded text-indigo-700 font-mono font-bold">{`{{invoice_no}}`}</code>) sent to clients and staff.
+            Fully customize HTML &amp; CSS code, email subjects, and dynamic variables (e.g. <code className="bg-slate-200/80 px-1 py-0.5 rounded text-indigo-700 font-mono font-bold">{`{{customer_name}}`}</code>, <code className="bg-slate-200/80 px-1 py-0.5 rounded text-indigo-700 font-mono font-bold">{`{{invoice_no}}`}</code>, <code className="bg-slate-200/80 px-1 py-0.5 rounded text-indigo-700 font-mono font-bold">{`{{due_amount}}`}</code>).
           </p>
         </div>
 
@@ -271,7 +349,7 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
             className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center space-x-2 shadow-md shadow-indigo-600/20"
           >
             <Save size={15} />
-            <span>{saving ? 'Saving...' : 'Save Template'}</span>
+            <span>{saving ? 'Saving Changes...' : 'Save Template'}</span>
           </button>
         </div>
       </div>
@@ -299,6 +377,7 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
               onClick={() => {
                 setSelectedId(meta.id);
                 setFeedback(null);
+                setTestFeedback(null);
               }}
               className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl font-bold transition text-left border ${
                 isSelected
@@ -320,6 +399,17 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
 
       {/* Main Content Area */}
       <div className="p-6 space-y-6">
+        {/* Template Description Banner */}
+        <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
+          <div className="flex items-center space-x-2 text-slate-700">
+            <Info size={16} className="text-indigo-600 shrink-0" />
+            <span>{currentTemplate.description || 'Custom template configuration for automated store emails.'}</span>
+          </div>
+          <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono text-[10px] font-bold rounded-md">
+            ID: {selectedId}
+          </span>
+        </div>
+
         {/* Template Subject Line */}
         <div className="space-y-1.5">
           <label className="block text-slate-700 font-bold text-xs">
@@ -335,19 +425,19 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
             />
           </div>
           <p className="text-[11px] text-slate-500">
-            Preview Subject: <span className="font-semibold text-slate-700 font-sans">"{renderedPreviewSubject}"</span>
+            Preview Subject: <span className="font-semibold text-slate-800 font-sans">"{renderedPreviewSubject}"</span>
           </p>
         </div>
 
-        {/* Dynamic Variable Chips & Quick Insert */}
+        {/* Dynamic Variable Chips & Quick Insert Drawer */}
         <div className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center space-x-1.5 font-bold text-indigo-950 text-xs">
               <Code size={14} className="text-indigo-600" />
-              <span>Available Dynamic Variables (Click to insert into template)</span>
+              <span>Available Dynamic Variables (Click to insert anywhere in your HTML code)</span>
             </div>
             {copiedVar && (
-              <span className="text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md font-semibold flex items-center space-x-1">
+              <span className="text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md font-semibold flex items-center space-x-1 animate-fadeIn">
                 <Check size={12} />
                 <span>Copied &amp; Inserted {copiedVar}</span>
               </span>
@@ -361,7 +451,7 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
                 type="button"
                 onClick={() => handleInsertVariable(v.key)}
                 className="group flex items-center space-x-1.5 px-2.5 py-1.5 bg-white hover:bg-indigo-600 hover:text-white border border-indigo-200 hover:border-indigo-600 rounded-lg text-slate-700 text-[11px] font-mono transition shadow-xs"
-                title={`${v.desc} - Click to insert`}
+                title={`${v.desc} - Click to insert into code`}
               >
                 <span className="font-bold text-indigo-600 group-hover:text-white">{v.key}</span>
                 <span className="text-[10px] text-slate-400 group-hover:text-indigo-100 font-sans">({v.desc})</span>
@@ -370,73 +460,158 @@ export default function EmailTemplateEditor({ storeId = 'default', companyInfo =
           </div>
         </div>
 
-        {/* Editor vs Live Preview Switcher */}
+        {/* Editor vs Live Preview Switcher Bar */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
             <div className="flex space-x-2">
               <button
                 type="button"
                 onClick={() => setActiveTab('editor')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition ${
+                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
                   activeTab === 'editor'
                     ? 'bg-indigo-600 text-white shadow-xs'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}
               >
                 <FileCode size={14} />
-                <span>HTML Template Code</span>
+                <span>Custom HTML/CSS Code Editor</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition ${
+                className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg font-bold text-xs transition ${
                   activeTab === 'preview'
                     ? 'bg-emerald-600 text-white shadow-xs'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}
               >
                 <Eye size={14} />
-                <span>Live Sample Preview</span>
+                <span>Live Rendered Preview</span>
               </button>
             </div>
 
-            <span className="text-[11px] text-slate-500 hidden sm:inline">
-              {activeTab === 'editor' ? 'Monospace HTML & Template Tags' : 'Real-time rendering with sample data'}
-            </span>
+            {/* Device Frame Switcher in Preview Mode */}
+            {activeTab === 'preview' && (
+              <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setPreviewDevice('desktop')}
+                  className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center space-x-1 ${
+                    previewDevice === 'desktop' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Monitor size={12} />
+                  <span>Desktop (640px)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewDevice('mobile')}
+                  className={`px-2.5 py-1 rounded text-[11px] font-bold transition flex items-center space-x-1 ${
+                    previewDevice === 'mobile' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Smartphone size={12} />
+                  <span>Mobile (375px)</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {activeTab === 'editor' ? (
             <div className="space-y-2">
-              <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700 shadow-inner">
+                {/* Code Editor Header Bar */}
+                <div className="bg-slate-800 px-4 py-2 text-[11px] font-mono text-slate-400 flex items-center justify-between border-b border-slate-700">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                    <span className="text-slate-300 ml-2 font-bold">{selectedId}_template.html</span>
+                  </div>
+                  <span>Custom HTML5 &amp; Inline CSS Supported</span>
+                </div>
+
                 <textarea
                   ref={textareaRef}
-                  rows={18}
+                  rows={20}
                   value={currentTemplate.bodyHtml || ''}
                   onChange={e => handleUpdateCurrent('bodyHtml', e.target.value)}
-                  className="w-full p-4 border border-slate-300 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs leading-relaxed focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 selection:bg-indigo-500 selection:text-white resize-y"
-                  placeholder="<div>Enter HTML template with {{variable}} placeholders...</div>"
+                  className="w-full p-4 bg-slate-900 text-emerald-400 font-mono text-xs leading-relaxed focus:outline-none selection:bg-indigo-500 selection:text-white resize-y block font-normal"
+                  placeholder="<div style='font-family: sans-serif;'>Enter custom HTML template with {{variable}} placeholders...</div>"
                   spellCheck="false"
                 />
               </div>
-              <p className="text-[11px] text-slate-500 flex items-center space-x-1">
-                <Info size={13} className="text-slate-400" />
-                <span>Tip: Inline CSS styles are recommended for universal compatibility with Gmail, Outlook, Yahoo, and mobile email clients.</span>
-              </p>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-1">
+                <span className="flex items-center space-x-1">
+                  <Info size={13} className="text-slate-400" />
+                  <span>Custom styles, inline CSS, tables, fonts, buttons &amp; logos are 100% supported.</span>
+                </span>
+                <span className="font-mono text-slate-400">
+                  Length: {(currentTemplate.bodyHtml || '').length} characters
+                </span>
+              </div>
             </div>
           ) : (
-            <div className="border border-slate-200 rounded-2xl bg-slate-100/70 p-4 sm:p-6 overflow-hidden">
-              <div className="bg-white rounded-xl border border-slate-200 p-3 mb-3 text-xs flex items-center justify-between text-slate-600">
+            <div className="border border-slate-200 rounded-2xl bg-slate-100/70 p-4 sm:p-6 overflow-hidden flex flex-col items-center">
+              {/* Preview Subject Header */}
+              <div className="w-full bg-white rounded-xl border border-slate-200 p-3 mb-4 text-xs flex items-center justify-between text-slate-600 shadow-xs">
                 <div className="truncate">
                   <strong className="text-slate-800">Subject:</strong> {renderedPreviewSubject}
                 </div>
                 <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-semibold shrink-0 ml-2">
-                  Sample View
+                  Live Sample View
                 </span>
               </div>
+
+              {/* Responsive Container */}
               <div
-                className="bg-white rounded-xl shadow-xs overflow-x-auto p-4"
+                className={`bg-white rounded-xl shadow-md border border-slate-200/80 overflow-x-auto p-4 transition-all duration-200 ${
+                  previewDevice === 'mobile' ? 'w-[375px]' : 'w-full max-w-[640px]'
+                }`}
                 dangerouslySetInnerHTML={{ __html: renderedPreviewHtml }}
               />
+            </div>
+          )}
+        </div>
+
+        {/* LIVE TEST EMAIL SENDER COMPONENT */}
+        <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-bold text-slate-800 text-xs flex items-center space-x-2">
+              <Send size={15} className="text-blue-600" />
+              <span>Send Test Email of this Template</span>
+            </h4>
+            <span className="text-[11px] text-slate-400">Test actual inbox delivery</span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              value={testRecipient}
+              onChange={e => setTestRecipient(e.target.value)}
+              placeholder="Enter your email address (e.g. name@gmail.com)..."
+              className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-indigo-500 font-medium"
+            />
+            <button
+              type="button"
+              onClick={handleSendTestMail}
+              disabled={sendingTest}
+              className="px-5 py-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition flex items-center justify-center space-x-1.5 shadow-sm"
+            >
+              <Send size={13} />
+              <span>{sendingTest ? 'Sending Test...' : 'Send Test Mail'}</span>
+            </button>
+          </div>
+
+          {testFeedback && (
+            <div className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 ${
+              testFeedback.type === 'success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-rose-50 border-rose-200 text-rose-800'
+            }`}>
+              {testFeedback.type === 'success' ? <Check size={14} className="text-emerald-600" /> : <AlertTriangle size={14} className="text-rose-600" />}
+              <span>{testFeedback.message}</span>
             </div>
           )}
         </div>

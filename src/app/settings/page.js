@@ -1001,15 +1001,17 @@ export default function SettingsPage() {
             </div>
 
             {/* Editable Email Templates Builder */}
-            <div className="mt-8 pt-8 border-t border-slate-200">
+            <div id="email-templates" className="mt-8 pt-8 border-t border-slate-200">
               <EmailTemplateEditor storeId={user?.storeId || 'default'} companyInfo={company} />
             </div>
           </div>
         )}
       </div>
 
-      {/* 3. SMS GATEWAY & API SETTINGS (NEW) */}
-      <SMSGatewaySettings storeId={user?.storeId || 'default'} companyInfo={company} />
+      {/* 3. SMS GATEWAY & NOTIFICATION TEMPLATES */}
+      <div id="templates">
+        <SMSGatewaySettings storeId={user?.storeId || 'default'} companyInfo={company} />
+      </div>
 
       {/* 4. STORE BRANDING & RECEIPT DETAILS */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">

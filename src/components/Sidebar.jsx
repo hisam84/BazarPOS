@@ -31,6 +31,8 @@ import {
   Store,
   Folder,
   FolderOpen,
+  Mail,
+  MessageSquare,
   X
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
@@ -101,6 +103,7 @@ const STORE_TREE_GROUPS = [
     badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
     items: [
       { name: 'Company Settings', href: '/settings', icon: Settings, permission: 'company_settings' },
+      { name: 'Email & SMS Templates', href: '/settings#templates', icon: Mail, permission: 'company_settings' },
       { name: 'Invoice Settings', href: '/invoice-settings', icon: Receipt, permission: 'invoice_settings' },
       { name: 'Staff, Roles & Permissions', href: '/staff', icon: Shield, permission: 'staff_roles_manage' },
       { name: 'Owner Profile', href: '/profile', icon: User },
