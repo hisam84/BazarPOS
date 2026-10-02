@@ -70,70 +70,116 @@ export default function StockAdjustmentPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <AlertOctagon className="text-rose-600" size={24} />
-            <span>Stock Adjustment & Loss/Damage Manager</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <AlertOctagon className="text-rose-600 flex-shrink-0" size={22} />
+            <span className="truncate">Stock Adjustment Manager</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">Record inventory damage, loss, theft, and manual audit corrections.</p>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Record inventory damage, loss, theft, and manual audit corrections.</p>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition shadow-md shadow-rose-500/20"
+          className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition shadow-md shadow-rose-500/20 text-xs active:scale-95"
         >
-          <Plus size={18} />
-          <span>Record Stock Adjustment</span>
+          <Plus size={16} />
+          <span>Record Adjustment</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
-        <h2 className="text-base font-bold text-slate-800 flex items-center space-x-2">
-          <History size={18} className="text-blue-600" />
-          <span>Adjustment Audit Log History</span>
-        </h2>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-800 flex items-center space-x-2">
+            <History size={16} className="text-blue-600 flex-shrink-0" />
+            <span>Adjustment Audit Log History ({adjustments.length})</span>
+          </h2>
+        </div>
 
         {loading ? (
-          <div className="py-12 text-center text-slate-400 text-sm">Loading Adjustments...</div>
+          <div className="py-12 text-center text-slate-400 text-xs sm:text-sm">Loading Adjustments...</div>
+        ) : adjustments.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-xs">No stock adjustments recorded yet.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b">
-                <tr>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Product Code</th>
-                  <th className="px-4 py-3">Product Name</th>
-                  <th className="px-4 py-3">Adjustment Type</th>
-                  <th className="px-4 py-3">Quantity</th>
-                  <th className="px-4 py-3">Previous ➔ New Qty</th>
-                  <th className="px-4 py-3">Reason / Note</th>
-                  <th className="px-4 py-3">Performed By</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {adjustments.map((a) => (
-                  <tr key={a.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-xs text-slate-500">{new Date(a.date).toLocaleString()}</td>
-                    <td className="px-4 py-3 font-mono font-bold text-blue-600">{a.productCode}</td>
-                    <td className="px-4 py-3 font-medium text-slate-800">{a.productName}</td>
-                    <td className="px-4 py-3 text-xs font-bold uppercase">
-                      <span className={`px-2.5 py-0.5 rounded-full ${
-                        a.type === 'addition' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                      }`}>
-                        {a.type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-bold">{a.quantity} Units</td>
-                    <td className="px-4 py-3 text-xs font-mono">{a.previousQuantity} ➔ <span className="font-bold text-slate-900">{a.newQuantity}</span></td>
-                    <td className="px-4 py-3 text-xs text-slate-600">{a.reason || 'N/A'}</td>
-                    <td className="px-4 py-3 text-xs font-semibold text-slate-700">{a.performedBy}</td>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 font-bold border-b">
+                  <tr>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Product Code</th>
+                    <th className="px-4 py-3">Product Name</th>
+                    <th className="px-4 py-3">Adjustment Type</th>
+                    <th className="px-4 py-3 text-center">Quantity</th>
+                    <th className="px-4 py-3">Previous ➔ New Qty</th>
+                    <th className="px-4 py-3">Reason / Note</th>
+                    <th className="px-4 py-3">Performed By</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {adjustments.map((a) => (
+                    <tr key={a.id} className="hover:bg-slate-50 transition">
+                      <td className="px-4 py-3 text-slate-500">{new Date(a.date).toLocaleString()}</td>
+                      <td className="px-4 py-3 font-mono font-bold text-blue-600">{a.productCode}</td>
+                      <td className="px-4 py-3 font-medium text-slate-800">{a.productName}</td>
+                      <td className="px-4 py-3 font-bold uppercase text-[10px]">
+                        <span className={`px-2 py-0.5 rounded-md ${
+                          a.type === 'addition' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                        }`}>
+                          {a.type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-bold text-center">{a.quantity}</td>
+                      <td className="px-4 py-3 font-mono text-[11px]">{a.previousQuantity} ➔ <span className="font-bold text-slate-900">{a.newQuantity}</span></td>
+                      <td className="px-4 py-3 text-slate-600">{a.reason || '-'}</td>
+                      <td className="px-4 py-3 font-semibold text-slate-700">{a.performedBy}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List */}
+            <div className="block md:hidden divide-y divide-slate-100 font-sans">
+              {adjustments.map((a) => (
+                <div key={a.id} className="p-3 hover:bg-slate-50 transition space-y-1.5 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-mono font-bold text-blue-600 text-[11px] block">{a.productCode}</span>
+                      <p className="font-bold text-slate-900 leading-tight">{a.productName}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase shrink-0 ${
+                      a.type === 'addition' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                    }`}>
+                      {a.type}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-xl text-[11px]">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Adjusted Qty:</span>
+                      <span className="font-bold text-slate-900">{a.quantity} Units</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Stock Shift:</span>
+                      <span className="font-mono text-slate-700 font-semibold">{a.previousQuantity} ➔ {a.newQuantity}</span>
+                    </div>
+                  </div>
+
+                  {a.reason && (
+                    <p className="text-[11px] text-slate-500 italic">"{a.reason}"</p>
+                  )}
+
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-dashed border-slate-100">
+                    <span>By: {a.performedBy}</span>
+                    <span>{new Date(a.date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
