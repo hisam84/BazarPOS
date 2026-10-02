@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import BarcodeSvg from '@/components/BarcodeSvg';
 
 // Convert number to Bangladeshi Taka in words
 function numberToWords(num) {
@@ -237,8 +238,15 @@ export default function InvoiceA4({
           )}
           {settings?.showBarcode && (
             <div className="flex justify-end items-center space-x-1 pt-1">
-              <div className="font-mono text-[9px] text-slate-500 bg-slate-50 px-2 py-1 border rounded border-dashed">
-                * {data?.voucherNo || 'INV-0000'} *
+              <div className="bg-white p-1 rounded border border-slate-200">
+                <BarcodeSvg
+                  value={data?.voucherNo || 'INV-0000'}
+                  height={22}
+                  showText={false}
+                />
+                <span className="font-mono text-[8px] text-slate-500 text-center block">
+                  *{data?.voucherNo || 'INV-0000'}*
+                </span>
               </div>
             </div>
           )}
