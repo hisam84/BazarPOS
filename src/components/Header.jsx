@@ -102,7 +102,11 @@ export default function Header({ user, onLogout }) {
         )}
 
         {/* User Info */}
-        <div className="flex items-center space-x-2.5 pl-1">
+        <Link
+          href="/profile"
+          className="flex items-center space-x-2.5 pl-1 hover:opacity-80 transition cursor-pointer"
+          title="View & Edit Owner Profile"
+        >
           <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
             {user?.fullName?.slice(0, 2).toUpperCase() || 'AD'}
           </div>
@@ -111,7 +115,7 @@ export default function Header({ user, onLogout }) {
             <span className="text-xs font-bold text-slate-800">{user?.fullName || 'Store Owner'}</span>
             <span className="text-[10px] text-slate-500 capitalize">{user?.role || 'owner'}</span>
           </div>
-        </div>
+        </Link>
 
         <button
           onClick={onLogout}
