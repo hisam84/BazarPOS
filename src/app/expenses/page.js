@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
   Receipt, Plus, TrendingDown, TrendingUp, X, FolderPlus, Tag, 
   Trash2, Search, Filter, Calendar, CheckCircle2, AlertCircle, 
   DollarSign, ArrowDownRight, ArrowUpRight, Wallet
 } from 'lucide-react';
 
-export default function ExpensesPage() {
+function ExpensesContent() {
+  const searchParams = useSearchParams();
   const [data, setData] = useState({ income: [], expense: [] });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,17 @@ export default function ExpensesPage() {
   const [activeTypeTab, setActiveTypeTab] = useState('expense'); // 'expense' | 'income' | 'all'
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Handle URL Query Params
+  useEffect(() => {
+    const action = searchParams.get('action');
+    const tab = searchParams.get('tab');
+    if (action === 'new') {
+      setShowModal(true);
+    } else if (tab === 'categories' || action === 'categories') {
+      setShowCategoryModal(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
@@ -644,5 +657,13 @@ export default function ExpensesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ExpensesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs font-semibold">Loading Expenses &amp; Ledger...</div>}>
+      <ExpensesContent />
+    </Suspense>
   );
 }

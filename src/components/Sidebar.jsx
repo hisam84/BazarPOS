@@ -4,126 +4,233 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
+  Home,
+  Users,
+  UserCheck,
+  Contact,
+  Boxes,
+  Package,
+  ArrowDownCircle,
+  ArrowUpCircle,
   ShoppingCart,
   ShoppingBag,
-  FileText,
-  Package,
-  Barcode,
-  Users,
   Truck,
-  Receipt,
+  Layers,
+  AlertOctagon,
+  MinusCircle,
+  CreditCard,
   BarChart3,
+  Mail,
   Settings,
-  LogOut,
-  ChevronLeft,
+  QrCode,
   ChevronRight,
   ChevronDown,
-  User,
-  Shield,
+  ChevronLeft,
+  Search,
+  LogOut,
+  Sparkles,
+  Receipt,
   Building2,
   PieChart,
-  Boxes,
-  DollarSign,
-  AlertOctagon,
   ShieldCheck,
+  Shield,
   Clock,
-  Search,
   Store,
-  Folder,
-  FolderOpen,
-  Mail,
-  MessageSquare,
+  User,
+  Barcode,
   X
 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
-// Store Navigation Tree Definition
-const STORE_TREE_GROUPS = [
+// Main Store Navigation Tree matching POS/ERP standard layout
+const STORE_NAVIGATION_ITEMS = [
   {
-    id: 'sales_group',
-    title: 'Sales & Invoicing',
-    icon: ShoppingBag,
-    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-    items: [
-      { name: 'POS Terminal', href: '/pos', icon: ShoppingCart, badge: 'Live', badgeColor: 'bg-emerald-500 text-white', permission: 'pos_terminal' },
-      { name: 'Sales & Invoices', href: '/vouchers/history', icon: FileText, permission: 'view_invoices' },
-    ]
+    id: 'home',
+    type: 'link',
+    title: 'Home',
+    icon: Home,
+    href: '/',
   },
   {
-    id: 'contacts_group',
-    title: 'Contacts & CRM',
+    id: 'user_management',
+    type: 'group',
+    title: 'User Management',
     icon: Users,
-    badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
+    permission: 'staff_roles_manage',
     items: [
-      { name: 'Contact Directory', href: '/clients', icon: Users, permission: 'customers_manage' },
-      { name: 'Add New Contact', href: '/clients?action=new', icon: User, permission: 'customers_manage' },
-      { name: 'Suppliers & Vendors', href: '/suppliers', icon: Truck, permission: 'suppliers_manage' },
-      { name: 'Bulk Upload Contacts', href: '/clients?action=import', icon: FolderOpen, permission: 'customers_manage' },
+      { name: 'Users & Staff', href: '/staff', permission: 'staff_roles_manage' },
+      { name: 'Roles & Permissions', href: '/staff?tab=roles', permission: 'staff_roles_manage' },
+      { name: 'Sales Commission Agents', href: '/salers', permission: 'staff_roles_manage' },
     ]
   },
   {
-    id: 'inventory_group',
-    title: 'Inventory & Stock',
-    icon: Package,
-    badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    id: 'contacts',
+    type: 'group',
+    title: 'Contacts',
+    icon: Contact,
+    permission: 'customers_manage',
     items: [
-      { name: 'Product Catalog', href: '/inventory', icon: Boxes, permission: 'inventory_view' },
-      { name: 'Stock Adjustments', href: '/stock-adjustment', icon: AlertOctagon, permission: 'stock_adjustment' },
-      { name: 'Barcode Generator', href: '/barcodes', icon: Barcode, permission: 'barcodes_manage' },
+      { name: 'Contact Directory', href: '/clients', permission: 'customers_manage' },
+      { name: 'Add Contact', href: '/clients?action=new', permission: 'customers_manage' },
+      { name: 'Suppliers & Vendors', href: '/suppliers', permission: 'suppliers_manage' },
+      { name: 'Import Contacts', href: '/clients?action=import', permission: 'customers_manage' },
     ]
   },
   {
-    id: 'finance_group',
-    title: 'Finance & Outlets',
-    icon: DollarSign,
-    badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    id: 'products',
+    type: 'group',
+    title: 'Products',
+    icon: Boxes,
+    permission: 'inventory_view',
     items: [
-      { name: 'Daily Cash Register', href: '/cash-register', icon: DollarSign, permission: 'cash_register' },
-      { name: 'Expense Manager', href: '/expenses', icon: Receipt, permission: 'expenses_manage' },
-      { name: 'Branches & Transfer', href: '/branches', icon: Building2, permission: 'branches_manage' },
+      { name: 'List Products', href: '/inventory', permission: 'inventory_view' },
+      { name: 'Add Product', href: '/inventory?action=new', permission: 'inventory_manage' },
+      { name: 'Print Labels / Barcodes', href: '/barcodes', permission: 'barcodes_manage' },
+      { name: 'Units & Categories', href: '/inventory?tab=categories', permission: 'inventory_view' },
     ]
   },
   {
-    id: 'reports_group',
-    title: 'Reports & Analytics',
+    id: 'purchases',
+    type: 'group',
+    title: 'Purchases',
+    icon: ArrowDownCircle,
+    permission: 'purchases_manage',
+    items: [
+      { name: 'List Purchases', href: '/inventory?tab=purchases', permission: 'purchases_manage' },
+      { name: 'Add Purchase', href: '/inventory?action=purchase', permission: 'purchases_manage' },
+    ]
+  },
+  {
+    id: 'sell',
+    type: 'group',
+    title: 'Sell',
+    icon: ArrowUpCircle,
+    permission: 'pos_terminal',
+    items: [
+      { name: 'POS Terminal', href: '/pos', badge: 'Live', permission: 'pos_terminal' },
+      { name: 'All Sales / Invoices', href: '/vouchers/history', permission: 'view_invoices' },
+    ]
+  },
+  {
+    id: 'stock_transfers',
+    type: 'group',
+    title: 'Stock Transfers',
+    icon: Truck,
+    permission: 'branches_manage',
+    items: [
+      { name: 'List Stock Transfers', href: '/branches', permission: 'branches_manage' },
+      { name: 'Add Stock Transfer', href: '/branches?action=transfer', permission: 'branches_manage' },
+    ]
+  },
+  {
+    id: 'stock_adjustment',
+    type: 'group',
+    title: 'Stock Adjustment',
+    icon: Layers,
+    permission: 'stock_adjustment',
+    items: [
+      { name: 'List Stock Adjustments', href: '/stock-adjustment', permission: 'stock_adjustment' },
+      { name: 'Add Stock Adjustment', href: '/stock-adjustment?action=new', permission: 'stock_adjustment' },
+    ]
+  },
+  {
+    id: 'expenses',
+    type: 'group',
+    title: 'Expenses',
+    icon: MinusCircle,
+    permission: 'expenses_manage',
+    items: [
+      { name: 'List Expenses', href: '/expenses', permission: 'expenses_manage' },
+      { name: 'Add Expense', href: '/expenses?action=new', permission: 'expenses_manage' },
+      { name: 'Expense Categories', href: '/expenses?tab=categories', permission: 'expenses_manage' },
+    ]
+  },
+  {
+    id: 'payment_accounts',
+    type: 'group',
+    title: 'Payment Accounts',
+    icon: CreditCard,
+    permission: 'cash_register',
+    items: [
+      { name: 'Daily Cash Register', href: '/cash-register', permission: 'cash_register' },
+      { name: 'Saler Balances Ledger', href: '/saler-balance', permission: 'cash_register' },
+    ]
+  },
+  {
+    id: 'reports',
+    type: 'group',
+    title: 'Reports',
     icon: BarChart3,
-    badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    permission: 'reports_view',
     items: [
-      { name: 'Sales & Revenue Report', href: '/reports?type=sales', icon: FileText, permission: 'reports_view' },
-      { name: 'Income / Profit & Loss', href: '/reports?type=income', icon: PieChart, permission: 'reports_view' },
-      { name: 'Expense Breakdown', href: '/reports?type=expense', icon: Receipt, permission: 'reports_view' },
-      { name: 'Stock Valuation Report', href: '/reports?type=stock', icon: Boxes, permission: 'reports_view' },
-      { name: 'Audit History Logs', href: '/audit-logs', icon: ShieldCheck, permission: 'audit_logs' },
+      { name: 'Sales & Revenue Report', href: '/reports?tab=sales', permission: 'reports_view' },
+      { name: 'Profit / Loss Report', href: '/reports?tab=income', permission: 'reports_view' },
+      { name: 'Operating Expense Report', href: '/reports?tab=expenses', permission: 'reports_view' },
+      { name: 'Stock Valuation Report', href: '/reports?tab=stock', permission: 'reports_view' },
+      { name: 'Audit History Logs', href: '/audit-logs', permission: 'audit_logs' },
     ]
   },
   {
-    id: 'settings_group',
-    title: 'Settings & Administration',
-    icon: Settings,
-    badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+    id: 'notification_templates',
+    type: 'group',
+    title: 'Notification Templates',
+    icon: Mail,
+    permission: 'company_settings',
     items: [
-      { name: 'Company Settings', href: '/settings', icon: Settings, permission: 'company_settings' },
-      { name: 'Email & SMS Templates', href: '/settings#templates', icon: Mail, permission: 'company_settings' },
-      { name: 'Invoice Settings', href: '/invoice-settings', icon: Receipt, permission: 'invoice_settings' },
-      { name: 'Staff, Roles & Permissions', href: '/staff', icon: Shield, permission: 'staff_roles_manage' },
-      { name: 'Owner Profile', href: '/profile', icon: User },
+      { name: 'Email Template Studio', href: '/settings#email-templates', permission: 'company_settings' },
+      { name: 'SMS & Notice Templates', href: '/settings#templates', permission: 'company_settings' },
     ]
+  },
+  {
+    id: 'settings',
+    type: 'group',
+    title: 'Settings',
+    icon: Settings,
+    permission: 'company_settings',
+    items: [
+      { name: 'Business Settings', href: '/settings', permission: 'company_settings' },
+      { name: 'Invoice Settings', href: '/invoice-settings', permission: 'invoice_settings' },
+      { name: 'Owner Profile', href: '/profile' },
+    ]
+  },
+  {
+    id: 'catalogue_qr',
+    type: 'link',
+    title: 'Catalogue QR',
+    icon: QrCode,
+    href: '/barcodes',
   }
 ];
 
-// Super Admin Navigation Tree Definition
-const SUPERADMIN_TREE_GROUPS = [
+// Super Admin Navigation Tree
+const SUPERADMIN_NAVIGATION_ITEMS = [
   {
-    id: 'saas_platform',
-    title: 'SaaS Platform',
-    icon: Shield,
-    badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
-    items: [
-      { name: 'Platform Overview', href: '/superadmin/dashboard', icon: LayoutDashboard },
-      { name: 'Manage Companies', href: '/superadmin/companies', icon: Building2 },
-      { name: 'Subscriptions & Validity', href: '/superadmin/subscriptions', icon: Clock },
-      { name: 'Security & Settings', href: '/superadmin/settings', icon: ShieldCheck },
-    ]
+    id: 'saas_overview',
+    type: 'link',
+    title: 'Platform Overview',
+    icon: LayoutDashboard,
+    href: '/superadmin/dashboard',
+  },
+  {
+    id: 'saas_companies',
+    type: 'link',
+    title: 'Manage Companies',
+    icon: Building2,
+    href: '/superadmin/companies',
+  },
+  {
+    id: 'saas_subscriptions',
+    type: 'link',
+    title: 'Subscriptions & Plans',
+    icon: Clock,
+    href: '/superadmin/subscriptions',
+  },
+  {
+    id: 'saas_settings',
+    type: 'link',
+    title: 'Security & Settings',
+    icon: ShieldCheck,
+    href: '/superadmin/settings',
   }
 ];
 
@@ -132,309 +239,252 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
   const [collapsed, setCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Track open state of tree groups - single group open at a time (Accordion)
+  // Track open group states (Accordion)
   const [openGroups, setOpenGroups] = useState({
-    sales_group: true
+    expenses: true // Default open as sample or active
   });
 
   const role = user?.role || 'owner';
   const isSuperAdmin = role === 'superadmin';
   const logoUrl = !isSuperAdmin ? (company?.logoUrl || user?.logoUrl) : null;
   const userPermissions = user?.permissions || ['*'];
-  const treeGroups = isSuperAdmin ? SUPERADMIN_TREE_GROUPS : STORE_TREE_GROUPS;
+  const navItems = isSuperAdmin ? SUPERADMIN_NAVIGATION_ITEMS : STORE_NAVIGATION_ITEMS;
 
-  // Auto-expand the ONE active group containing current route on pathname change
+  // Auto-expand the group containing the current route on route change
   useEffect(() => {
-    for (const group of treeGroups) {
-      const hasActive = group.items.some(item => {
-        const itemPath = item.href.split('?')[0];
-        return pathname === itemPath || (itemPath !== '/' && pathname.startsWith(itemPath));
-      });
-      if (hasActive) {
-        setOpenGroups({ [group.id]: true });
-        break;
+    for (const item of navItems) {
+      if (item.type === 'group' && item.items) {
+        const hasActive = item.items.some(sub => {
+          const subPath = sub.href.split('?')[0].split('#')[0];
+          return pathname === subPath || (subPath !== '/' && pathname.startsWith(subPath));
+        });
+        if (hasActive) {
+          setOpenGroups({ [item.id]: true });
+          break;
+        }
       }
     }
-  }, [pathname, treeGroups]);
+  }, [pathname, navItems]);
 
-  // Strict Accordion: Toggle group such that only one group is ever open at a time
   const toggleGroup = (groupId) => {
     setOpenGroups(prev => {
       const isCurrentlyOpen = !!prev[groupId];
       if (isCurrentlyOpen) {
-        return {}; // close all
+        return {}; // Close
       }
-      return { [groupId]: true }; // open ONLY the clicked group
+      return { [groupId]: true }; // Open ONLY clicked group (Accordion)
     });
   };
 
   const isItemActive = (href) => {
-    const basePath = href.split('?')[0];
+    if (!href) return false;
+    const basePath = href.split('?')[0].split('#')[0];
     if (basePath === '/') return pathname === '/';
     return pathname === basePath || pathname.startsWith(basePath + '/');
   };
 
-  // Helper to check item permission
-  const canAccessItem = (item) => {
+  const canAccess = (item) => {
     if (isSuperAdmin || role === 'owner') return true;
     if (!item.permission) return true;
-    if (userPermissions.includes('*')) return true;
+    if (userPermissions.includes('*') || userPermissions.includes('all')) return true;
     return userPermissions.includes(item.permission);
   };
 
-  const handleLinkClick = () => {
-    if (setMobileOpen) {
-      setMobileOpen(false);
-    }
-  };
-
-  // Filter groups and items by permission and search query
-  const filteredGroups = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return treeGroups
-      .map(group => {
-        // First filter by user permissions
-        const allowedItems = group.items.filter(canAccessItem);
-        if (allowedItems.length === 0) return null;
-
-        // Then filter by search query if present
-        if (q) {
-          const matchingItems = allowedItems.filter(item =>
-            item.name.toLowerCase().includes(q) || group.title.toLowerCase().includes(q)
-          );
-          return matchingItems.length > 0 ? { ...group, items: matchingItems } : null;
-        }
-
-        return { ...group, items: allowedItems };
-      })
-      .filter(Boolean);
-  }, [searchQuery, treeGroups, userPermissions, role, isSuperAdmin]);
+  // Filter items if searching
+  const filteredNavItems = useMemo(() => {
+    if (!searchQuery.trim()) return navItems;
+    const q = searchQuery.toLowerCase();
+    return navItems.filter(item => {
+      if (item.title.toLowerCase().includes(q)) return true;
+      if (item.items) {
+        return item.items.some(sub => sub.name.toLowerCase().includes(q));
+      }
+      return false;
+    });
+  }, [navItems, searchQuery]);
 
   return (
     <>
-      {/* Mobile Backdrop Overlay */}
+      {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          onClick={() => setMobileOpen?.(false)}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 lg:hidden animate-fadeIn"
         />
       )}
 
+      {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 lg:sticky lg:top-0 h-screen flex-shrink-0 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-100 transition-all duration-300 flex flex-col no-print border-r border-slate-800/80 shadow-2xl z-50 select-none ${
+        className={`fixed top-0 left-0 bottom-0 z-50 flex flex-col bg-[#161b2e] text-slate-300 border-r border-[#222944] shadow-2xl transition-all duration-200 ease-in-out select-none ${
+          collapsed ? 'w-20' : 'w-64'
+        } ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } ${collapsed ? 'w-20' : 'w-72'}`}
+        }`}
       >
         {/* Brand Header */}
-        <div className={`h-16 border-b border-slate-800/80 bg-slate-950/40 flex-shrink-0 flex items-center ${
-          collapsed ? 'px-2 justify-center relative' : 'px-4 justify-between'
-        }`}>
-          {!collapsed ? (
-            <div className="flex items-center space-x-3 min-w-0">
-              {logoUrl ? (
-                <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center p-0.5 shadow-md shadow-blue-500/10 border border-slate-700 overflow-hidden shrink-0">
-                  <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
-                </div>
-              ) : (
-                <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25 border border-blue-400/30 shrink-0">
-                  {isSuperAdmin ? '⚡' : 'B'}
-                </div>
-              )}
-              <div className="min-w-0">
-                <span className="font-bold text-sm tracking-tight text-white block leading-tight truncate">
-                  {isSuperAdmin ? 'SuperAdmin' : (company?.name || user?.storeName || 'BazarPOS')}
-                </span>
-                <span className="text-[10px] font-medium text-blue-400 uppercase tracking-wider block">
-                  {isSuperAdmin ? 'SaaS Central' : 'Retail Cloud ERP'}
-                </span>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-[#222944] bg-[#121626] shrink-0">
+          <Link
+            href="/"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center space-x-3 overflow-hidden min-w-0"
+          >
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Store Logo"
+                className="w-9 h-9 rounded-xl object-contain bg-white/10 p-1 border border-white/10 shrink-0 shadow-xs"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white shrink-0 shadow-md shadow-blue-500/20 text-sm">
+                B
               </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setCollapsed(false)}
-              className="group relative flex items-center justify-center focus:outline-none"
-              title="Click to expand sidebar"
-            >
-              {logoUrl ? (
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 shadow-md border border-slate-700 overflow-hidden transition-transform duration-200 group-hover:scale-105 group-hover:border-blue-500 shrink-0">
-                  <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
-                </div>
-              ) : (
-                <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white shadow-md border border-blue-400/30 transition-transform duration-200 group-hover:scale-105 shrink-0">
-                  {isSuperAdmin ? '⚡' : 'B'}
-                </div>
-              )}
-              {/* Subtle hover expand indicator */}
-              <div className="absolute -right-1.5 -bottom-1.5 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-xs">
-                <ChevronRight size={11} />
-              </div>
-            </button>
-          )}
-
-          {!collapsed && (
-            <div className="flex items-center space-x-1">
-              {/* Desktop Collapse Button */}
-              <button
-                onClick={() => setCollapsed(true)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition hidden lg:flex"
-                title="Collapse Sidebar"
-              >
-                <ChevronLeft size={18} />
-              </button>
-
-              {/* Mobile Close Drawer Button */}
-              <button
-                onClick={() => setMobileOpen?.(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition lg:hidden"
-                title="Close Menu"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          )}
-        </div>
-
-      {/* Quick Search Filter (Only when expanded) */}
-      {!collapsed && (
-        <div className="px-3 pt-3 pb-1 flex-shrink-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-slate-500 pointer-events-none" size={14} />
-            <input
-              type="text"
-              placeholder="Search menu..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs font-bold px-1"
-              >
-                ✕
-              </button>
             )}
+
+            {!collapsed && (
+              <div className="min-w-0">
+                <span className="font-extrabold text-sm text-white tracking-tight truncate block">
+                  {company?.name || user?.storeName || 'BazarPOS'}
+                </span>
+                <span className="text-[10px] text-blue-400 font-semibold block uppercase tracking-wider">
+                  {isSuperAdmin ? 'SuperAdmin Portal' : (role === 'owner' ? 'Store Manager' : role)}
+                </span>
+              </div>
+            )}
+          </Link>
+
+          {/* Desktop Collapse & Mobile Close */}
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition"
+              title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            >
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Main Nav Tree */}
-      <nav className="flex-1 px-3 py-3 space-y-3 overflow-y-auto custom-scrollbar">
-        {/* Top Level Direct Link: Dashboard */}
-        {!isSuperAdmin && (
-          <div className="space-y-1">
-            <Link
-              href="/"
-              onClick={handleLinkClick}
-              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group ${
-                pathname === '/'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25 border border-blue-400/30'
-                  : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
-              } ${collapsed ? 'justify-center space-x-0' : ''}`}
-              title="Dashboard"
-            >
-              <LayoutDashboard size={18} className={pathname === '/' ? 'text-white' : 'text-blue-400 group-hover:text-blue-300'} />
-              {!collapsed && (
-                <div className="flex items-center justify-between flex-1">
-                  <span>Dashboard</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold">
-                    Home
-                  </span>
-                </div>
-              )}
-            </Link>
+        {/* Search Navigation Bar (when expanded) */}
+        {!collapsed && (
+          <div className="p-3 border-b border-[#222944] bg-[#141829] shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 text-slate-500 pointer-events-none" size={14} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search menus..."
+                className="w-full pl-8.5 pr-3 py-1.5 bg-[#1e243d] border border-[#2a3356] rounded-xl text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:bg-[#222a47] transition font-medium"
+              />
+            </div>
           </div>
         )}
 
-        {/* Tree Categories */}
-        <div className="space-y-2">
-          {filteredGroups.map(group => {
-            const isOpen = searchQuery ? true : openGroups[group.id];
-            const GroupIcon = group.icon;
-            const hasActiveChild = group.items.some(item => isItemActive(item.href));
+        {/* Navigation Items Tree List */}
+        <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-1 custom-scrollbar text-xs font-medium">
+          {filteredNavItems.map((item) => {
+            const Icon = item.icon;
+            const isOpen = !!openGroups[item.id];
+
+            // 1. Direct Link Item (e.g. Home, Catalogue QR)
+            if (item.type === 'link') {
+              const active = isItemActive(item.href);
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center ${
+                    collapsed ? 'justify-center px-0' : 'justify-between px-3.5'
+                  } py-2.5 rounded-xl font-bold transition duration-150 ${
+                    active
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                      : 'text-slate-300 hover:bg-[#202742] hover:text-white'
+                  }`}
+                  title={collapsed ? item.title : undefined}
+                >
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <Icon size={17} className={active ? 'text-white' : 'text-slate-400'} />
+                    {!collapsed && <span className="truncate">{item.title}</span>}
+                  </div>
+                </Link>
+              );
+            }
+
+            // 2. Accordion Group Item (e.g. User Management, Contacts, Products, Expenses, etc.)
+            const visibleChildren = (item.items || []).filter(canAccess);
+            if (visibleChildren.length === 0) return null;
+
+            const isGroupActive = visibleChildren.some(sub => isItemActive(sub.href));
 
             return (
-              <div key={group.id} className="rounded-xl bg-slate-950/20 border border-slate-800/40 p-1">
-                {/* Category Header (Tree Branch Root) */}
+              <div key={item.id} className="space-y-0.5">
+                {/* Group Trigger Button */}
                 <button
-                  onClick={() => toggleGroup(group.id)}
-                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-bold transition-all duration-150 ${
-                    hasActiveChild
-                      ? 'text-blue-400 bg-blue-500/10'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
-                  } ${collapsed ? 'justify-center px-1' : ''}`}
-                  title={group.title}
+                  type="button"
+                  onClick={() => toggleGroup(item.id)}
+                  className={`w-full flex items-center ${
+                    collapsed ? 'justify-center px-0' : 'justify-between px-3.5'
+                  } py-2.5 rounded-xl font-bold transition duration-150 ${
+                    isOpen
+                      ? 'bg-[#202744] text-white shadow-xs'
+                      : isGroupActive
+                        ? 'text-white bg-[#1b213b]'
+                        : 'text-slate-300 hover:bg-[#1b213b] hover:text-white'
+                  }`}
+                  title={collapsed ? item.title : undefined}
                 >
-                  <div className="flex items-center space-x-2.5 min-w-0">
-                    <span className={`p-1 rounded-lg ${hasActiveChild ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800/80 text-slate-400'}`}>
-                      <GroupIcon size={14} />
-                    </span>
-                    {!collapsed && (
-                      <span className="truncate tracking-wide text-xs uppercase text-[11px] font-bold">
-                        {group.title}
-                      </span>
-                    )}
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <Icon
+                      size={17}
+                      className={isOpen || isGroupActive ? 'text-blue-400' : 'text-slate-400'}
+                    />
+                    {!collapsed && <span className="truncate">{item.title}</span>}
                   </div>
 
                   {!collapsed && (
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-[10px] font-semibold text-slate-500 px-1.5 py-0.2 rounded-full bg-slate-800/60">
-                        {group.items.length}
-                      </span>
-                      <ChevronDown
+                    <div className="flex items-center space-x-1 shrink-0 ml-1">
+                      <ChevronRight
                         size={14}
-                        className={`text-slate-400 transition-transform duration-200 ${
-                          isOpen ? 'rotate-180 text-blue-400' : ''
+                        className={`text-slate-500 transition-transform duration-200 ${
+                          isOpen ? 'rotate-90 text-blue-400' : ''
                         }`}
                       />
                     </div>
                   )}
                 </button>
 
-                {/* Tree Child Nodes (Collapsed: hidden or icon stack) */}
+                {/* Submenu Accordion Items (when opened) */}
                 {isOpen && !collapsed && (
-                  <div className="relative mt-1 ml-3.5 pl-3 border-l-2 border-slate-800/80 space-y-0.5 py-1">
-                    {group.items.map((item, idx) => {
-                      const active = isItemActive(item.href);
-                      const ItemIcon = item.icon;
-
+                  <div className="pl-6 pr-1 py-1 space-y-1 border-l-2 border-slate-700/60 ml-5 animate-in slide-in-from-top-1 duration-150">
+                    {visibleChildren.map((sub, idx) => {
+                      const subActive = isItemActive(sub.href);
                       return (
                         <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={handleLinkClick}
-                          className={`relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 group ${
-                            active
-                              ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/20'
-                              : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                          key={idx}
+                          href={sub.href}
+                          onClick={() => setMobileOpen(false)}
+                          className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition duration-150 font-medium ${
+                            subActive
+                              ? 'bg-blue-600/90 text-white font-bold shadow-xs'
+                              : 'text-slate-400 hover:text-white hover:bg-white/5 hover:translate-x-0.5'
                           }`}
                         >
-                          {/* Tree node branch connector dot */}
-                          <span
-                            className={`absolute -left-[17px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border-2 transition-all ${
-                              active
-                                ? 'bg-blue-500 border-slate-900 ring-2 ring-blue-500/40 scale-110'
-                                : 'bg-slate-700 border-slate-900 group-hover:bg-blue-400'
-                            }`}
-                          />
+                          <span className="truncate flex items-center space-x-1.5">
+                            <span className="text-[11px] text-slate-500">→</span>
+                            <span>{sub.name}</span>
+                          </span>
 
-                          <div className="flex items-center space-x-2 min-w-0">
-                            <ItemIcon
-                              size={14}
-                              className={`shrink-0 transition-colors ${
-                                active ? 'text-white' : 'text-slate-400 group-hover:text-blue-300'
-                              }`}
-                            />
-                            <span className="truncate">{item.name}</span>
-                          </div>
-
-                          {item.badge && (
-                            <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm shrink-0 ml-1.5 ${
-                                item.badgeColor || 'bg-slate-700 text-slate-200'
-                              }`}
-                            >
-                              {item.badge}
+                          {sub.badge && (
+                            <span className="px-1.5 py-0.2 bg-emerald-500 text-white text-[9px] font-extrabold rounded-full">
+                              {sub.badge}
                             </span>
                           )}
                         </Link>
@@ -446,62 +496,54 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
             );
           })}
         </div>
-      </nav>
 
-      {/* User Info & Store Status */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-950/40 space-y-2 flex-shrink-0">
-        {!collapsed && (
-          <div className="flex items-center justify-between px-2 py-1.5 bg-slate-900/80 rounded-xl border border-slate-800">
-            <div className="flex items-center space-x-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
-                {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
+        {/* Footer: User Profile & Logout */}
+        <div className="p-3 border-t border-[#222944] bg-[#121626] shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center space-x-2.5 min-w-0 overflow-hidden">
+              <div className="w-8 h-8 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400 text-xs shrink-0">
+                {(user?.fullName || user?.username || 'U')[0].toUpperCase()}
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-white truncate leading-tight">
-                  {user?.fullName || user?.username || 'User'}
-                </p>
-                <p className="text-[10px] text-emerald-400 font-medium capitalize flex items-center space-x-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
-                  <span>{user?.role || 'Staff'}</span>
-                </p>
-              </div>
+
+              {!collapsed && (
+                <div className="min-w-0 truncate">
+                  <p className="font-bold text-xs text-white truncate">
+                    {user?.fullName || user?.username || 'Store Admin'}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-mono truncate">
+                    {user?.email || 'Logged in'}
+                  </p>
+                </div>
+              )}
             </div>
-            <Link
-              href="/profile"
-              onClick={handleLinkClick}
-              className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
-              title="My Profile"
+
+            <button
+              onClick={onLogout}
+              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition shrink-0"
+              title="Logout from Store"
             >
-              <Settings size={14} />
-            </Link>
+              <LogOut size={16} />
+            </button>
           </div>
-        )}
+        </div>
+      </aside>
 
-        {/* Expand Toggle Button when collapsed */}
-        {collapsed && (
-          <button
-            onClick={() => setCollapsed(false)}
-            className="w-full mb-1.5 hidden lg:flex items-center justify-center p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition shadow-xs"
-            title="Expand Sidebar"
-          >
-            <ChevronRight size={18} />
-          </button>
-        )}
-
-        {/* Logout Button */}
-        <button
-          onClick={onLogout}
-          className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 border border-transparent hover:border-rose-500/20 transition duration-150 ${
-            collapsed ? 'justify-center space-x-0 px-2' : ''
-          }`}
-          title="Sign Out"
-        >
-          <LogOut size={16} />
-          {!collapsed && <span>Sign Out</span>}
-        </button>
-      </div>
-    </aside>
-  </>
+      {/* Global Scrollbar CSS for sidebar */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #252c48;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #333d63;
+        }
+      `}</style>
+    </>
   );
 }
-
