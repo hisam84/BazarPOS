@@ -16,7 +16,15 @@ import {
   Lock,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Send,
+  Server,
+  Zap,
+  Check,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  BellRing
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -47,8 +55,32 @@ export default function SettingsPage() {
     confirmPassword: ''
   });
 
+  // Mailing & API Settings State
+  const [mailSettings, setMailSettings] = useState({
+    enabled: true,
+    provider: 'smtp', // 'smtp' | 'resend' | 'sendgrid' | 'gmail'
+    fromName: 'BazarPOS Store',
+    fromEmail: 'noreply@bazarpos.com',
+    replyTo: '',
+    smtpHost: 'smtp.gmail.com',
+    smtpPort: 587,
+    smtpSecure: 'tls',
+    smtpUser: '',
+    smtpPassword: '',
+    apiKey: '',
+    sendInvoiceOnSale: false,
+    sendLowStockAlert: true,
+    sendDailySummary: false
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
   const [savingOwner, setSavingOwner] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
+  const [savingMail, setSavingMail] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
@@ -64,13 +96,15 @@ export default function SettingsPage() {
   const loadAllSettings = async (storeId) => {
     try {
       setLoading(true);
-      const [compRes, ownerRes] = await Promise.all([
+      const [compRes, ownerRes, mailRes] = await Promise.all([
         fetch(`/api/company?storeId=${storeId}`),
-        fetch(`/api/owner?storeId=${storeId}`)
+        fetch(`/api/owner?storeId=${storeId}`),
+        fetch(`/api/mail-settings?storeId=${storeId}`)
       ]);
 
       const compData = await compRes.json();
       const ownerData = await ownerRes.json();
+      const mailData = await mailRes.json();
 
       if (compData.success && compData.company) {
         setCompany(compData.company);
@@ -87,6 +121,13 @@ export default function SettingsPage() {
           newPassword: '',
           confirmPassword: ''
         });
+        if (o.email && !testEmail) {
+          setTestEmail(o.email);
+        }
+      }
+
+      if (mailData.success && mailData.mailSettings) {
+        setMailSettings(mailData.mailSettings);
       }
     } catch (err) {
       console.error(err);
@@ -177,6 +218,59 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSaveMailSettings = async (e) => {
+    e.preventDefault();
+    setSavingMail(true);
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/mail-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: user?.storeId || 'default',
+          mailSettings
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMsg('Mailing & API configuration saved successfully!');
+        setTimeout(() => setMsg(''), 3500);
+      } else {
+        setErrorMsg(data.message || 'Failed to save mail settings');
+      }
+    } catch (err) {
+      setErrorMsg('Error saving mailing configuration');
+    } finally {
+      setSavingMail(false);
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!testEmail || !testEmail.includes('@')) {
+      alert('Please enter a valid recipient email address');
+      return;
+    }
+
+    setSendingTest(true);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/mail/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient: testEmail,
+          settings: mailSettings
+        })
+      });
+      const data = await res.json();
+      setTestResult(data);
+    } catch (err) {
+      setTestResult({ success: false, message: 'Network error sending test email' });
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   const handleDownloadBackup = async () => {
     try {
       const res = await fetch(`/api/backup?storeId=${user?.storeId || 'default'}`);
@@ -224,19 +318,19 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
             <Settings className="text-blue-600" size={24} />
-            <span>Store Configuration & Owner Information</span>
+            <span>Store Configuration & System Settings</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Manage owner contact details, login credentials, store receipt header info, and JSON database backups.
+            Manage owner details, store branding, SMTP & API email gateway, and database backups.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <a
             href="/invoice-settings"
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-sm transition"
           >
             <FileText size={16} />
-            <span>A4 Invoice Settings & Banner</span>
+            <span>Invoice Settings</span>
           </a>
         </div>
       </div>
@@ -370,7 +464,310 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* 2. STORE BRANDING & RECEIPT DETAILS */}
+      {/* 2. EMAIL & API MAILING SETTINGS (NEW) */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 gap-2">
+          <div>
+            <h2 className="text-base font-bold text-slate-800 flex items-center space-x-2">
+              <Mail className="text-indigo-600" size={20} />
+              <span>Email & API Mailing Gateway Settings</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Configure SMTP, Resend, SendGrid or Gmail to automatically send digital invoices, low stock alerts, and daily summaries.
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
+              mailSettings.enabled ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            }`}>
+              {mailSettings.enabled ? '● Email Service Active' : '○ Disabled'}
+            </span>
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveMailSettings} className="space-y-6 text-xs font-medium">
+          {/* Provider Selection */}
+          <div>
+            <label className="block text-slate-700 mb-2 font-bold">Select Mailing Protocol / API Provider</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { id: 'smtp', label: 'Custom SMTP', sub: 'cPanel / Hostinger / Webmail', icon: Server },
+                { id: 'gmail', label: 'Gmail SMTP', sub: 'App Password', icon: Mail },
+                { id: 'resend', label: 'Resend API', sub: 'High Deliverability', icon: Zap },
+                { id: 'sendgrid', label: 'SendGrid API', sub: 'Enterprise API', icon: Send },
+              ].map(prov => {
+                const Icon = prov.icon;
+                const isSelected = mailSettings.provider === prov.id;
+                return (
+                  <button
+                    key={prov.id}
+                    type="button"
+                    onClick={() => {
+                      let updates = { provider: prov.id };
+                      if (prov.id === 'gmail') {
+                        updates.smtpHost = 'smtp.gmail.com';
+                        updates.smtpPort = 587;
+                        updates.smtpSecure = 'tls';
+                      }
+                      setMailSettings(prev => ({ ...prev, ...updates }));
+                    }}
+                    className={`p-3 rounded-xl border text-left transition relative flex flex-col justify-between ${
+                      isSelected
+                        ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                        <Icon size={16} />
+                      </div>
+                      {isSelected && <Check size={16} className="text-indigo-600 font-bold" />}
+                    </div>
+                    <div>
+                      <p className={`font-bold text-xs ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>{prov.label}</p>
+                      <p className="text-[10px] text-slate-500">{prov.sub}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sender Details */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+            <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+              <Store size={14} className="text-indigo-600" />
+              <span>Sender Identity</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">Sender Display Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. BazarPOS Outlet"
+                  value={mailSettings.fromName}
+                  onChange={e => setMailSettings({ ...mailSettings, fromName: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">Sender Email Address *</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. billing@zenmart.com"
+                  value={mailSettings.fromEmail}
+                  onChange={e => setMailSettings({ ...mailSettings, fromEmail: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Provider Specific Configuration */}
+          {(mailSettings.provider === 'smtp' || mailSettings.provider === 'gmail') ? (
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+              <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                <Server size={14} className="text-indigo-600" />
+                <span>SMTP Server Connection Details</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-slate-700 mb-1 font-semibold">SMTP Host *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. smtp.gmail.com or mail.yourdomain.com"
+                    value={mailSettings.smtpHost}
+                    onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-semibold">Port *</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="587"
+                    value={mailSettings.smtpPort}
+                    onChange={e => setMailSettings({ ...mailSettings, smtpPort: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-semibold">SMTP Username / Email *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. user@yourdomain.com"
+                    value={mailSettings.smtpUser}
+                    onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1 font-semibold">SMTP Password / App Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••••••••••"
+                      value={mailSettings.smtpPassword}
+                      onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+              <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                <Zap size={14} className="text-indigo-600" />
+                <span>{mailSettings.provider === 'resend' ? 'Resend API Key' : 'SendGrid API Key'}</span>
+              </h3>
+
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">API Key *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    placeholder={mailSettings.provider === 'resend' ? 're_123456789...' : 'SG.123456789...'}
+                    value={mailSettings.apiKey}
+                    onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Obtain your API token from {mailSettings.provider === 'resend' ? 'resend.com/api-keys' : 'sendgrid.com/app/settings/api_keys'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Automated Trigger Options */}
+          <div className="p-4 bg-indigo-50/40 rounded-2xl border border-indigo-100 space-y-3">
+            <h3 className="font-bold text-indigo-950 text-xs flex items-center space-x-1.5">
+              <BellRing size={14} className="text-indigo-600" />
+              <span>Automated Email Notification Triggers</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
+                <input
+                  type="checkbox"
+                  checked={mailSettings.sendInvoiceOnSale}
+                  onChange={e => setMailSettings({ ...mailSettings, sendInvoiceOnSale: e.target.checked })}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <div>
+                  <span className="font-bold text-slate-800 block text-xs">Customer Invoices</span>
+                  <span className="text-[10px] text-slate-500 block">Auto-email digital receipt</span>
+                </div>
+              </label>
+
+              <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
+                <input
+                  type="checkbox"
+                  checked={mailSettings.sendLowStockAlert}
+                  onChange={e => setMailSettings({ ...mailSettings, sendLowStockAlert: e.target.checked })}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <div>
+                  <span className="font-bold text-slate-800 block text-xs">Low Stock Alerts</span>
+                  <span className="text-[10px] text-slate-500 block">Alert owner on low units</span>
+                </div>
+              </label>
+
+              <label className="flex items-center space-x-2 bg-white p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
+                <input
+                  type="checkbox"
+                  checked={mailSettings.sendDailySummary}
+                  onChange={e => setMailSettings({ ...mailSettings, sendDailySummary: e.target.checked })}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <div>
+                  <span className="font-bold text-slate-800 block text-xs">Daily Summary</span>
+                  <span className="text-[10px] text-slate-500 block">Closing revenue report</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
+            <button
+              type="submit"
+              disabled={savingMail}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-indigo-600/20"
+            >
+              <Save size={16} />
+              <span>{savingMail ? 'Saving Mail Gateway...' : 'Save Mailing Configuration'}</span>
+            </button>
+          </div>
+        </form>
+
+        {/* Live Test Email Tool */}
+        <div className="mt-6 pt-6 border-t border-slate-200 space-y-3">
+          <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+            <Send size={14} className="text-emerald-600" />
+            <span>Test Mail Dispatch & Live Diagnostic</span>
+          </h3>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              placeholder="Enter recipient email (e.g. yourname@gmail.com)"
+              value={testEmail}
+              onChange={e => setTestEmail(e.target.value)}
+              className="flex-1 px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={handleSendTestEmail}
+              disabled={sendingTest}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-sm transition"
+            >
+              <Send size={14} />
+              <span>{sendingTest ? 'Sending Test...' : 'Send Test Email'}</span>
+            </button>
+          </div>
+
+          {testResult && (
+            <div className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 animate-fadeIn ${
+              testResult.success
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-rose-50 border-rose-200 text-rose-800'
+            }`}>
+              {testResult.success ? <CheckCircle size={16} className="text-emerald-600 shrink-0" /> : <AlertCircle size={16} className="text-rose-600 shrink-0" />}
+              <span>{testResult.message}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. STORE BRANDING & RECEIPT DETAILS */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
         <h2 className="text-base font-bold text-slate-800 border-b pb-3 flex items-center space-x-2">
           <Store className="text-blue-600" size={20} />
@@ -452,7 +849,7 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* 3. JSON BACKUP & RESTORE */}
+      {/* 4. JSON BACKUP & RESTORE */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
         <h2 className="text-base font-bold text-slate-800 border-b pb-3">JSON Data Backup & Restore</h2>
         <p className="text-xs text-slate-500">
@@ -478,3 +875,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+
