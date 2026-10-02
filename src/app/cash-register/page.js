@@ -93,30 +93,30 @@ export default function CashRegisterPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto text-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <DollarSign className="text-emerald-600" size={24} />
-            <span>Cash Drawer Register & Daily Reconciliation</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <DollarSign className="text-emerald-600 flex-shrink-0" size={22} />
+            <span className="truncate">Cash Drawer &amp; Daily Reconciliation</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">Manage morning cash drawer opening balance and evening cash reconciliation count.</p>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">Manage morning cash drawer opening balance and evening cash reconciliation count.</p>
         </div>
 
         {openRegister ? (
           <button
             onClick={() => setShowCloseModal(true)}
-            className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition shadow-md shadow-rose-500/20"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition shadow-md shadow-rose-500/20 text-xs flex-shrink-0"
           >
-            <Lock size={18} />
+            <Lock size={16} />
             <span>Close Cash Register (Evening)</span>
           </button>
         ) : (
           <button
             onClick={() => setShowOpenModal(true)}
-            className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-md shadow-emerald-500/20"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-md shadow-emerald-500/20 text-xs flex-shrink-0"
           >
-            <Unlock size={18} />
+            <Unlock size={16} />
             <span>Open Cash Register (Morning)</span>
           </button>
         )}
@@ -124,59 +124,112 @@ export default function CashRegisterPage() {
 
       {/* Active Cash Register Banner */}
       {openRegister && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <span className="px-2.5 py-1 bg-emerald-600 text-white text-[10px] font-bold uppercase rounded-full">Register OPEN</span>
-            <h2 className="text-lg font-bold text-slate-900 mt-2">Active Register — {openRegister.date}</h2>
-            <p className="text-xs text-slate-600">Opened by <span className="font-semibold text-slate-900">{openRegister.openedBy}</span> at {new Date(openRegister.openedAt).toLocaleTimeString()}</p>
+            <span className="px-2.5 py-0.5 bg-emerald-600 text-white text-[10px] font-bold uppercase rounded-full tracking-wider">Register OPEN</span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-2">Active Register — {openRegister.date}</h2>
+            <p className="text-xs text-slate-600 mt-0.5">Opened by <span className="font-semibold text-slate-900">{openRegister.openedBy}</span> at {new Date(openRegister.openedAt).toLocaleTimeString()}</p>
           </div>
-          <div className="bg-white p-4 rounded-xl border border-emerald-200 text-center">
-            <p className="text-xs text-slate-500">Morning Opening Float</p>
-            <p className="text-2xl font-bold text-emerald-600">৳{openRegister.openingCash}</p>
+          <div className="w-full sm:w-auto bg-white p-3.5 sm:p-4 rounded-xl border border-emerald-200 text-left sm:text-center shadow-xs">
+            <p className="text-[11px] text-slate-500">Morning Opening Float</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 mt-0.5">৳{Number(openRegister.openingCash).toLocaleString()}</p>
           </div>
         </div>
       )}
 
-      {/* History Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
-        <h2 className="text-base font-bold text-slate-800">Past Daily Cash Reconciliation History</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 font-semibold border-b">
+      {/* History Section */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-4 sm:p-6 space-y-4">
+        <h2 className="text-xs sm:text-sm font-bold text-slate-800">Past Daily Cash Reconciliation History</h2>
+        
+        {/* Desktop View Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
               <tr>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Opening Cash</th>
                 <th className="px-4 py-3">Expected Cash</th>
                 <th className="px-4 py-3">Actual Cash Counted</th>
                 <th className="px-4 py-3">Difference</th>
-                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {history.map((h) => (
-                <tr key={h.id} className="hover:bg-slate-50">
+                <tr key={h.id} className="hover:bg-slate-50 transition">
                   <td className="px-4 py-3 font-semibold text-slate-800">{h.date}</td>
-                  <td className="px-4 py-3 font-bold text-slate-700">৳{h.openingCash}</td>
-                  <td className="px-4 py-3 font-bold text-blue-600">৳{h.closingCashExpected || h.openingCash}</td>
-                  <td className="px-4 py-3 font-bold text-emerald-600">৳{h.closingCashActual || 'N/A'}</td>
-                  <td className="px-4 py-3 font-bold">
+                  <td className="px-4 py-3 font-mono font-bold text-slate-700">৳{Number(h.openingCash).toLocaleString()}</td>
+                  <td className="px-4 py-3 font-mono font-bold text-blue-600">৳{Number(h.closingCashExpected || h.openingCash).toLocaleString()}</td>
+                  <td className="px-4 py-3 font-mono font-bold text-emerald-600">
+                    {h.closingCashActual ? `৳${Number(h.closingCashActual).toLocaleString()}` : 'N/A'}
+                  </td>
+                  <td className="px-4 py-3 font-mono font-bold">
                     {h.difference === 0 ? (
                       <span className="text-emerald-600">৳0 (Match)</span>
                     ) : (
                       <span className={h.difference < 0 ? 'text-rose-600' : 'text-blue-600'}>
-                        ৳{h.difference}
+                        ৳{Number(h.difference).toLocaleString()}
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-xs font-bold">
-                    <span className={`px-2.5 py-0.5 rounded-full ${h.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
+                  <td className="px-4 py-3 text-right">
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${h.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
                       {h.status.toUpperCase()}
                     </span>
                   </td>
                 </tr>
               ))}
+              {history.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center py-8 text-slate-400">
+                    No cash register records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View Cards */}
+        <div className="block md:hidden divide-y divide-slate-100">
+          {history.map((h) => (
+            <div key={h.id} className="p-3.5 space-y-2.5 bg-white hover:bg-slate-50/60 transition text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900">{h.date}</span>
+                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${h.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
+                  {h.status.toUpperCase()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <span className="text-[10px] text-slate-500 block">Opening Cash</span>
+                  <span className="font-mono font-bold text-slate-700 block mt-0.5">৳{Number(h.openingCash).toLocaleString()}</span>
+                </div>
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <span className="text-[10px] text-slate-500 block">Expected Cash</span>
+                  <span className="font-mono font-bold text-blue-600 block mt-0.5">৳{Number(h.closingCashExpected || h.openingCash).toLocaleString()}</span>
+                </div>
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <span className="text-[10px] text-slate-500 block">Actual Counted</span>
+                  <span className="font-mono font-bold text-emerald-600 block mt-0.5">
+                    {h.closingCashActual ? `৳${Number(h.closingCashActual).toLocaleString()}` : 'N/A'}
+                  </span>
+                </div>
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <span className="text-[10px] text-slate-500 block">Difference</span>
+                  <span className={`font-mono font-bold block mt-0.5 ${h.difference === 0 ? 'text-emerald-600' : h.difference < 0 ? 'text-rose-600' : 'text-blue-600'}`}>
+                    {h.difference === 0 ? '৳0 (Match)' : `৳${Number(h.difference).toLocaleString()}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {history.length === 0 && (
+            <div className="text-center py-8 text-slate-400 text-xs">
+              No cash register records found.
+            </div>
+          )}
         </div>
       </div>
 
