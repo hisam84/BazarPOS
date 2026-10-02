@@ -343,20 +343,36 @@ export default function POSTerminalPage() {
   const handleSendSMS = async () => {
     if (!completedVoucher) return;
     const client = clients.find(c => c.name === completedVoucher.clientName);
-    const phone = client?.phone || '01700000000';
+    const phone = client?.phone || completedVoucher.clientPhone || '01700000000';
     const downloadUrl = getInvoiceDownloadUrl(completedVoucher);
-    const message = `[${user?.storeName || 'BazarPOS'}] Invoice #${completedVoucher.voucherNo}. Total: TK ${completedVoucher.totalAmount}. Paid: TK ${completedVoucher.paidAmount}. Download: ${downloadUrl}`;
 
     try {
       const res = await fetch('/api/sms/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, message })
+        body: JSON.stringify({
+          storeId: user?.storeId || 'default',
+          phone,
+          templateId: 'invoice',
+          variables: {
+            customer_name: completedVoucher.clientName || 'Valued Customer',
+            company_name: user?.storeName || 'BazarPOS Outlet',
+            invoice_no: completedVoucher.voucherNo || completedVoucher.id,
+            total_amount: `TK ${Number(completedVoucher.totalAmount || 0).toLocaleString()}`,
+            paid_amount: `TK ${Number(completedVoucher.paidAmount || 0).toLocaleString()}`,
+            due_amount: `TK ${Number(completedVoucher.dueAmount || 0).toLocaleString()}`,
+            invoice_link: downloadUrl
+          }
+        })
       });
       const data = await res.json();
-      if (data.success) alert(`SMS queued to ${phone}!`);
+      if (data.success) {
+        alert(data.message || `SMS sent successfully to ${phone}!`);
+      } else {
+        alert(`SMS Alert: ${data.message || 'Failed to send SMS'}`);
+      }
     } catch (e) {
-      alert('SMS send error');
+      alert('Error connecting to SMS gateway');
     }
   };
 

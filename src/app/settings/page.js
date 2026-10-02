@@ -27,6 +27,7 @@ import {
   BellRing
 } from 'lucide-react';
 import EmailTemplateEditor from '@/components/EmailTemplateEditor';
+import SMSGatewaySettings from '@/components/SMSGatewaySettings';
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -943,7 +944,10 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* 3. STORE BRANDING & RECEIPT DETAILS */}
+      {/* 3. SMS GATEWAY & API SETTINGS (NEW) */}
+      <SMSGatewaySettings storeId={user?.storeId || 'default'} companyInfo={company} />
+
+      {/* 4. STORE BRANDING & RECEIPT DETAILS */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
         <h2 className="text-base font-bold text-slate-800 border-b pb-3 flex items-center space-x-2">
           <Store className="text-blue-600" size={20} />

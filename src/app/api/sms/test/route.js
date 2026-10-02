@@ -3,7 +3,7 @@ import { sendSmsMessage } from '@/lib/sms';
 
 export async function POST(request) {
   try {
-    const { storeId = 'default', phone, message, templateId, variables } = await request.json();
+    const { storeId = 'default', phone, testMessage } = await request.json();
 
     if (!phone) {
       return NextResponse.json(
@@ -12,25 +12,25 @@ export async function POST(request) {
       );
     }
 
+    const message = testMessage || `[BazarPOS Test] Your SMS Gateway is configured and operational! Sent at ${new Date().toLocaleTimeString()}`;
+
     const result = await sendSmsMessage({
       storeId,
       phone,
-      message,
-      templateId,
-      variables
+      message
     });
 
     if (result.success) {
       return NextResponse.json({
         success: true,
-        message: result.message || `SMS dispatched to ${phone}`
+        message: result.message || `Test SMS sent to ${phone} successfully!`
       });
     }
 
     return NextResponse.json(
       {
         success: false,
-        message: result.message || 'Failed to dispatch SMS'
+        message: result.message || 'Failed to dispatch test SMS'
       },
       { status: 400 }
     );
