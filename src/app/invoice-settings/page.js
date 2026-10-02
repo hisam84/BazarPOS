@@ -38,6 +38,16 @@ const TITLE_PRESETS = [
   'DELIVERY CHALLAN'
 ];
 
+const PREFIX_PRESETS = [
+  'INV-',
+  'POS-',
+  'BILL-',
+  'MEMO-',
+  'ZM-',
+  'TAX-',
+  'SAL-'
+];
+
 export default function InvoiceSettingsPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -56,6 +66,7 @@ export default function InvoiceSettingsPage() {
   });
 
   const [settings, setSettings] = useState({
+    invoicePrefix: 'INV-',
     headerType: 'both',
     headerBanner: '',
     logoUrl: '',
@@ -455,7 +466,51 @@ export default function InvoiceSettingsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Custom Invoice Number Prefix */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-700">
+                  Custom Invoice Number Prefix
+                </label>
+                <span className="text-[10px] font-mono font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-md">
+                  Preview: {(settings.invoicePrefix || 'INV-').endsWith('-') || (settings.invoicePrefix || 'INV-').endsWith('/') || (settings.invoicePrefix || 'INV-').endsWith('_') || (settings.invoicePrefix || 'INV-').endsWith('#') ? (settings.invoicePrefix || 'INV-') : (settings.invoicePrefix || 'INV-') + '-'}1001
+                </span>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex flex-wrap gap-1.5">
+                {PREFIX_PRESETS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setSettings({ ...settings, invoicePrefix: p })}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition ${
+                      settings.invoicePrefix === p
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  value={settings.invoicePrefix || ''}
+                  onChange={(e) => setSettings({ ...settings, invoicePrefix: e.target.value })}
+                  placeholder="e.g. INV-, POS-, BILL-, ZM-, 2026/INV-"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 transition"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  This custom prefix will be automatically attached to all new sales invoices (e.g. <strong>{settings.invoicePrefix || 'INV-'}1001</strong>).
+                </p>
+              </div>
+            </div>
           </div>
+
 
           {/* 2. Company Info Toggles & BIN/TAX */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">

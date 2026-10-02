@@ -60,9 +60,12 @@ export default function InvoiceA4({
 }) {
   const accentColor = settings?.accentColor || '#2563eb';
 
+  const prefix = (settings?.invoicePrefix || 'INV-').trim();
+  const formattedPrefix = prefix.endsWith('-') || prefix.endsWith('/') || prefix.endsWith('_') || prefix.endsWith('#') ? prefix : prefix + '-';
+
   // Sample data fallback for live preview
   const sampleVoucher = {
-    voucherNo: 'INV-2026-1089',
+    voucherNo: `${formattedPrefix}1089`,
     date: new Date().toISOString(),
     clientName: 'Rahim Chowdhury Enterprise',
     clientPhone: '+880 1711-234567',

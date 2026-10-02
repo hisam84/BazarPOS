@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
 
 const DEFAULT_INVOICE_SETTINGS = {
+  invoicePrefix: 'INV-',
   headerType: 'both', // 'banner', 'details', 'both'
   headerBanner: '',
   logoUrl: '',

@@ -39,7 +39,15 @@ export async function POST(request) {
 
     const storeData = await getStoreData(storeId);
     storeData.voucherCounter = (storeData.voucherCounter || 1000) + 1;
-    const voucherNo = 'INV-' + storeData.voucherCounter;
+    
+    // Read custom invoice prefix from store settings (default to INV-)
+    const rawPrefix = (storeData.company?.invoiceSettings?.invoicePrefix || storeData.invoiceSettings?.invoicePrefix || 'INV-').trim();
+    const prefix = rawPrefix ? (
+      rawPrefix.endsWith('-') || rawPrefix.endsWith('/') || rawPrefix.endsWith('_') || rawPrefix.endsWith('#')
+        ? rawPrefix
+        : rawPrefix + '-'
+    ) : 'INV-';
+    const voucherNo = prefix + storeData.voucherCounter;
 
     const grandTotal = Math.max(0, Number(totalAmount) - Number(discount));
     const dueAmount = Math.max(0, grandTotal - Number(paidAmount));
