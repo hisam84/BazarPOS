@@ -516,11 +516,12 @@ export default function SettingsPage() {
           {/* Provider Selection */}
           <div>
             <label className="block text-slate-700 mb-2 font-bold">Select Mailing Protocol / API Provider</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {[
-                { id: 'smtp', label: 'Custom SMTP', sub: 'cPanel / Hostinger / Webmail', icon: Server },
+                { id: 'brevo', label: 'Brevo (Bravo)', sub: 'REST API & Relay', icon: Send },
+                { id: 'smtp', label: 'Custom SMTP', sub: 'cPanel / Webmail', icon: Server },
                 { id: 'gmail', label: 'Gmail SMTP', sub: 'App Password', icon: Mail },
-                { id: 'resend', label: 'Resend API', sub: 'High Deliverability', icon: Zap },
+                { id: 'resend', label: 'Resend API', sub: 'Deliverability', icon: Zap },
                 { id: 'sendgrid', label: 'SendGrid API', sub: 'Enterprise API', icon: Send },
               ].map(prov => {
                 const Icon = prov.icon;
@@ -533,6 +534,10 @@ export default function SettingsPage() {
                       let updates = { provider: prov.id };
                       if (prov.id === 'gmail') {
                         updates.smtpHost = 'smtp.gmail.com';
+                        updates.smtpPort = 587;
+                        updates.smtpSecure = 'tls';
+                      } else if (prov.id === 'brevo' && !mailSettings.smtpHost) {
+                        updates.smtpHost = 'smtp-relay.brevo.com';
                         updates.smtpPort = 587;
                         updates.smtpSecure = 'tls';
                       }
@@ -588,12 +593,93 @@ export default function SettingsPage() {
                   onChange={e => setMailSettings({ ...mailSettings, fromEmail: e.target.value })}
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs font-mono"
                 />
+                {mailSettings.provider === 'brevo' && (
+                  <p className="text-[10px] text-slate-500 mt-1">Note: This email must be verified as a Sender in your Brevo account dashboard.</p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Provider Specific Configuration */}
-          {(mailSettings.provider === 'smtp' || mailSettings.provider === 'gmail') ? (
+          {mailSettings.provider === 'brevo' ? (
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+                  <Send size={14} className="text-indigo-600" />
+                  <span>Brevo (formerly Sendinblue / Bravo) Configuration</span>
+                </h3>
+                <span className="text-[10px] bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">REST API v3</span>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">Brevo API Key (Recommended) *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    value={mailSettings.apiKey}
+                    onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-1 mt-1 text-[10px] text-slate-500">
+                  <span>Get your API Key from Brevo Dashboard &gt; SMTP &amp; API &gt; API Keys</span>
+                  <a
+                    href="https://app.brevo.com/settings/keys/api"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-indigo-600 hover:underline font-semibold"
+                  >
+                    Open Brevo API Keys &rarr;
+                  </a>
+                </div>
+              </div>
+
+              {/* Optional SMTP Fallback */}
+              <div className="pt-2 border-t border-slate-200">
+                <p className="text-[11px] font-semibold text-slate-700 mb-2">Or use Brevo SMTP Relay credentials (Optional fallback):</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-slate-600 mb-0.5 text-[10px]">Host</label>
+                    <input
+                      type="text"
+                      placeholder="smtp-relay.brevo.com"
+                      value={mailSettings.smtpHost}
+                      onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
+                      className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 mb-0.5 text-[10px]">Login / User</label>
+                    <input
+                      type="text"
+                      placeholder="your-email@domain.com"
+                      value={mailSettings.smtpUser}
+                      onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
+                      className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 mb-0.5 text-[10px]">SMTP Key</label>
+                    <input
+                      type="password"
+                      placeholder="Brevo SMTP Master Key"
+                      value={mailSettings.smtpPassword}
+                      onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
+                      className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (mailSettings.provider === 'smtp' || mailSettings.provider === 'gmail') ? (
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
               <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
                 <Server size={14} className="text-indigo-600" />

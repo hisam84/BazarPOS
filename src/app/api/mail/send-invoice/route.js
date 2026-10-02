@@ -111,7 +111,22 @@ export async function POST(request) {
     `;
 
     // Dispatch email via configured provider
-    if (provider === 'resend' && mailSettings.apiKey) {
+    if (provider === 'brevo' && mailSettings.apiKey) {
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': mailSettings.apiKey,
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: fromName, email: fromEmail },
+          to: [{ email: recipient }],
+          subject: subject,
+          htmlContent: htmlBody
+        })
+      });
+    } else if (provider === 'resend' && mailSettings.apiKey) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -139,6 +154,28 @@ export async function POST(request) {
           content: [{ type: 'text/html', value: htmlBody }]
         })
       });
+    } else if (mailSettings.smtpHost && mailSettings.smtpUser && mailSettings.smtpPassword) {
+      try {
+        const nodemailer = (await import('nodemailer')).default;
+        const transporter = nodemailer.createTransport({
+          host: mailSettings.smtpHost,
+          port: Number(mailSettings.smtpPort) || 587,
+          secure: mailSettings.smtpSecure === 'ssl' || Number(mailSettings.smtpPort) === 465,
+          auth: {
+            user: mailSettings.smtpUser,
+            pass: mailSettings.smtpPassword
+          },
+          tls: { rejectUnauthorized: false }
+        });
+        await transporter.sendMail({
+          from: `"${fromName}" <${fromEmail}>`,
+          to: recipient,
+          subject: subject,
+          html: htmlBody
+        });
+      } catch (err) {
+        console.warn('Nodemailer invoice send warning:', err.message);
+      }
     } else {
       console.log(`[SMTP/GATEWAY INVOICE SENT] To: ${recipient}, Subject: ${subject}, Link: ${directLink}`);
     }

@@ -53,7 +53,47 @@ export async function POST(request) {
       </div>
     `;
 
-    // 1. Resend API Handler
+    // 1. Brevo (Bravo) API Handler
+    if (provider === 'brevo') {
+      if (!apiKey && (!smtpHost || !smtpUser)) {
+        return NextResponse.json(
+          { success: false, message: 'Brevo API Key (xkeysib-...) or Brevo SMTP credentials are required' },
+          { status: 400 }
+        );
+      }
+
+      if (apiKey) {
+        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': apiKey,
+            'Content-Type': 'application/json',
+            'accept': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: { name: fromName, email: fromEmail },
+            to: [{ email: recipient }],
+            subject: subject,
+            htmlContent: htmlBody
+          })
+        });
+
+        const resData = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          return NextResponse.json(
+            { success: false, message: resData.message || 'Brevo API rejected the request', details: resData },
+            { status: 400 }
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `Test email successfully dispatched to ${recipient} via Brevo API! (Message ID: ${resData.messageId || 'Delivered'})`
+        });
+      }
+    }
+
+    // 2. Resend API Handler
     if (provider === 'resend') {
       if (!apiKey) {
         return NextResponse.json(
@@ -76,7 +116,7 @@ export async function POST(request) {
         })
       });
 
-      const resData = await res.json();
+      const resData = await res.json().catch(() => ({}));
       if (!res.ok) {
         return NextResponse.json(
           { success: false, message: resData.message || 'Resend API rejected the request', details: resData },
@@ -86,11 +126,11 @@ export async function POST(request) {
 
       return NextResponse.json({
         success: true,
-        message: `Test email successfully dispatched to ${recipient} via Resend API! (ID: ${resData.id})`
+        message: `Test email successfully dispatched to ${recipient} via Resend API! (ID: ${resData.id || 'OK'})`
       });
     }
 
-    // 2. SendGrid API Handler
+    // 3. SendGrid API Handler
     if (provider === 'sendgrid') {
       if (!apiKey) {
         return NextResponse.json(
@@ -127,8 +167,8 @@ export async function POST(request) {
       });
     }
 
-    // 3. Standard SMTP / Gmail Gateway
-    if (provider === 'smtp' || provider === 'gmail') {
+    // 4. Standard SMTP / Brevo SMTP Relay / Gmail Gateway
+    if (provider === 'smtp' || provider === 'gmail' || provider === 'brevo') {
       if (!smtpHost || !smtpUser) {
         return NextResponse.json(
           { success: false, message: 'SMTP Host and Username/Email are required' },

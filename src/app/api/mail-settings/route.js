@@ -3,7 +3,7 @@ import { getStoreData, saveStoreData } from '@/lib/db';
 
 const DEFAULT_MAIL_SETTINGS = {
   enabled: false,
-  provider: 'smtp', // 'smtp' | 'resend' | 'sendgrid' | 'mailgun' | 'gmail'
+  provider: 'smtp', // 'smtp' | 'brevo' | 'resend' | 'sendgrid' | 'mailgun' | 'gmail'
   fromName: 'BazarPOS Store',
   fromEmail: 'noreply@bazarpos.com',
   replyTo: '',
