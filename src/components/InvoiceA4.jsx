@@ -307,17 +307,22 @@ export default function InvoiceA4({
                   <td className="py-2 px-3">
                     <span className="font-semibold text-slate-900 block leading-tight">{item.name}</span>
                     
-                    {/* Unit, Warranty & Serial Number badges */}
+                    {/* Unit, Brand, Warranty & Serial Number badges */}
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[10px] text-slate-500">
-                      {item.unit && settings?.showItemUnit && (
+                      {item.brand && settings?.showItemBrand !== false && (
+                        <span className="text-indigo-700 font-semibold bg-indigo-50 px-1.5 py-0.2 rounded border border-indigo-200/80">
+                          Brand: {item.brand}
+                        </span>
+                      )}
+                      {item.unit && settings?.showItemUnit !== false && (
                         <span>Unit: <strong className="text-slate-700 font-medium">{item.unit}</strong></span>
                       )}
-                      {item.warranty && item.warranty.trim() !== '' && (
+                      {item.warranty && item.warranty.trim() !== '' && settings?.showItemWarranty !== false && (
                         <span className="text-blue-700 font-medium bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/80 inline-flex items-center space-x-0.5">
                           <span>🛡️ Warranty: {item.warranty}{item.warrantyType && item.warrantyType !== 'none' ? ` (${item.warrantyType.charAt(0).toUpperCase() + item.warrantyType.slice(1)})` : ''}</span>
                         </span>
                       )}
-                      {(item.serialNumber || item.serialNo) && (item.serialNumber || item.serialNo).trim() !== '' && (
+                      {(item.serialNumber || item.serialNo) && (item.serialNumber || item.serialNo).trim() !== '' && settings?.showItemSerial !== false && (
                         <span className="text-purple-700 font-medium bg-purple-50 px-1.5 py-0.2 rounded border border-purple-200/80 inline-flex items-center space-x-0.5 font-mono">
                           <span>🔢 S/N: {item.serialNumber || item.serialNo}</span>
                         </span>
@@ -356,8 +361,8 @@ export default function InvoiceA4({
 
       {/* 5. SUMMARY & CALCULATION SECTION */}
       <div className="mt-4 pt-3 border-t border-slate-200 grid grid-cols-12 gap-4 text-[11px]">
-        {/* Left: In Words & Notes */}
-        <div className="col-span-7 space-y-3">
+        {/* Left: In Words, Warranty, Notes & Terms */}
+        <div className="col-span-7 space-y-2.5">
           <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
             <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Amount In Words:</p>
             <p className="font-semibold text-slate-800 italic text-xs leading-relaxed">
@@ -365,7 +370,41 @@ export default function InvoiceA4({
             </p>
           </div>
 
-          {/* Terms & Conditions */}
+          {/* Sale Note & Payment Note */}
+          {((data?.saleNote && settings?.showSaleNote !== false) || (data?.paymentNote && settings?.showPaymentNote !== false) || (data?.note && !data?.saleNote)) && (
+            <div className="p-2.5 bg-blue-50/50 rounded-lg border border-blue-200/80 space-y-1">
+              <p className="text-[10px] font-bold uppercase text-blue-700 tracking-wider">Notes & Remarks:</p>
+              {data?.saleNote && (
+                <p className="text-[10px] text-slate-700">
+                  <span className="font-semibold text-slate-900">Sale Note: </span>{data.saleNote}
+                </p>
+              )}
+              {data?.note && !data?.saleNote && (
+                <p className="text-[10px] text-slate-700">
+                  <span className="font-semibold text-slate-900">Note: </span>{data.note}
+                </p>
+              )}
+              {data?.paymentNote && (
+                <p className="text-[10px] text-slate-700">
+                  <span className="font-semibold text-slate-900">Payment Reference: </span>{data.paymentNote}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Warranty Policy Section */}
+          {settings?.showWarrantySection !== false && (settings?.warrantyTerms || settings?.warrantyPolicyText) && (
+            <div className="p-2.5 bg-amber-50/60 rounded-lg border border-amber-200/80 space-y-1">
+              <p className="text-[10px] font-bold uppercase text-amber-800 tracking-wider flex items-center gap-1">
+                <span>🛡️ {settings.warrantyTitle || 'Warranty Terms & Policy'}:</span>
+              </p>
+              <div className="text-[10px] text-slate-700 whitespace-pre-line leading-relaxed font-sans">
+                {settings.warrantyTerms || settings.warrantyPolicyText}
+              </div>
+            </div>
+          )}
+
+          {/* General Terms & Conditions */}
           {settings?.showTerms && settings?.termsAndConditions && (
             <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
               <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Terms & Conditions:</p>
@@ -381,7 +420,7 @@ export default function InvoiceA4({
           <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1.5">
             {settings?.showSubtotal && (
               <div className="flex justify-between items-center text-slate-600">
-                <span>Subtotal:</span>
+                <span>Items Subtotal:</span>
                 <span className="font-mono font-semibold text-slate-900">৳{subTotal.toLocaleString()}</span>
               </div>
             )}
@@ -390,6 +429,14 @@ export default function InvoiceA4({
               <div className="flex justify-between items-center text-slate-600">
                 <span>Discount:</span>
                 <span className="font-mono font-semibold text-rose-600">-৳{discount.toLocaleString()}</span>
+              </div>
+            )}
+
+            {/* Previous Due Added */}
+            {settings?.showPreviousDue !== false && (data?.previousDue > 0 || (data?.includePreviousDue && data?.previousDue)) && (
+              <div className="flex justify-between items-center text-amber-800 font-semibold bg-amber-50/80 px-2 py-0.5 rounded border border-amber-200/60 text-[10.5px]">
+                <span>Previous Due:</span>
+                <span className="font-mono font-bold">+৳{Number(data.previousDue).toLocaleString()}</span>
               </div>
             )}
 

@@ -97,18 +97,31 @@ export default function InvoiceSettingsPage() {
     // Table Columns
     showItemSl: true,
     showItemCode: false,
+    showItemBrand: true,
     showItemUnit: true,
+    showItemWarranty: true,
+    showItemSerial: true,
     showItemDiscount: false,
     showItemTotal: true,
 
     // Summary
     showSubtotal: true,
     showDiscount: true,
+    showPreviousDue: true,
     showTaxVat: true,
     taxVatPercent: 0,
     showDeliveryCharge: false,
     showPaidAmount: true,
     showDueAmount: true,
+
+    // Warranty & Policy
+    showWarrantySection: true,
+    warrantyTitle: 'Warranty Terms & Policy',
+    warrantyTerms: '1. Warranty is valid only when accompanied by this original invoice.\n2. Physical damage, liquid ingress, burn, or seal tampering voids warranty.\n3. Turnaround time for warranty claim/replacement is 3-7 business days.',
+
+    // Notes
+    showSaleNote: true,
+    showPaymentNote: true,
 
     // Terms & Signatures
     showTerms: true,
@@ -753,11 +766,41 @@ export default function InvoiceSettingsPage() {
                 <label className="flex items-center space-x-2 p-2 rounded-lg bg-slate-50 border border-slate-200/60 cursor-pointer">
                   <input
                     type="checkbox"
+                    checked={settings.showItemBrand !== false}
+                    onChange={(e) => setSettings({ ...settings, showItemBrand: e.target.checked })}
+                    className="rounded text-blue-600"
+                  />
+                  <span className="text-slate-700">Product Brand</span>
+                </label>
+
+                <label className="flex items-center space-x-2 p-2 rounded-lg bg-slate-50 border border-slate-200/60 cursor-pointer">
+                  <input
+                    type="checkbox"
                     checked={settings.showItemUnit}
                     onChange={(e) => setSettings({ ...settings, showItemUnit: e.target.checked })}
                     className="rounded text-blue-600"
                   />
                   <span className="text-slate-700">Unit Label (Pcs/Kg)</span>
+                </label>
+
+                <label className="flex items-center space-x-2 p-2 rounded-lg bg-slate-50 border border-slate-200/60 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.showItemWarranty !== false}
+                    onChange={(e) => setSettings({ ...settings, showItemWarranty: e.target.checked })}
+                    className="rounded text-blue-600"
+                  />
+                  <span className="text-slate-700">Warranty Badges</span>
+                </label>
+
+                <label className="flex items-center space-x-2 p-2 rounded-lg bg-slate-50 border border-slate-200/60 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.showItemSerial !== false}
+                    onChange={(e) => setSettings({ ...settings, showItemSerial: e.target.checked })}
+                    className="rounded text-blue-600"
+                  />
+                  <span className="text-slate-700">Serial / IMEI Tag</span>
                 </label>
 
                 <label className="flex items-center space-x-2 p-2 rounded-lg bg-slate-50 border border-slate-200/60 cursor-pointer">
@@ -808,6 +851,16 @@ export default function InvoiceSettingsPage() {
                 <label className="flex items-center space-x-2 p-2 rounded-lg bg-slate-50 border border-slate-200/60 cursor-pointer">
                   <input
                     type="checkbox"
+                    checked={settings.showPreviousDue !== false}
+                    onChange={(e) => setSettings({ ...settings, showPreviousDue: e.target.checked })}
+                    className="rounded text-blue-600"
+                  />
+                  <span className="text-slate-700">Previous Due</span>
+                </label>
+
+                <label className="flex items-center space-x-2 p-2 rounded-lg bg-slate-50 border border-slate-200/60 cursor-pointer">
+                  <input
+                    type="checkbox"
                     checked={settings.showTaxVat}
                     onChange={(e) => setSettings({ ...settings, showTaxVat: e.target.checked })}
                     className="rounded text-blue-600"
@@ -838,7 +891,64 @@ export default function InvoiceSettingsPage() {
             </div>
           </div>
 
-          {/* 4. Terms & Conditions & Signatures */}
+          {/* 4. Warranty Policy Settings */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <h2 className="text-sm font-bold text-slate-800 border-b pb-3 flex items-center justify-between">
+              <span className="flex items-center space-x-2">
+                <ShieldAlert className="text-blue-600" size={18} />
+                <span>Warranty Policy & Terms</span>
+              </span>
+              <label className="flex items-center space-x-1.5 text-xs text-slate-600 cursor-pointer font-medium">
+                <input
+                  type="checkbox"
+                  checked={settings.showWarrantySection !== false}
+                  onChange={(e) => setSettings({ ...settings, showWarrantySection: e.target.checked })}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span>Enable Warranty Policy Box</span>
+              </label>
+            </h2>
+
+            {settings.showWarrantySection !== false && (
+              <div className="space-y-3 animate-fadeIn">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Warranty Section Title</label>
+                  <input
+                    type="text"
+                    value={settings.warrantyTitle || 'Warranty Terms & Policy'}
+                    onChange={(e) => setSettings({ ...settings, warrantyTitle: e.target.value })}
+                    placeholder="e.g. Warranty Terms & Policy"
+                    className="w-full px-3 py-2 border rounded-xl bg-slate-50 text-xs font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-500">Warranty Policy Text / Clauses</label>
+                    <button
+                      type="button"
+                      onClick={() => setSettings({
+                        ...settings,
+                        warrantyTerms: '1. Warranty is valid only when accompanied by this original invoice.\n2. Physical damage, liquid ingress, burn, or seal tampering voids warranty.\n3. Turnaround time for warranty claim/replacement is 3-7 business days.'
+                      })}
+                      className="text-[10px] text-blue-600 hover:underline font-semibold"
+                    >
+                      Reset to Default Policy
+                    </button>
+                  </div>
+                  <textarea
+                    rows="3"
+                    value={settings.warrantyTerms || ''}
+                    onChange={(e) => setSettings({ ...settings, warrantyTerms: e.target.value })}
+                    placeholder="Enter warranty rules (e.g. 1. Valid only with original invoice, 2. No physical damage coverage...)"
+                    className="w-full px-3 py-2 border rounded-xl bg-slate-50 text-xs leading-relaxed"
+                  ></textarea>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 5. Terms & Conditions & Signatures */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
             <h2 className="text-sm font-bold text-slate-800 border-b pb-3 flex items-center space-x-2">
               <FileText className="text-blue-600" size={18} />

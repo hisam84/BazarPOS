@@ -54,11 +54,19 @@ export default function POSTerminalPage() {
   const [mobileTab, setMobileTab] = useState('catalog'); // 'catalog' | 'cart'
   
   // Checkout State
-  const [selectedClient, setSelectedClient] = useState('');
+  const [selectedClient, setSelectedClient] = useState(''); // Default: No customer preselected
+  const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
+  const [includePreviousDue, setIncludePreviousDue] = useState(false);
+  const [showPreviousDueModal, setShowPreviousDueModal] = useState(false);
+  const [pendingDueClient, setPendingDueClient] = useState(null);
+
   const [selectedSaler, setSelectedSaler] = useState('');
   const [discount, setDiscount] = useState(0);
   const [paidAmount, setPaidAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [saleNote, setSaleNote] = useState('');
+  const [paymentNote, setPaymentNote] = useState('');
   const [note, setNote] = useState('');
   
   // Modals
@@ -73,6 +81,7 @@ export default function POSTerminalPage() {
     code: '',
     name: '',
     category: 'Grocery',
+    brand: '',
     costPrice: '',
     sellingPrice: '',
     quantity: '10',
@@ -84,6 +93,18 @@ export default function POSTerminalPage() {
   });
 
   const barcodeRef = useRef(null);
+  const clientDropdownRef = useRef(null);
+
+  // Close customer dropdown when clicked outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (clientDropdownRef.current && !clientDropdownRef.current.contains(event.target)) {
+        setClientDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
@@ -115,7 +136,7 @@ export default function POSTerminalPage() {
       }
       if (cliData.success) {
         setClients(cliData.clients || []);
-        if (cliData.clients.length > 0 && !selectedClient) setSelectedClient(cliData.clients[0].name);
+        // NOTE: By default do NOT auto-select a customer (user requirement #1)
       }
       if (staffData.success) {
         setStaffList(staffData.staff || []);
@@ -148,8 +169,10 @@ export default function POSTerminalPage() {
           id: product.id,
           code: product.code,
           name: product.name,
+          brand: product.brand || '',
           unit: product.unit || 'Pcs',
-          warranty: product.warranty || '',
+          warranty: product.warranty || (product.warrantyDays > 0 ? `${product.warrantyDays} Days` : ''),
+          warrantyType: product.warrantyType || 'none',
           description: product.description || '',
           serialNumber: product.serialNumber || '',
           costPrice: product.costPrice || 0,
@@ -212,7 +235,7 @@ export default function POSTerminalPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setSelectedClient(clientForm.name);
+        setSelectedClient(data.client?.name || clientForm.name);
         setShowAddClientModal(false);
         setClientForm({ name: '', phone: '', email: '', address: '', due: 0 });
         loadPOSData(user?.storeId || 'default');
@@ -221,7 +244,6 @@ export default function POSTerminalPage() {
       alert('Error adding customer');
     }
   };
-
 
   // Quick Add Product Handler
   const handleQuickAddProduct = async (e) => {
@@ -236,7 +258,7 @@ export default function POSTerminalPage() {
       const data = await res.json();
       if (data.success) {
         setShowAddProductModal(false);
-        setProductForm({ code: '', name: '', category: 'Grocery', costPrice: '', sellingPrice: '', quantity: '10', minQuantity: 5, barcode: '' });
+        setProductForm({ code: '', name: '', category: 'Grocery', brand: '', costPrice: '', sellingPrice: '', quantity: '10', minQuantity: 5, barcode: '' });
         loadPOSData(user?.storeId || 'default');
       }
     } catch (err) {
@@ -244,8 +266,31 @@ export default function POSTerminalPage() {
     }
   };
 
+  const handleSelectClient = (client) => {
+    if (!client) {
+      setSelectedClient('');
+      setIncludePreviousDue(false);
+      setClientDropdownOpen(false);
+      return;
+    }
+
+    setSelectedClient(client.name);
+    setClientDropdownOpen(false);
+
+    if (Number(client.due) > 0) {
+      setPendingDueClient(client);
+      setShowPreviousDueModal(true);
+    } else {
+      setIncludePreviousDue(false);
+    }
+  };
+
+  const selectedClientObj = clients.find(c => c.name === selectedClient || c.id === selectedClient);
+  const previousDueAmount = (includePreviousDue && selectedClientObj?.due > 0) ? Number(selectedClientObj.due) : 0;
+
   const subTotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
-  const grandTotal = Math.max(0, subTotal - Number(discount));
+  const itemsTotal = Math.max(0, subTotal - Number(discount));
+  const grandTotal = itemsTotal + previousDueAmount;
   const dueAmount = Math.max(0, grandTotal - Number(paidAmount));
 
   const handleCheckout = async () => {
@@ -255,8 +300,7 @@ export default function POSTerminalPage() {
     }
 
     try {
-      const clientObj = clients.find(c => c.name === selectedClient || c.id === selectedClient);
-      const clientPhone = clientObj?.phone || '';
+      const clientPhone = selectedClientObj?.phone || '';
 
       const res = await fetch('/api/vouchers', {
         method: 'POST',
@@ -269,9 +313,13 @@ export default function POSTerminalPage() {
           items: cart,
           totalAmount: subTotal,
           discount: Number(discount),
+          previousDue: previousDueAmount,
+          includePreviousDue: Boolean(includePreviousDue && previousDueAmount > 0),
           paidAmount: Number(paidAmount),
           paymentMethod,
-          note
+          note: saleNote || note || '',
+          saleNote,
+          paymentNote
         })
       });
 
@@ -286,7 +334,10 @@ export default function POSTerminalPage() {
       setCart([]);
       setDiscount(0);
       setPaidAmount(0);
+      setSaleNote('');
+      setPaymentNote('');
       setNote('');
+      setIncludePreviousDue(false);
       loadPOSData(user?.storeId || 'default');
     } catch (err) {
       alert('Checkout error');
@@ -568,10 +619,11 @@ export default function POSTerminalPage() {
         </h2>
 
         <div className="grid grid-cols-2 gap-2 my-3">
-          <div>
+          <div className="relative" ref={clientDropdownRef}>
             <div className="flex items-center justify-between mb-1">
               <label className="text-[11px] font-semibold text-slate-500">Customer</label>
               <button
+                type="button"
                 onClick={() => setShowAddClientModal(true)}
                 className="text-[10px] text-blue-600 font-bold hover:underline flex items-center space-x-0.5"
               >
@@ -579,17 +631,107 @@ export default function POSTerminalPage() {
                 <span>+ Add</span>
               </button>
             </div>
-            <select
-              value={selectedClient}
-              onChange={(e) => setSelectedClient(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none"
+
+            <button
+              type="button"
+              onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
+              className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-left text-xs font-semibold text-slate-800 flex items-center justify-between hover:bg-slate-100/80 transition"
             >
-              {clients.map((c) => (
-                <option key={c.id} value={c.name}>
-                  {c.name} {c.customerId ? `[${c.customerId}]` : ''} {c.phone ? `(${c.phone})` : ''}
-                </option>
-              ))}
-            </select>
+              <div className="min-w-0 flex-1 truncate pr-1">
+                {selectedClient ? (
+                  <span>
+                    {selectedClient}
+                    {selectedClientObj?.phone ? ` (${selectedClientObj.phone})` : ''}
+                  </span>
+                ) : (
+                  <span className="text-slate-400 font-medium">Select Customer (Walk-in)</span>
+                )}
+              </div>
+              <div className="flex items-center space-x-1 shrink-0">
+                {selectedClientObj?.due > 0 && (
+                  <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60">
+                    ৳{Number(selectedClientObj.due).toLocaleString()} Due
+                  </span>
+                )}
+                <span className="text-slate-400 text-[10px]">▼</span>
+              </div>
+            </button>
+
+            {/* Custom Searchable Dropdown */}
+            {clientDropdownOpen && (
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl z-30 p-2 space-y-2 max-h-72 flex flex-col animate-in fade-in zoom-in-95 duration-150">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 text-slate-400" size={13} />
+                  <input
+                    type="text"
+                    autoFocus
+                    value={clientSearch}
+                    onChange={(e) => setClientSearch(e.target.value)}
+                    placeholder="Search name, phone, ID..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="overflow-y-auto flex-1 space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectClient(null)}
+                    className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between ${
+                      !selectedClient ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <p className="font-bold">Walk-in Customer</p>
+                      <p className="text-[10px] text-slate-400">Regular counter sale (No due tracking)</p>
+                    </div>
+                    {!selectedClient && <span className="font-bold text-blue-600">✓</span>}
+                  </button>
+
+                  {clients
+                    .filter(c => {
+                      const q = clientSearch.toLowerCase();
+                      return (
+                        (c.name && c.name.toLowerCase().includes(q)) ||
+                        (c.phone && c.phone.includes(q)) ||
+                        (c.customerId && c.customerId.toLowerCase().includes(q))
+                      );
+                    })
+                    .map(c => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleSelectClient(c)}
+                        className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between ${
+                          selectedClient === c.name ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'hover:bg-slate-100 text-slate-800'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1 pr-2">
+                          <div className="flex items-center space-x-1.5">
+                            <span className="font-bold truncate">{c.name}</span>
+                            {c.customerId && (
+                              <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-1 py-0.2 rounded">
+                                {c.customerId}
+                              </span>
+                            )}
+                          </div>
+                          {c.phone && <p className="text-[10px] text-slate-500 font-mono mt-0.5">{c.phone}</p>}
+                        </div>
+                        <div>
+                          {c.due > 0 ? (
+                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60 whitespace-nowrap">
+                              ৳{Number(c.due).toLocaleString()} Due
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded whitespace-nowrap">
+                              Clear
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
@@ -600,7 +742,7 @@ export default function POSTerminalPage() {
             <select
               value={selectedSaler}
               onChange={(e) => setSelectedSaler(e.target.value)}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
+              className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none"
             >
               <option value={user?.fullName || user?.username || 'Store Account'}>
                 {user?.fullName || user?.username || 'Store Account'} ({user?.role === 'staff' ? 'Staff' : 'Owner'})
@@ -629,7 +771,10 @@ export default function POSTerminalPage() {
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 flex-1 pr-2">
                       <p className="font-semibold text-xs text-slate-800 truncate">{item.name}</p>
-                      <p className="text-[10px] text-slate-500">৳{item.unitPrice} × {item.quantity}</p>
+                      <p className="text-[10px] text-slate-500">
+                        {item.brand && <span className="font-semibold text-indigo-600 mr-1.5">[{item.brand}]</span>}
+                        ৳{item.unitPrice} × {item.quantity}
+                      </p>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -672,9 +817,9 @@ export default function POSTerminalPage() {
           )}
         </div>
 
-        <div className="pt-3 border-t border-slate-200 space-y-2.5">
+        <div className="pt-3 border-t border-slate-200 space-y-2 text-xs">
           <div className="flex justify-between text-xs font-medium text-slate-600">
-            <span>Subtotal</span>
+            <span>Items Subtotal</span>
             <span>৳{subTotal}</span>
           </div>
 
@@ -688,9 +833,40 @@ export default function POSTerminalPage() {
             />
           </div>
 
+          {/* Previous Due Line if Included */}
+          {includePreviousDue && previousDueAmount > 0 && (
+            <div className="flex items-center justify-between p-2 bg-amber-50 rounded-xl border border-amber-200/80 text-amber-900 font-semibold">
+              <div className="flex items-center space-x-1.5">
+                <span>⚠️ Previous Due Added:</span>
+                <span className="font-bold font-mono">৳{previousDueAmount.toLocaleString()}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIncludePreviousDue(false)}
+                className="text-[10px] text-rose-600 hover:text-rose-800 font-bold underline"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          {/* Prompt to add previous due if customer has due and not yet added */}
+          {!includePreviousDue && selectedClientObj?.due > 0 && (
+            <div className="flex items-center justify-between p-1.5 bg-slate-100 rounded-lg text-[11px] text-slate-600">
+              <span>Customer Due: ৳{Number(selectedClientObj.due).toLocaleString()}</span>
+              <button
+                type="button"
+                onClick={() => setIncludePreviousDue(true)}
+                className="text-[10px] font-bold text-blue-600 hover:underline"
+              >
+                + Add to Bill
+              </button>
+            </div>
+          )}
+
           <div className="flex justify-between text-sm font-bold text-slate-900 pt-1 border-t border-slate-100">
-            <span>Grand Total</span>
-            <span className="text-blue-600">৳{grandTotal}</span>
+            <span>Grand Total / Net Payable</span>
+            <span className="text-blue-600">৳{grandTotal.toLocaleString()}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2 pt-1">
@@ -701,7 +877,7 @@ export default function POSTerminalPage() {
                 value={paidAmount}
                 onChange={(e) => setPaidAmount(e.target.value)}
                 placeholder="Paid"
-                className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold"
+                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold"
               />
             </div>
             <div>
@@ -709,27 +885,50 @@ export default function POSTerminalPage() {
               <select
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-medium"
+                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium"
               >
                 <option value="Cash">Cash</option>
                 <option value="bKash/MFS">bKash / MFS</option>
                 <option value="Card">Card</option>
+                <option value="Bank">Bank Transfer</option>
                 <option value="Due">Credit Due</option>
               </select>
+            </div>
+          </div>
+
+          {/* Sale Note & Payment Note Inputs */}
+          <div className="space-y-1.5 pt-1">
+            <div>
+              <input
+                type="text"
+                value={saleNote}
+                onChange={(e) => setSaleNote(e.target.value)}
+                placeholder="Sale Note / Instructions (Optional)..."
+                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <input
+                type="text"
+                value={paymentNote}
+                onChange={(e) => setPaymentNote(e.target.value)}
+                placeholder="Payment Note / Trx ID / Ref (Optional)..."
+                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-500"
+              />
             </div>
           </div>
 
           <button
             onClick={handleCheckout}
             disabled={cart.length === 0}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/20 disabled:opacity-50 mt-2"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/20 disabled:opacity-50 mt-1.5"
           >
             Complete Sale & Print Receipt
           </button>
         </div>
       </div>
 
-      {/* QUICK ADD CUSTOMER MODAL */}
+      {/* PREVIOUS DUE CONFIRMATION MODAL */}
       {showAddClientModal && (
         <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
@@ -819,9 +1018,9 @@ export default function POSTerminalPage() {
                 </div>
               </div>
 
-              {/* Row 2: Name & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+              {/* Row 2: Name & Category & Brand */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-1">
                   <label className="block text-slate-700 mb-1 font-bold">Product Name *</label>
                   <input
                     type="text"
@@ -847,6 +1046,16 @@ export default function POSTerminalPage() {
                       <option key={i} value={c} />
                     ))}
                   </datalist>
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Brand</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Samsung, Unilever"
+                    value={productForm.brand || ''}
+                    onChange={e => setProductForm({ ...productForm, brand: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                  />
                 </div>
               </div>
 
@@ -984,6 +1193,89 @@ export default function POSTerminalPage() {
                 <button type="submit" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md">Save Product</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* PREVIOUS DUE CONFIRMATION MODAL */}
+      {showPreviousDueModal && pendingDueClient && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-amber-50/50">
+              <div className="flex items-center space-x-3 text-amber-700 font-bold">
+                <span className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg shadow-inner">
+                  ⚠️
+                </span>
+                <div>
+                  <h3 className="text-base text-slate-900 leading-tight">Customer Previous Due</h3>
+                  <p className="text-[11px] text-amber-700/80 font-medium">Outstanding balance detected</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIncludePreviousDue(false);
+                  setShowPreviousDueModal(false);
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl space-y-2.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-amber-900 font-semibold">Customer:</span>
+                  <span className="font-bold text-slate-900">{pendingDueClient.name}</span>
+                </div>
+                {pendingDueClient.phone && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-amber-900 font-semibold">Phone:</span>
+                    <span className="font-mono text-slate-700">{pendingDueClient.phone}</span>
+                  </div>
+                )}
+                {pendingDueClient.customerId && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-amber-900 font-semibold">Customer ID:</span>
+                    <span className="font-mono text-slate-700">{pendingDueClient.customerId}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2.5 border-t border-amber-200 text-sm">
+                  <span className="font-bold text-amber-950">Previous Due Balance:</span>
+                  <span className="font-black font-mono text-rose-600 text-lg">
+                    ৳{Number(pendingDueClient.due || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed text-center font-medium">
+                Do you want to add this outstanding <strong>৳{Number(pendingDueClient.due || 0).toLocaleString()}</strong> due to the current sales bill/invoice?
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIncludePreviousDue(false);
+                    setShowPreviousDueModal(false);
+                  }}
+                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
+                >
+                  No, Current Sale Only
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIncludePreviousDue(true);
+                    setShowPreviousDueModal(false);
+                  }}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-blue-500/25"
+                >
+                  Yes, Add to Invoice
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

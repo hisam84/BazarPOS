@@ -34,18 +34,31 @@ const DEFAULT_INVOICE_SETTINGS = {
   // Item Table Columns
   showItemSl: true,
   showItemCode: false,
+  showItemBrand: true,
   showItemUnit: true,
+  showItemWarranty: true,
+  showItemSerial: true,
   showItemDiscount: false,
   showItemTotal: true,
 
   // Summary
   showSubtotal: true,
   showDiscount: true,
+  showPreviousDue: true,
   showTaxVat: true,
   taxVatPercent: 0,
   showDeliveryCharge: false,
   showPaidAmount: true,
   showDueAmount: true,
+
+  // Warranty & Terms
+  showWarrantySection: true,
+  warrantyTitle: 'Warranty Terms & Policy',
+  warrantyTerms: '1. Warranty is valid only when accompanied by this original invoice.\n2. Physical damage, liquid ingress, burn, or seal tampering voids warranty.\n3. Turnaround time for warranty claim/replacement is 3-7 business days.',
+
+  // Notes
+  showSaleNote: true,
+  showPaymentNote: true,
 
   // Footer & Notes
   showTerms: true,

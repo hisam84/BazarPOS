@@ -45,7 +45,18 @@ const STORE_TREE_GROUPS = [
     items: [
       { name: 'POS Terminal', href: '/pos', icon: ShoppingCart, badge: 'Live', badgeColor: 'bg-emerald-500 text-white', permission: 'pos_terminal' },
       { name: 'Sales & Invoices', href: '/vouchers/history', icon: FileText, permission: 'view_invoices' },
-      { name: 'Customers & Due', href: '/clients', icon: Users, permission: 'customers_manage' },
+    ]
+  },
+  {
+    id: 'contacts_group',
+    title: 'Contacts & CRM',
+    icon: Users,
+    badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
+    items: [
+      { name: 'Contact Directory', href: '/clients', icon: Users, permission: 'customers_manage' },
+      { name: 'Add New Contact', href: '/clients?action=new', icon: User, permission: 'customers_manage' },
+      { name: 'Suppliers & Vendors', href: '/suppliers', icon: Truck, permission: 'suppliers_manage' },
+      { name: 'Bulk Upload Contacts', href: '/clients?action=import', icon: FolderOpen, permission: 'customers_manage' },
     ]
   },
   {
@@ -56,7 +67,6 @@ const STORE_TREE_GROUPS = [
     items: [
       { name: 'Product Catalog', href: '/inventory', icon: Boxes, permission: 'inventory_view' },
       { name: 'Stock Adjustments', href: '/stock-adjustment', icon: AlertOctagon, permission: 'stock_adjustment' },
-      { name: 'Suppliers & PO', href: '/suppliers', icon: Truck, permission: 'suppliers_manage' },
       { name: 'Barcode Generator', href: '/barcodes', icon: Barcode, permission: 'barcodes_manage' },
     ]
   },
@@ -73,13 +83,14 @@ const STORE_TREE_GROUPS = [
   },
   {
     id: 'reports_group',
-    title: 'Reports & Audit',
+    title: 'Reports & Analytics',
     icon: BarChart3,
     badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
     items: [
-      { name: 'Income Statement', href: '/reports?type=income', icon: PieChart, permission: 'reports_view' },
-      { name: 'Expense Summary', href: '/reports?type=expense', icon: Receipt, permission: 'reports_view' },
-      { name: 'Stock Valuation', href: '/reports?type=stock', icon: Boxes, permission: 'reports_view' },
+      { name: 'Sales & Revenue Report', href: '/reports?type=sales', icon: FileText, permission: 'reports_view' },
+      { name: 'Income / Profit & Loss', href: '/reports?type=income', icon: PieChart, permission: 'reports_view' },
+      { name: 'Expense Breakdown', href: '/reports?type=expense', icon: Receipt, permission: 'reports_view' },
+      { name: 'Stock Valuation Report', href: '/reports?type=stock', icon: Boxes, permission: 'reports_view' },
       { name: 'Audit History Logs', href: '/audit-logs', icon: ShieldCheck, permission: 'audit_logs' },
     ]
   },

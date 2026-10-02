@@ -51,7 +51,11 @@ export async function POST(request) {
       paidAmount = 0,
       discount = 0,
       paymentMethod = 'Cash',
-      note = ''
+      note = '',
+      saleNote = '',
+      paymentNote = '',
+      previousDue = 0,
+      includePreviousDue = false
     } = body;
 
     const auth = verifyApiAuth(request, { requiredStoreId: storeId });
@@ -73,7 +77,11 @@ export async function POST(request) {
     ) : 'INV-';
     const voucherNo = prefix + storeData.voucherCounter;
 
-    const grandTotal = Math.max(0, Number(totalAmount) - Number(discount));
+    const itemsSubTotal = Number(totalAmount) || 0;
+    const discountAmount = Number(discount) || 0;
+    const itemsTotal = Math.max(0, itemsSubTotal - discountAmount);
+    const prevDueAmount = (includePreviousDue && Number(previousDue) > 0) ? Number(previousDue) : 0;
+    const grandTotal = itemsTotal + prevDueAmount;
     const dueAmount = Math.max(0, grandTotal - Number(paidAmount));
     const status = dueAmount === 0 ? 'PAID' : (Number(paidAmount) > 0 ? 'PARTIAL' : 'DUE');
 
@@ -82,7 +90,7 @@ export async function POST(request) {
     items.forEach(item => {
       totalCost += (Number(item.costPrice) || 0) * (Number(item.quantity) || 1);
     });
-    const profit = Math.max(0, grandTotal - totalCost);
+    const profit = Math.max(0, itemsTotal - totalCost);
 
     // Secure non-guessable random token for public link sharing (prevents URL guessing/IDOR)
     const publicToken = 'inv_' + crypto.randomBytes(16).toString('hex');
@@ -106,8 +114,10 @@ export async function POST(request) {
       clientPhone: resolvedPhone,
       salerName: salerName || 'Main Counter',
       items,
-      subTotal: Number(totalAmount),
-      discount: Number(discount),
+      subTotal: itemsSubTotal,
+      discount: discountAmount,
+      previousDue: prevDueAmount,
+      includePreviousDue: Boolean(includePreviousDue && prevDueAmount > 0),
       totalAmount: grandTotal,
       paidAmount: Number(paidAmount),
       dueAmount,
@@ -115,7 +125,9 @@ export async function POST(request) {
       paymentMethod,
       totalCost,
       profit,
-      note
+      note: note || saleNote || '',
+      saleNote: saleNote || '',
+      paymentNote: paymentNote || ''
     };
 
     // Deduct stock from products
@@ -131,10 +143,16 @@ export async function POST(request) {
     });
 
     // Update Client Due if applicable
-    if (clientName && dueAmount > 0) {
-      const client = (storeData.clients || []).find(c => c.name === clientName);
+    if (clientName && clientName !== 'Walk-in Customer') {
+      const client = (storeData.clients || []).find(c => c.name === clientName || c.id === clientName);
       if (client) {
-        client.due = (Number(client.due) || 0) + dueAmount;
+        if (includePreviousDue && prevDueAmount > 0) {
+          // Previous due was factored into this invoice, so client's remaining due is now this voucher's dueAmount
+          client.due = dueAmount;
+        } else if (dueAmount > 0) {
+          // Added new due on top of existing due
+          client.due = (Number(client.due) || 0) + dueAmount;
+        }
       }
     }
 

@@ -45,6 +45,7 @@ const WARRANTY_TYPES = [
 export default function InventoryPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(['All', 'General']);
+  const [brands, setBrands] = useState([]);
   const [units, setUnits] = useState(DEFAULT_UNITS);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,6 +60,7 @@ export default function InventoryPage() {
     barcode: '',
     name: '',
     category: 'General',
+    brand: '',
     costPrice: '',
     sellingPrice: '',
     quantity: '0',
@@ -88,6 +90,9 @@ export default function InventoryPage() {
         setProducts(data.products || []);
         if (data.categories && data.categories.length > 0) {
           setCategories(['All', ...data.categories.filter(c => c !== 'All')]);
+        }
+        if (data.brands) {
+          setBrands(data.brands);
         }
         if (data.units && data.units.length > 0) {
           setUnits(data.units);
@@ -119,6 +124,7 @@ export default function InventoryPage() {
       barcode: '',
       name: '',
       category: categories.find(c => c !== 'All') || 'General',
+      brand: '',
       costPrice: '',
       sellingPrice: '',
       quantity: '0',
@@ -139,6 +145,7 @@ export default function InventoryPage() {
       barcode: prod.barcode || '',
       name: prod.name || '',
       category: prod.category || 'General',
+      brand: prod.brand || '',
       costPrice: prod.costPrice !== undefined ? prod.costPrice : '',
       sellingPrice: prod.sellingPrice !== undefined ? prod.sellingPrice : '',
       quantity: prod.quantity !== undefined ? prod.quantity : '0',
@@ -204,6 +211,7 @@ export default function InventoryPage() {
     const matchesSearch =
       (p.name && p.name.toLowerCase().includes(search.toLowerCase())) ||
       (p.code && p.code.toLowerCase().includes(search.toLowerCase())) ||
+      (p.brand && p.brand.toLowerCase().includes(search.toLowerCase())) ||
       (p.barcode && p.barcode.includes(search)) ||
       (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()));
     const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
@@ -220,7 +228,7 @@ export default function InventoryPage() {
             <span>Product Inventory & Stock Management</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Manage product catalog, barcode identifiers, purchase & sale prices, stock limits, and suppliers.
+            Manage product catalog, barcode identifiers, brands, purchase & sale prices, stock limits, and suppliers.
           </p>
         </div>
 
@@ -241,7 +249,7 @@ export default function InventoryPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by Product Name, Code, Barcode, or Supplier..."
+            placeholder="Search by Product Name, Code, Brand, Barcode, or Supplier..."
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
@@ -278,6 +286,7 @@ export default function InventoryPage() {
                   <th className="px-4 py-3">Barcode</th>
                   <th className="px-4 py-3">Product Name</th>
                   <th className="px-4 py-3">Category</th>
+                  <th className="px-4 py-3">Brand</th>
                   <th className="px-4 py-3">Purchase (৳)</th>
                   <th className="px-4 py-3">Selling (৳)</th>
                   <th className="px-4 py-3">Stock Qty</th>
@@ -307,6 +316,15 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       <span className="px-2 py-0.5 bg-slate-100 rounded font-medium">{p.category}</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {p.brand ? (
+                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-semibold text-[11px] border border-indigo-100">
+                          {p.brand}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 italic text-[11px]">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-600 font-mono font-medium">৳{p.costPrice || 0}</td>
                     <td className="px-4 py-3 font-mono font-bold text-blue-600">৳{p.sellingPrice}</td>
@@ -402,9 +420,9 @@ export default function InventoryPage() {
                 </div>
               </div>
 
-              {/* Row 2: Product Name * & Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+              {/* Row 2: Product Name * & Category & Brand */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-1">
                   <label className="block text-slate-700 mb-1.5 font-bold">Product Name *</label>
                   <input
                     type="text"
@@ -430,6 +448,25 @@ export default function InventoryPage() {
                     <datalist id="category-suggestions">
                       {categories.filter(c => c !== 'All').map((cat) => (
                         <option key={cat} value={cat} />
+                      ))}
+                    </datalist>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Brand / Manufacturer</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      list="brand-suggestions"
+                      placeholder="e.g. Samsung, Nestlé, Unilever"
+                      value={form.brand}
+                      onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                    />
+                    <datalist id="brand-suggestions">
+                      {brands.map((b, idx) => (
+                        <option key={idx} value={b} />
                       ))}
                     </datalist>
                   </div>

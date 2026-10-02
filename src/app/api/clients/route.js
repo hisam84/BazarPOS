@@ -41,10 +41,46 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { storeId = 'default', name, phone, email, address, due = 0, customerId } = body;
+    const { storeId = 'default', name, phone, email, address, due = 0, customerId, type = 'customer', bulkClients } = body;
 
     const auth = verifyApiAuth(request, { requiredStoreId: storeId });
     if (!auth.authenticated) return auth.errorResponse;
+
+    // Handle Bulk Contacts Import
+    if (Array.isArray(bulkClients) && bulkClients.length > 0) {
+      const storeData = await getStoreData(storeId);
+      storeData.clients = storeData.clients || [];
+
+      let addedCount = 0;
+      let existingCustNums = storeData.clients
+        .map(c => {
+          const match = (c.customerId || '').match(/CUST-(\d+)/i);
+          return match ? parseInt(match[1], 10) : null;
+        })
+        .filter(n => n !== null && !isNaN(n));
+
+      let nextNum = existingCustNums.length > 0 ? Math.max(...existingCustNums) + 1 : (1001 + storeData.clients.length);
+
+      for (const item of bulkClients) {
+        if (!item.name || !item.name.trim()) continue;
+        const custId = item.customerId && item.customerId.trim() ? item.customerId.trim() : `CUST-${nextNum++}`;
+        const newClient = {
+          id: 'c_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          customerId: custId,
+          name: item.name.trim(),
+          phone: item.phone ? String(item.phone).trim() : '',
+          email: item.email ? String(item.email).trim() : '',
+          address: item.address ? String(item.address).trim() : '',
+          type: item.type === 'supplier' ? 'supplier' : 'customer',
+          due: Number(item.due) || 0
+        };
+        storeData.clients.push(newClient);
+        addedCount++;
+      }
+
+      await saveStoreData(storeId, storeData);
+      return NextResponse.json({ success: true, count: addedCount, message: `Successfully imported ${addedCount} contacts` });
+    }
 
     if (!name) {
       return NextResponse.json({ success: false, message: 'Client name required' }, { status: 400 });
@@ -74,6 +110,7 @@ export async function POST(request) {
       phone: phone || '',
       email: email || '',
       address: address || '',
+      type: type === 'supplier' ? 'supplier' : 'customer',
       due: Number(due) || 0
     };
 

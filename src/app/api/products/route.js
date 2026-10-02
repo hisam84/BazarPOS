@@ -26,11 +26,16 @@ export async function GET(request) {
 
     const suppliers = (storeData.suppliers || []).map(s => typeof s === 'string' ? s : s.name);
     const units = Array.from(new Set([...DEFAULT_UNITS, ...(storeData.units || [])]));
+    const brands = Array.from(new Set([
+      ...(storeData.brands || []),
+      ...(storeData.products || []).map(p => p.brand).filter(Boolean)
+    ]));
 
     return NextResponse.json({
       success: true,
       products: storeData.products || [],
       categories: storeData.categories || ['General'],
+      brands: brands,
       units: units,
       suppliers: suppliers
     });
@@ -47,6 +52,7 @@ export async function POST(request) {
       code,
       name,
       category,
+      brand = '',
       costPrice,
       sellingPrice,
       quantity,
@@ -82,6 +88,7 @@ export async function POST(request) {
       code: code.trim(),
       name: name.trim(),
       category: category || 'General',
+      brand: brand ? brand.trim() : '',
       costPrice: Number(costPrice) || 0,
       sellingPrice: Number(sellingPrice) || 0,
       quantity: Number(quantity) || 0,
@@ -101,6 +108,11 @@ export async function POST(request) {
     // Save category if new
     if (category && !storeData.categories.includes(category)) {
       storeData.categories.push(category);
+    }
+    // Save brand if new
+    storeData.brands = storeData.brands || [];
+    if (brand && !storeData.brands.includes(brand.trim())) {
+      storeData.brands.push(brand.trim());
     }
 
     await saveStoreData(storeId, storeData);
@@ -133,6 +145,7 @@ export async function PUT(request) {
     storeData.products[index] = {
       ...storeData.products[index],
       ...updates,
+      brand: updates.brand !== undefined ? (updates.brand ? String(updates.brand).trim() : '') : (storeData.products[index].brand || ''),
       costPrice: updates.costPrice !== undefined ? Number(updates.costPrice) : storeData.products[index].costPrice,
       sellingPrice: updates.sellingPrice !== undefined ? Number(updates.sellingPrice) : storeData.products[index].sellingPrice,
       quantity: updates.quantity !== undefined ? Number(updates.quantity) : storeData.products[index].quantity,
@@ -147,6 +160,12 @@ export async function PUT(request) {
 
     if (updates.category && !storeData.categories.includes(updates.category)) {
       storeData.categories.push(updates.category);
+    }
+    if (updates.brand && updates.brand.trim()) {
+      storeData.brands = storeData.brands || [];
+      if (!storeData.brands.includes(updates.brand.trim())) {
+        storeData.brands.push(updates.brand.trim());
+      }
     }
 
     await saveStoreData(storeId, storeData);

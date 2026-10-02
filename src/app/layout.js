@@ -8,16 +8,8 @@ import Toast from '@/components/Toast';
 import SecurityWarningBanner from '@/components/SecurityWarningBanner';
 import './globals.css';
 
-const DEFAULT_USER = {
-  username: 'admin',
-  fullName: 'Main Store Admin',
-  role: 'owner',
-  storeId: 'default',
-  storeName: 'Main BazarPOS Store'
-};
-
 export default function RootLayout({ children }) {
-  const [user, setUser] = useState(DEFAULT_USER);
+  const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,28 +17,37 @@ export default function RootLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const isLoginPage = pathname === '/login';
+  const isPublicInvoice = pathname && pathname.startsWith('/invoice/');
+  const isPublicPage = isLoginPage || isPublicInvoice;
+
   useEffect(() => {
     const savedUser = localStorage.getItem('bazarpos_user');
-    let currentUser = DEFAULT_USER;
+    let currentUser = null;
     if (savedUser) {
       try {
         currentUser = JSON.parse(savedUser);
         setUser(currentUser);
       } catch (e) {
-        setUser(DEFAULT_USER);
+        setUser(null);
       }
     } else {
-      localStorage.setItem('bazarpos_user', JSON.stringify(DEFAULT_USER));
-      setUser(DEFAULT_USER);
+      setUser(null);
     }
     setLoading(false);
+
+    // If not logged in and trying to access a protected page, redirect to /login
+    if (!currentUser && !isPublicPage) {
+      router.replace('/login');
+      return;
+    }
 
     // Route guards: Super Admin has NO store features
     if (currentUser?.role === 'superadmin') {
       if (pathname === '/' || (!pathname.startsWith('/superadmin') && pathname !== '/login')) {
         router.replace('/superadmin/dashboard');
       }
-    } else if (currentUser?.role !== 'superadmin' && pathname.startsWith('/superadmin')) {
+    } else if (currentUser && currentUser.role !== 'superadmin' && pathname.startsWith('/superadmin')) {
       router.replace('/');
     }
 
@@ -61,7 +62,7 @@ export default function RootLayout({ children }) {
         })
         .catch(() => {});
     }
-  }, [pathname]);
+  }, [pathname, isPublicPage]);
 
   const handleLogout = async () => {
     try {
@@ -77,10 +78,6 @@ export default function RootLayout({ children }) {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
-
-  const isLoginPage = pathname === '/login';
-  const isPublicInvoice = pathname && pathname.startsWith('/invoice/');
-  const isPublicPage = isLoginPage || isPublicInvoice;
 
   const getPageTitle = () => {
     if (isPublicInvoice) return 'Digital Invoice Receipt | BazarPOS';
