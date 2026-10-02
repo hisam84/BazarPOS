@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 const DEFAULT_UNITS = [
   'Pieces (pcs)',
@@ -18,6 +19,9 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
     const storeData = await getStoreData(storeId);
 
     const suppliers = (storeData.suppliers || []).map(s => typeof s === 'string' ? s : s.name);
@@ -53,6 +57,9 @@ export async function POST(request) {
       description = '',
       barcode
     } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!code || !name || sellingPrice === undefined) {
       return NextResponse.json({ success: false, message: 'Product Code, Name, and Selling Price are required' }, { status: 400 });
@@ -107,6 +114,9 @@ export async function PUT(request) {
     const body = await request.json();
     const { storeId = 'default', id, ...updates } = body;
 
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
+
     if (!id) {
       return NextResponse.json({ success: false, message: 'Product ID required' }, { status: 400 });
     }
@@ -149,6 +159,9 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Product ID required' }, { status: 400 });

@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 import crypto from 'crypto';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const storeData = await getStoreData(storeId);
 
     // Auto-upgrade legacy vouchers with secure publicToken if missing
@@ -48,6 +53,9 @@ export async function POST(request) {
       paymentMethod = 'Cash',
       note = ''
     } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ success: false, message: 'Voucher must have at least one item' }, { status: 400 });
@@ -137,6 +145,9 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Voucher ID required' }, { status: 400 });

@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const storeData = await getStoreData(storeId);
 
     return NextResponse.json({ success: true, purchases: storeData.purchases || [] });
@@ -17,6 +22,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', supplierName, productCode, quantity, unitCost, totalCost, note } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!productCode || !quantity || Number(quantity) <= 0) {
       return NextResponse.json({ success: false, message: 'Product code and valid quantity required' }, { status: 400 });

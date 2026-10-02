@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
 import { hashPassword } from '@/lib/password';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
     const storeData = await getStoreData(storeId);
 
     return NextResponse.json({ success: true, staff: storeData.staff || [] });
@@ -18,6 +22,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', name, username, password, role = 'cashier', phone = '' } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!name || !username || !password) {
       return NextResponse.json({ success: false, message: 'Name, username, and password required' }, { status: 400 });
@@ -56,6 +63,9 @@ export async function PUT(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', id, name, username, password, role, phone } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Staff ID required' }, { status: 400 });
@@ -97,6 +107,9 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Staff ID required' }, { status: 400 });

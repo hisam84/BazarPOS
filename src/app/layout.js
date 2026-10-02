@@ -49,7 +49,10 @@ export default function RootLayout({ children }) {
   }, [pathname]);
 
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
     localStorage.removeItem('bazarpos_user');
     setUser(null);
     showToast('Logged out successfully', 'info');

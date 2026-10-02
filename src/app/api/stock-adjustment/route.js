@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData, logAuditAction } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const storeData = await getStoreData(storeId);
 
     return NextResponse.json({
@@ -20,6 +25,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', username = 'admin', productCode, type = 'damage', quantity, reason } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!productCode || !quantity || Number(quantity) <= 0) {
       return NextResponse.json({ success: false, message: 'Valid product code and quantity required' }, { status: 400 });

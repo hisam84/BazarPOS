@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getCompanies, createCompany, updateCompany, deleteCompany } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = verifyApiAuth(request, { allowedRoles: ['superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const companies = await getCompanies();
     return NextResponse.json({ success: true, companies });
   } catch (error) {
@@ -12,6 +16,9 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const auth = verifyApiAuth(request, { allowedRoles: ['superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const body = await request.json();
     const { name, owner, phone, email, address, username, password, planId, customDurationDays, notes } = body;
 
@@ -43,6 +50,9 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
+    const auth = verifyApiAuth(request, { allowedRoles: ['superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const body = await request.json();
     const { id, ...updates } = body;
 
@@ -63,6 +73,9 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   try {
+    const auth = verifyApiAuth(request, { allowedRoles: ['superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

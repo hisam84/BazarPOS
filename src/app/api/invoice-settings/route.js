@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 const DEFAULT_INVOICE_SETTINGS = {
   invoicePrefix: 'INV-',
@@ -99,6 +100,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', settings } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
+    if (!auth.authenticated) return auth.errorResponse;
 
     const storeData = await getStoreData(storeId);
     if (!storeData.company) {

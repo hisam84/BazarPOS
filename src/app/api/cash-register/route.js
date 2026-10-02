@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData, logAuditAction } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
+
     const storeData = await getStoreData(storeId);
 
     const registers = storeData.cashRegisters || [];
@@ -24,6 +29,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', username = 'admin', action = 'open', openingCash, closingCashActual, note } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
     const storeData = await getStoreData(storeId);
 
     storeData.cashRegisters = storeData.cashRegisters || [];

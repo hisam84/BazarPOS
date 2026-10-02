@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
+import { verifyApiAuth } from '@/lib/api-auth';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const storeId = searchParams.get('storeId') || 'default';
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
     const storeData = await getStoreData(storeId);
 
     // Auto-migrate legacy clients to ensure all have customerId
@@ -38,6 +42,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', name, phone, email, address, due = 0, customerId } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!name) {
       return NextResponse.json({ success: false, message: 'Client name required' }, { status: 400 });
@@ -84,6 +91,9 @@ export async function PUT(request) {
   try {
     const body = await request.json();
     const { storeId = 'default', id, payAmount, ...updates } = body;
+
+    const auth = verifyApiAuth(request, { requiredStoreId: storeId });
+    if (!auth.authenticated) return auth.errorResponse;
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Client ID required' }, { status: 400 });
