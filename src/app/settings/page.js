@@ -24,7 +24,8 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  BellRing
+  BellRing,
+  Globe
 } from 'lucide-react';
 import EmailTemplateEditor from '@/components/EmailTemplateEditor';
 import SMSGatewaySettings from '@/components/SMSGatewaySettings';
@@ -43,7 +44,8 @@ export default function SettingsPage() {
     email: '',
     website: '',
     address: '',
-    logoUrl: ''
+    logoUrl: '',
+    faviconUrl: ''
   });
 
   // Store Owner Profile State
@@ -154,6 +156,22 @@ export default function SettingsPage() {
     reader.readAsDataURL(file);
   };
 
+  const handleFaviconUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1024 * 1024) {
+      alert('Favicon file size must be less than 1MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCompany(prev => ({ ...prev, faviconUrl: event.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveCompany = async (e) => {
     e.preventDefault();
     setSavingCompany(true);
@@ -166,7 +184,7 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setMsg('Store branding & logo saved successfully!');
+        setMsg('Store branding, logo & favicon saved successfully!');
         // Update local session if needed
         try {
           const saved = localStorage.getItem('bazarpos_user');
@@ -174,10 +192,26 @@ export default function SettingsPage() {
             const u = JSON.parse(saved);
             u.storeName = company.name || u.storeName;
             u.logoUrl = company.logoUrl || '';
+            u.faviconUrl = company.faviconUrl || '';
             localStorage.setItem('bazarpos_user', JSON.stringify(u));
             setUser(u);
           }
         } catch (e) {}
+
+        // Dynamically update document favicon in browser tab
+        if (typeof document !== 'undefined') {
+          const activeFav = company.faviconUrl || company.logoUrl;
+          if (activeFav) {
+            let link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+              link = document.createElement('link');
+              link.rel = 'icon';
+              document.head.appendChild(link);
+            }
+            link.href = activeFav;
+          }
+        }
+
         setTimeout(() => setMsg(''), 3500);
       } else {
         setErrorMsg(data.message || 'Failed to save store branding');
@@ -954,10 +988,11 @@ export default function SettingsPage() {
           <span>Store Branding, Logo & Public Receipt Details</span>
         </h2>
 
-        {/* Company Logo Upload & Favicon Section */}
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
+        {/* Separate Company Logo & Favicon Upload Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 1. Company Brand Logo */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between space-y-4">
+            <div className="flex items-start space-x-3.5">
               <div className="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shadow-xs relative shrink-0">
                 {company.logoUrl ? (
                   <img
@@ -969,21 +1004,21 @@ export default function SettingsPage() {
                   <Store className="text-slate-400" size={28} />
                 )}
               </div>
-              <div>
-                <h3 className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                  <span>Store Brand Logo & Favicon</span>
+              <div className="min-w-0">
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-xs font-bold text-slate-800">Company Brand Logo</h3>
                   <span className="px-2 py-0.5 bg-blue-100 text-blue-700 font-semibold rounded-full text-[10px]">
-                    Auto-Favicon
+                    Invoices &amp; POS
                   </span>
-                </h3>
-                <p className="text-[11px] text-slate-500 mt-0.5 max-w-md">
-                  Upload your company logo. It will be used on invoice receipts, browser tab favicon, sidebar branding, and automated email templates.
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+                  Used on Sales Invoices, Receipts, POS terminal header, Sidebar branding, and Email notifications.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <label className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl cursor-pointer transition text-xs shadow-sm flex items-center space-x-1.5">
+            <div className="flex items-center space-x-2 pt-2 border-t border-slate-200/60">
+              <label className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl cursor-pointer transition text-xs shadow-sm flex items-center justify-center space-x-1.5">
                 <Upload size={14} />
                 <span>{company.logoUrl ? 'Change Logo' : 'Upload Logo'}</span>
                 <input
@@ -1000,6 +1035,58 @@ export default function SettingsPage() {
                   onClick={() => setCompany(prev => ({ ...prev, logoUrl: '' }))}
                   className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition text-xs border border-rose-200"
                   title="Remove Logo"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Browser Tab Favicon */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 flex flex-col justify-between space-y-4">
+            <div className="flex items-start space-x-3.5">
+              <div className="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shadow-xs relative shrink-0">
+                {company.faviconUrl ? (
+                  <img
+                    src={company.faviconUrl}
+                    alt="Favicon"
+                    className="w-10 h-10 object-contain"
+                  />
+                ) : (
+                  <Globe className="text-slate-400" size={26} />
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-xs font-bold text-slate-800">Browser Tab Favicon</h3>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 font-semibold rounded-full text-[10px]">
+                    Tab Icon
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+                  Displayed on browser tabs, bookmarks, and PWA shortcuts. Recommended: 32×32 or 64×64 PNG/ICO.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2 pt-2 border-t border-slate-200/60">
+              <label className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl cursor-pointer transition text-xs shadow-sm flex items-center justify-center space-x-1.5">
+                <Upload size={14} />
+                <span>{company.faviconUrl ? 'Change Favicon' : 'Upload Favicon'}</span>
+                <input
+                  type="file"
+                  accept="image/x-icon,image/vnd.microsoft.icon,image/png,image/svg+xml,image/webp"
+                  onChange={handleFaviconUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {company.faviconUrl && (
+                <button
+                  type="button"
+                  onClick={() => setCompany(prev => ({ ...prev, faviconUrl: '' }))}
+                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition text-xs border border-rose-200"
+                  title="Remove Favicon"
                 >
                   Remove
                 </button>

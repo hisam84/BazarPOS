@@ -122,16 +122,16 @@ export default function RootLayout({ children }) {
     if (typeof document !== 'undefined') {
       document.title = getPageTitle();
 
-      // Dynamic Favicon sync with Company Logo
-      const logo = company?.logoUrl || user?.logoUrl;
-      if (logo) {
+      // Dynamic Favicon sync with Company Favicon (or fallback to Logo)
+      const favicon = company?.faviconUrl || user?.faviconUrl || company?.logoUrl || user?.logoUrl;
+      if (favicon) {
         let link = document.querySelector("link[rel~='icon']");
         if (!link) {
           link = document.createElement('link');
           link.rel = 'icon';
           document.head.appendChild(link);
         }
-        link.href = logo;
+        link.href = favicon;
       }
     }
   }, [pathname, user, company]);
@@ -141,7 +141,7 @@ export default function RootLayout({ children }) {
       <head>
         <title>{getPageTitle()}</title>
         <meta name="description" content="Modern Point of Sale & Retail Billing Management ERP System" />
-        <link rel="icon" href={company?.logoUrl || user?.logoUrl || '/favicon.ico'} />
+        <link rel="icon" href={company?.faviconUrl || user?.faviconUrl || company?.logoUrl || user?.logoUrl || '/favicon.ico'} />
       </head>
       <body className="min-h-screen bg-slate-50 flex flex-col font-sans">
         {!isPublicPage && <SecurityWarningBanner user={user} onUserUpdated={(u) => setUser(u)} />}
