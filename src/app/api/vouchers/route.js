@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
+import crypto from 'crypto';
 
 export async function GET(request) {
   try {
@@ -7,9 +8,24 @@ export async function GET(request) {
     const storeId = searchParams.get('storeId') || 'default';
     const storeData = await getStoreData(storeId);
 
+    // Auto-upgrade legacy vouchers with secure publicToken if missing
+    let modified = false;
+    const vouchers = (storeData.vouchers || []).map(v => {
+      if (!v.publicToken) {
+        v.publicToken = 'inv_' + crypto.randomBytes(16).toString('hex');
+        modified = true;
+      }
+      return v;
+    });
+
+    if (modified) {
+      storeData.vouchers = vouchers;
+      await saveStoreData(storeId, storeData);
+    }
+
     return NextResponse.json({
       success: true,
-      vouchers: storeData.vouchers || [],
+      vouchers: vouchers,
       voucherCounter: storeData.voucherCounter || 1001
     });
   } catch (error) {
@@ -60,8 +76,13 @@ export async function POST(request) {
     });
     const profit = Math.max(0, grandTotal - totalCost);
 
+    // Secure non-guessable random token for public link sharing (prevents URL guessing/IDOR)
+    const publicToken = 'inv_' + crypto.randomBytes(16).toString('hex');
+    const voucherId = 'v_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex');
+
     const newVoucher = {
-      id: 'v_' + Date.now(),
+      id: voucherId,
+      publicToken,
       voucherNo,
       date: new Date().toISOString(),
       clientName: clientName || 'Walk-in Customer',

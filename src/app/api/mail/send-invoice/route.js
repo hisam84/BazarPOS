@@ -22,7 +22,7 @@ export async function POST(request) {
     const provider = mailSettings.provider || 'smtp';
 
     const subject = `Invoice #${voucher.voucherNo} from ${storeName}`;
-    const directLink = invoiceUrl || `https://bazarpos.com/invoice/${voucher.id}?storeId=${storeId}`;
+    const directLink = invoiceUrl || `https://bazarpos.com/invoice/${voucher.publicToken || voucher.id}?storeId=${storeId}`;
 
     const itemsHtml = (voucher.items || [])
       .map(

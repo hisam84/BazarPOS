@@ -278,7 +278,8 @@ export default function POSTerminalPage() {
   const getInvoiceDownloadUrl = (voucher) => {
     if (!voucher) return '';
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${origin}/invoice/${voucher.id}?storeId=${user?.storeId || 'default'}`;
+    const token = voucher.publicToken || voucher.id;
+    return `${origin}/invoice/${token}?storeId=${user?.storeId || 'default'}`;
   };
 
   const getWhatsAppShareUrl = () => {
