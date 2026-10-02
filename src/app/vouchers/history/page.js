@@ -252,39 +252,39 @@ export default function VoucherHistoryPage() {
   }, [filteredVouchers]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <FileText className="text-blue-600" size={24} />
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <FileText className="text-blue-600" size={22} />
             <span>Sales Reports & Voucher History</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">Manage and track all issued invoices and customer receipts.</p>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Manage and track all issued invoices and customer receipts.</p>
         </div>
       </div>
 
       {/* Filter Controls */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
+      <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 sm:space-y-3.5">
         {/* Row 1: Search & Status Filter */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-3.5 top-3 text-slate-400" size={17} />
+            <Search className="absolute left-3.5 top-2.5 sm:top-3 text-slate-400" size={16} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by Voucher #, Customer Name, or Phone..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
+              placeholder="Search by Voucher #, Customer, Phone..."
+              className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
             />
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
-            <Filter size={17} className="text-slate-400" />
+            <Filter size={16} className="text-slate-400" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+              className="w-full sm:w-auto px-3 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:bg-white transition"
             >
               <option value="ALL">All Payment Status</option>
               <option value="PAID">PAID</option>
@@ -295,26 +295,26 @@ export default function VoucherHistoryPage() {
         </div>
 
         {/* Row 2: Date Presets & Active Range */}
-        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center space-x-1">
-              <Calendar size={14} />
+        <div className="pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+            <span className="text-xs font-bold text-slate-500 mr-1 flex items-center space-x-1 shrink-0">
+              <Calendar size={13} />
               <span>Date:</span>
             </span>
             {[
               { id: 'all', label: 'All Time' },
               { id: 'today', label: 'Today' },
               { id: 'yesterday', label: 'Yesterday' },
-              { id: '7days', label: 'Last 7 Days' },
+              { id: '7days', label: '7 Days' },
               { id: 'month', label: 'This Month' },
               { id: 'last_month', label: 'Last Month' },
-              { id: 'custom', label: 'Custom Range' },
+              { id: 'custom', label: 'Custom' },
             ].map((p) => (
               <button
                 key={p.id}
                 type="button"
                 onClick={() => setDatePreset(p.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition shrink-0 ${
                   datePreset === p.id
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -325,30 +325,30 @@ export default function VoucherHistoryPage() {
             ))}
           </div>
 
-          <div className="text-xs font-semibold text-slate-500">
+          <div className="text-[11px] sm:text-xs font-semibold text-slate-500 truncate">
             Period: <span className="font-bold text-blue-600">{dateRange.label}</span>
           </div>
         </div>
 
         {/* Custom Date Range Pickers */}
         {datePreset === 'custom' && (
-          <div className="pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100/80 animate-in fade-in duration-150">
+          <div className="pt-2.5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-blue-50/50 p-3 rounded-xl border border-blue-100/80 animate-in fade-in duration-150">
             <div className="flex items-center space-x-2">
-              <label className="text-xs font-bold text-slate-600">Start Date:</label>
+              <label className="text-xs font-bold text-slate-600 shrink-0">Start Date:</label>
               <input
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div className="flex items-center space-x-2">
-              <label className="text-xs font-bold text-slate-600">End Date:</label>
+              <label className="text-xs font-bold text-slate-600 shrink-0">End Date:</label>
               <input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -356,94 +356,173 @@ export default function VoucherHistoryPage() {
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Invoices</span>
-          <p className="text-base sm:text-lg font-black font-mono text-slate-800 mt-0.5">{summaryMetrics.count}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Invoices</span>
+          <p className="text-base sm:text-lg font-black font-mono text-slate-800 mt-0.5 truncate">{summaryMetrics.count}</p>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Invoiced</span>
-          <p className="text-base sm:text-lg font-black font-mono text-blue-600 mt-0.5">৳{summaryMetrics.totalSales.toLocaleString()}</p>
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Invoiced</span>
+          <p className="text-base sm:text-lg font-black font-mono text-blue-600 mt-0.5 truncate">৳{summaryMetrics.totalSales.toLocaleString()}</p>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Collected</span>
-          <p className="text-base sm:text-lg font-black font-mono text-emerald-600 mt-0.5">৳{summaryMetrics.totalPaid.toLocaleString()}</p>
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Collected</span>
+          <p className="text-base sm:text-lg font-black font-mono text-emerald-600 mt-0.5 truncate">৳{summaryMetrics.totalPaid.toLocaleString()}</p>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Due</span>
-          <p className="text-base sm:text-lg font-black font-mono text-rose-600 mt-0.5">৳{summaryMetrics.totalDue.toLocaleString()}</p>
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Due</span>
+          <p className="text-base sm:text-lg font-black font-mono text-rose-600 mt-0.5 truncate">৳{summaryMetrics.totalDue.toLocaleString()}</p>
         </div>
       </div>
 
-      {/* Vouchers Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Vouchers Table & Mobile Cards */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-5">
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-sm">Loading Sales History...</div>
         ) : filteredVouchers.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 text-sm">No vouchers match your filter criteria.</div>
+          <div className="text-center py-12 text-slate-400 text-xs sm:text-sm">No vouchers match your filter criteria.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b">
-                <tr>
-                  <th className="px-4 py-3">Voucher #</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Customer</th>
-                  <th className="px-4 py-3">Sales Rep</th>
-                  <th className="px-4 py-3">Total Amount</th>
-                  <th className="px-4 py-3">Paid</th>
-                  <th className="px-4 py-3">Due</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredVouchers.map((v) => (
-                  <tr key={v.id} className="hover:bg-slate-50/80 transition">
-                    <td className="px-4 py-3 font-mono font-bold text-blue-600">{v.voucherNo}</td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
-                      {new Date(v.date).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-slate-800">{v.clientName}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600">{v.salerName}</td>
-                    <td className="px-4 py-3 font-bold text-slate-900">৳{v.totalAmount}</td>
-                    <td className="px-4 py-3 text-emerald-600 font-semibold">৳{v.paidAmount}</td>
-                    <td className="px-4 py-3 text-rose-600 font-semibold">৳{v.dueAmount}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 text-[11px] font-bold rounded-full ${
-                        v.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                      }`}>
-                        {v.status}
+          <>
+            {/* Mobile View: Clean App Cards (Zero Horizontal Scroll) */}
+            <div className="block md:hidden space-y-2.5">
+              {filteredVouchers.map((v) => (
+                <div
+                  key={v.id}
+                  className="p-3 bg-slate-50/70 border border-slate-200 rounded-xl space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-xs text-blue-600">
+                      {v.voucherNo}
+                    </span>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                      v.status === 'PAID'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : v.status === 'PARTIAL'
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-rose-100 text-rose-700'
+                    }`}>
+                      {v.status}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="min-w-0 pr-2">
+                      <span className="font-bold text-slate-900 block truncate">{v.clientName}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {new Date(v.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right space-x-1.5">
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="font-black text-slate-900 text-sm block">৳{Number(v.totalAmount || 0).toLocaleString()}</span>
+                      <span className="text-[10px] text-emerald-600 font-semibold block">Paid: ৳{Number(v.paidAmount || 0).toLocaleString()}</span>
+                      {Number(v.dueAmount || 0) > 0 && (
+                        <span className="text-[10px] text-rose-600 font-bold block">Due: ৳{Number(v.dueAmount || 0).toLocaleString()}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 truncate max-w-[130px]">
+                      Rep: {v.salerName || 'Store Staff'}
+                    </span>
+
+                    <div className="flex items-center space-x-1">
                       <a
                         href={`/sales-return?invoiceNo=${encodeURIComponent(v.voucherNo || v.voucherNumber || v.id)}`}
-                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center"
-                        title="Process Return / Warranty Claim"
+                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                        title="Return / Warranty"
                       >
-                        <RotateCcw size={16} />
+                        <RotateCcw size={15} />
                       </a>
                       <button
                         onClick={() => setSelectedVoucher(v)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition inline-flex items-center"
-                        title="View / Print Invoice"
+                        className="px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-bold text-[11px] flex items-center space-x-1 transition"
                       >
-                        <Eye size={16} />
+                        <Eye size={13} />
+                        <span>View</span>
                       </button>
                       <button
                         onClick={() => handleDeleteVoucher(v.id)}
-                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition inline-flex items-center"
+                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"
                         title="Delete Voucher"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={15} />
                       </button>
-                    </td>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Full Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-500 font-semibold border-b">
+                  <tr>
+                    <th className="px-4 py-3">Voucher #</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Customer</th>
+                    <th className="px-4 py-3">Sales Rep</th>
+                    <th className="px-4 py-3">Total Amount</th>
+                    <th className="px-4 py-3">Paid</th>
+                    <th className="px-4 py-3">Due</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredVouchers.map((v) => (
+                    <tr key={v.id} className="hover:bg-slate-50/80 transition">
+                      <td className="px-4 py-3 font-mono font-bold text-blue-600">{v.voucherNo}</td>
+                      <td className="px-4 py-3 text-xs text-slate-500">
+                        {new Date(v.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-slate-800">{v.clientName}</td>
+                      <td className="px-4 py-3 text-xs text-slate-600">{v.salerName}</td>
+                      <td className="px-4 py-3 font-bold text-slate-900">৳{v.totalAmount}</td>
+                      <td className="px-4 py-3 text-emerald-600 font-semibold">৳{v.paidAmount}</td>
+                      <td className="px-4 py-3 text-rose-600 font-semibold">৳{v.dueAmount}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2.5 py-1 text-[11px] font-bold rounded-full ${
+                          v.status === 'PAID'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : v.status === 'PARTIAL'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-rose-100 text-rose-700'
+                        }`}>
+                          {v.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-1.5">
+                        <a
+                          href={`/sales-return?invoiceNo=${encodeURIComponent(v.voucherNo || v.voucherNumber || v.id)}`}
+                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center"
+                          title="Process Return / Warranty Claim"
+                        >
+                          <RotateCcw size={16} />
+                        </a>
+                        <button
+                          onClick={() => setSelectedVoucher(v)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition inline-flex items-center"
+                          title="View / Print Invoice"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteVoucher(v.id)}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition inline-flex items-center"
+                          title="Delete Voucher"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
