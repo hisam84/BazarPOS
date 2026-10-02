@@ -44,7 +44,7 @@ export async function POST(request) {
           {
             success: false,
             smtpConfigured: false,
-            message: 'ইমেইল সার্ভার (SMTP) সেটআপ করা নেই। পাসওয়ার্ড রিসেট করতে অনুগ্রহ করে সিস্টেম অ্যাডমিনের সাথে যোগাযোগ করুন।'
+            message: 'Email service (SMTP) is not configured. Please contact the system administrator to reset your password.'
           },
           { status: 400 }
         );

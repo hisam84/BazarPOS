@@ -102,7 +102,7 @@ export async function getActiveMailConfig(storeId = 'default') {
 
   return {
     configured: false,
-    message: 'ইমেইল সার্ভিস (Brevo / SMTP) সিস্টেমে কনফিগার করা নেই।'
+    message: 'Email service (Brevo / SMTP) is not configured in the system.'
   };
 }
 
@@ -116,7 +116,7 @@ export async function sendPasswordResetOtpEmail({ toEmail, otpCode, username, ro
     return {
       success: false,
       smtpConfigured: false,
-      message: 'ইমেইল সার্ভিস (Brevo / SMTP) সেটআপ করা নেই। পাসওয়ার্ড রিসেট করতে অনুগ্রহ করে সিস্টেম অ্যাডমিনের সাথে যোগাযোগ করুন।'
+      message: 'Email service (Brevo / SMTP) is not configured. Please contact the system administrator to reset your password.'
     };
   }
 

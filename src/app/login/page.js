@@ -89,7 +89,7 @@ export default function LoginPage() {
       if (!data.success) {
         if (data.smtpConfigured === false) {
           setSmtpNotConfigured(true);
-          setResetError(data.message || 'ইমেইল সার্ভার (SMTP) সেটআপ করা নেই। পাসওয়ার্ড রিসেট করতে অনুগ্রহ করে অ্যাডমিনের সাথে যোগাযোগ করুন।');
+          setResetError(data.message || 'Email service (SMTP/Brevo) is not configured. Please contact the system administrator.');
         } else {
           setResetError(data.message || 'Failed to send verification code');
         }
@@ -147,7 +147,7 @@ export default function LoginPage() {
       }
 
       // Reset successful!
-      setSuccess('পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে! এখন আপনার নতুন পাসওয়ার্ড দিয়ে লগইন করুন।');
+      setSuccess('Password has been reset successfully! You can now log in with your new password.');
       setIsForgotPassword(false);
       setResetStep(1);
       setResetOtp('');
@@ -191,12 +191,12 @@ export default function LoginPage() {
               <div>
                 <h2 className="text-base font-bold text-white flex items-center space-x-2">
                   <KeyRound size={18} className="text-blue-400" />
-                  <span>পাসওয়ার্ড রিসেট (Password Recovery)</span>
+                  <span>Password Recovery</span>
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {resetStep === 1
-                    ? 'আপনার নিবন্ধিত ইমেইল অ্যাড্রেসটি প্রদান করুন'
-                    : `কোড পাঠানো হয়েছে: ${resetEmail}`}
+                    ? 'Enter your registered email address'
+                    : `Verification code sent to: ${resetEmail}`}
                 </p>
               </div>
             </div>
@@ -214,10 +214,10 @@ export default function LoginPage() {
               <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-300 text-xs space-y-2">
                 <div className="flex items-center space-x-2 font-bold text-amber-400 text-sm">
                   <ShieldAlert size={18} className="shrink-0" />
-                  <span>ইমেইল সার্ভার (SMTP) সেটআপ করা নেই</span>
+                  <span>Email Service (SMTP) Not Configured</span>
                 </div>
                 <p className="text-slate-300 leading-relaxed text-[11px]">
-                  সিস্টেমে কোনো সক্রিয় SMTP মেইল গেটওয়ে কনফিগার করা নেই। পাসওয়ার্ড রিসেট করতে অনুগ্রহ করে সিস্টেম অ্যাডমিন বা স্টোর ম্যানেজারের সাথে সরাসরি যোগাযোগ করুন।
+                  No active email gateway is configured in the system. Please contact your store manager or system administrator directly to reset your credentials.
                 </p>
               </div>
             )}
@@ -247,7 +247,7 @@ export default function LoginPage() {
                   disabled={resetLoading}
                   className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/30 disabled:opacity-50 text-xs"
                 >
-                  <span>{resetLoading ? 'যাচাই করা হচ্ছে...' : 'রিসেট কোড পাঠান (Send Code)'}</span>
+                  <span>{resetLoading ? 'Verifying...' : 'Send Reset Code'}</span>
                   {!resetLoading && <ArrowRight size={16} />}
                 </button>
               </form>
@@ -258,7 +258,7 @@ export default function LoginPage() {
               <form onSubmit={handleVerifyAndReset} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                    ৬ ডিজিটের ভেরিফিকেশন কোড (OTP) *
+                    6-Digit Verification Code (OTP) *
                   </label>
                   <input
                     type="text"
@@ -273,7 +273,7 @@ export default function LoginPage() {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                    নতুন পাসওয়ার্ড (New Password) *
+                    New Password *
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-3.5 text-slate-500" size={18} />
@@ -282,7 +282,7 @@ export default function LoginPage() {
                       required
                       value={resetNewPassword}
                       onChange={(e) => setResetNewPassword(e.target.value)}
-                      placeholder="কমপক্ষে ৬ অক্ষর"
+                      placeholder="At least 6 characters"
                       className="w-full pl-10 pr-11 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono text-xs"
                     />
                     <button
@@ -297,14 +297,14 @@ export default function LoginPage() {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                    কনফার্ম পাসওয়ার্ড (Confirm Password) *
+                    Confirm New Password *
                   </label>
                   <input
                     type="password"
                     required
                     value={resetConfirmPassword}
                     onChange={(e) => setResetConfirmPassword(e.target.value)}
-                    placeholder="পুনরায় পাসওয়ার্ড লিখুন"
+                    placeholder="Re-enter new password"
                     className="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono text-xs"
                   />
                 </div>
@@ -314,7 +314,7 @@ export default function LoginPage() {
                   disabled={resetLoading}
                   className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-lg shadow-emerald-600/30 text-xs disabled:opacity-50"
                 >
-                  {resetLoading ? 'পাসওয়ার্ড আপডেট হচ্ছে...' : 'পাসওয়ার্ড রিসেট করুন (Reset Password)'}
+                  {resetLoading ? 'Updating Password...' : 'Reset Password'}
                 </button>
               </form>
             )}
@@ -326,7 +326,7 @@ export default function LoginPage() {
                 className="text-xs text-slate-400 hover:text-white transition inline-flex items-center space-x-1.5 font-medium"
               >
                 <ArrowLeft size={14} />
-                <span>লগইন পেজে ফিরে যান (Back to Login)</span>
+                <span>Back to Login</span>
               </button>
             </div>
           </div>
@@ -378,7 +378,7 @@ export default function LoginPage() {
                     }}
                     className="text-[11px] text-blue-400 hover:text-blue-300 font-semibold transition"
                   >
-                    পাসওয়ার্ড ভুলে গেছেন?
+                    Forgot Password?
                   </button>
                 </div>
                 <div className="relative">
