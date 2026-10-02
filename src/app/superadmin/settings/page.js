@@ -17,7 +17,9 @@ import {
 } from 'lucide-react';
 
 export default function SuperAdminSettingsPage() {
-  const [adminProfile, setAdminProfile] = useState({ username: 'superadmin', fullName: 'System Super Admin' });
+  const [adminProfile, setAdminProfile] = useState({ username: 'superadmin', fullName: 'System Super Admin', email: 'superadmin@bazarpos.com' });
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -31,6 +33,8 @@ export default function SuperAdminSettingsPage() {
       .then((data) => {
         if (data.success && data.admin) {
           setAdminProfile(data.admin);
+          setFullName(data.admin.fullName || '');
+          setEmail(data.admin.email || '');
         }
       })
       .catch((err) => console.error(err));
@@ -40,37 +44,52 @@ export default function SuperAdminSettingsPage() {
     e.preventDefault();
     setPasswordMsg({ type: '', text: '' });
 
-    if (newPassword.length < 6) {
+    if (!email || !email.includes('@')) {
+      setPasswordMsg({ type: 'error', text: 'Valid email address is mandatory for Super Admin account recovery.' });
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
       setPasswordMsg({ type: 'error', text: 'Password must be at least 6 characters long.' });
       return;
     }
-    if (newPassword !== confirmPassword) {
+    if (newPassword && newPassword !== confirmPassword) {
       setPasswordMsg({ type: 'error', text: 'New passwords do not match.' });
       return;
     }
 
     setLoading(true);
     try {
+      const payload = {
+        fullName: fullName.trim(),
+        email: email.trim().toLowerCase()
+      };
+      if (newPassword && newPassword.trim()) {
+        payload.password = newPassword.trim();
+      }
+
       const res = await fetch('/api/superadmin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: newPassword })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.success) {
-        setPasswordMsg({ type: 'success', text: 'Super Admin password updated successfully!' });
+        setPasswordMsg({ type: 'success', text: 'Super Admin credentials & profile updated successfully!' });
         setNewPassword('');
         setConfirmPassword('');
+        if (data.admin) setAdminProfile(data.admin);
         try {
           const saved = localStorage.getItem('bazarpos_user');
           if (saved) {
             const u = JSON.parse(saved);
             u.isDefaultPassword = false;
+            u.fullName = fullName.trim() || u.fullName;
             localStorage.setItem('bazarpos_user', JSON.stringify(u));
           }
         } catch (e) {}
       } else {
-        setPasswordMsg({ type: 'error', text: data.message || 'Failed to update password' });
+        setPasswordMsg({ type: 'error', text: data.message || 'Failed to update credentials' });
       }
     } catch (err) {
       setPasswordMsg({ type: 'error', text: 'Network error. Try again.' });
@@ -89,7 +108,7 @@ export default function SuperAdminSettingsPage() {
             <span>Super Admin Security & Platform Settings</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Manage your Super Admin master access credentials and review SaaS system architecture status.
+            Manage your Super Admin master access credentials, recovery email, and review SaaS system architecture status.
           </p>
         </div>
       </div>
@@ -99,7 +118,7 @@ export default function SuperAdminSettingsPage() {
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
           <div className="flex items-center space-x-2">
             <KeyRound className="text-purple-600" size={20} />
-            <h2 className="text-base font-bold text-slate-800">Change Master Password</h2>
+            <h2 className="text-base font-bold text-slate-800">Master Credentials & Profile</h2>
           </div>
           <p className="text-xs text-slate-500">
             Current account: <strong className="text-slate-800 font-mono">{adminProfile.username}</strong>
@@ -119,14 +138,37 @@ export default function SuperAdminSettingsPage() {
 
           <form onSubmit={handleChangePassword} className="space-y-3.5 text-xs">
             <div>
-              <label className="block text-slate-600 font-semibold mb-1">New Master Password</label>
+              <label className="block text-slate-700 font-bold mb-1">Super Admin Full Name</label>
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="System Super Admin"
+                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-purple-500 text-xs font-semibold text-slate-800"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 font-bold mb-1">Email Address * (For Password Recovery)</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="superadmin@bazarpos.com"
+                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-purple-500 text-xs font-semibold text-slate-800"
+              />
+            </div>
+
+            <div className="pt-2 border-t">
+              <label className="block text-slate-600 font-semibold mb-1">New Master Password (Optional)</label>
               <div className="relative">
                 <input
                   type={showNewPassword ? 'text' : 'password'}
-                  required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter minimum 6 characters"
+                  placeholder="Leave blank to keep current"
                   className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-500 font-mono"
                 />
                 <button
@@ -145,7 +187,6 @@ export default function SuperAdminSettingsPage() {
               <div className="relative">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
-                  required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter new password"
@@ -167,7 +208,7 @@ export default function SuperAdminSettingsPage() {
               disabled={loading}
               className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition shadow-md shadow-purple-600/30 disabled:opacity-50"
             >
-              {loading ? 'Updating Password...' : 'Update Master Password'}
+              {loading ? 'Saving Changes...' : 'Update Master Profile & Credentials'}
             </button>
           </form>
         </div>

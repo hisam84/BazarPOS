@@ -22,9 +22,9 @@ export async function POST(request) {
     const body = await request.json();
     const { name, owner, phone, email, address, username, password, planId, customDurationDays, notes } = body;
 
-    if (!name || !username || !password) {
+    if (!name || !username || !password || !email || !email.includes('@')) {
       return NextResponse.json(
-        { success: false, message: 'Company Name, Username, and Password are required' },
+        { success: false, message: 'Company Name, Username, Password, and a valid Email address are required' },
         { status: 400 }
       );
     }
@@ -33,7 +33,7 @@ export async function POST(request) {
       name,
       owner,
       phone,
-      email,
+      email: email.trim().toLowerCase(),
       address,
       username,
       password,
@@ -58,6 +58,10 @@ export async function PUT(request) {
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Company ID required' }, { status: 400 });
+    }
+
+    if (updates.email !== undefined && (!updates.email || !updates.email.includes('@'))) {
+      return NextResponse.json({ success: false, message: 'A valid email address is required' }, { status: 400 });
     }
 
     const updated = await updateCompany(id, updates);

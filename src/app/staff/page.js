@@ -9,7 +9,7 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editStaff, setEditStaff] = useState(null);
-  const [form, setForm] = useState({ name: '', username: '', password: '', role: 'cashier', phone: '' });
+  const [form, setForm] = useState({ name: '', username: '', email: '', password: '', role: 'cashier', phone: '' });
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
@@ -40,7 +40,7 @@ export default function StaffPage() {
 
   const handleOpenAddModal = () => {
     setEditStaff(null);
-    setForm({ name: '', username: '', password: '', role: 'cashier', phone: '' });
+    setForm({ name: '', username: '', email: '', password: '', role: 'cashier', phone: '' });
     setShowModal(true);
   };
 
@@ -49,6 +49,7 @@ export default function StaffPage() {
     setForm({
       name: st.name || '',
       username: st.username || '',
+      email: st.email || '',
       password: '',
       role: st.role || 'cashier',
       phone: st.phone || ''
@@ -166,6 +167,7 @@ export default function StaffPage() {
                     <div>
                       <h3 className="font-bold text-slate-900 text-sm">{st.name}</h3>
                       <p className="text-[11px] text-slate-400 font-mono">@{st.username}</p>
+                      {st.email && <p className="text-[10px] text-blue-600 font-mono truncate max-w-[140px]">{st.email}</p>}
                     </div>
                   </div>
                   <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
@@ -230,6 +232,18 @@ export default function StaffPage() {
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="e.g. Rahim Cashier"
+                  className="w-full px-3 py-2 border rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-600 mb-1 font-semibold">Email Address * (For Password Recovery)</label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  placeholder="staff@example.com"
                   className="w-full px-3 py-2 border rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
                 />
               </div>

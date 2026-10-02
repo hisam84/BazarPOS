@@ -503,13 +503,14 @@ export default function SuperAdminCompaniesPage() {
               {/* Email and Address */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Email Address</label>
+                  <label className="block text-slate-700 font-bold mb-1">Email Address * (For Password Recovery)</label>
                   <input
                     type="email"
+                    required
                     value={createForm.email}
                     onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
                     placeholder="owner@company.com"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white"
                   />
                 </div>
                 <div>
@@ -684,9 +685,10 @@ export default function SuperAdminCompaniesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-600 font-semibold mb-1">Email</label>
+                  <label className="block text-slate-700 font-bold mb-1">Email Address *</label>
                   <input
                     type="email"
+                    required
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50"

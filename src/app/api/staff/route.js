@@ -21,21 +21,28 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { storeId = 'default', name, username, password, role = 'cashier', phone = '' } = body;
+    const { storeId = 'default', name, username, password, email, role = 'cashier', phone = '' } = body;
 
     const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
     if (!auth.authenticated) return auth.errorResponse;
 
-    if (!name || !username || !password) {
-      return NextResponse.json({ success: false, message: 'Name, username, and password required' }, { status: 400 });
+    if (!name || !username || !password || !email) {
+      return NextResponse.json({ success: false, message: 'Name, username, password, and email are required' }, { status: 400 });
+    }
+
+    if (!email.includes('@')) {
+      return NextResponse.json({ success: false, message: 'Please provide a valid email address' }, { status: 400 });
     }
 
     const storeData = await getStoreData(storeId);
     storeData.staff = storeData.staff || [];
 
-    // Check duplicate username
+    // Check duplicate username or email
     if (storeData.staff.some(s => s.username.toLowerCase() === username.toLowerCase())) {
       return NextResponse.json({ success: false, message: 'Username already taken by another staff member' }, { status: 400 });
+    }
+    if (storeData.staff.some(s => s.email && s.email.toLowerCase() === email.toLowerCase())) {
+      return NextResponse.json({ success: false, message: 'Email address is already registered to another staff member' }, { status: 400 });
     }
 
     const hashedPassword = await hashPassword(password.trim());
@@ -44,6 +51,7 @@ export async function POST(request) {
       id: 'st_' + Date.now(),
       name: name.trim(),
       username: username.trim(),
+      email: email.trim().toLowerCase(),
       password: hashedPassword,
       role: role || 'cashier',
       phone: phone ? phone.trim() : '',
@@ -62,13 +70,17 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const { storeId = 'default', id, name, username, password, role, phone } = body;
+    const { storeId = 'default', id, name, username, email, password, role, phone } = body;
 
     const auth = verifyApiAuth(request, { requiredStoreId: storeId, allowedRoles: ['owner', 'superadmin'] });
     if (!auth.authenticated) return auth.errorResponse;
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Staff ID required' }, { status: 400 });
+    }
+
+    if (email !== undefined && (!email || !email.includes('@'))) {
+      return NextResponse.json({ success: false, message: 'Valid email address is mandatory' }, { status: 400 });
     }
 
     const storeData = await getStoreData(storeId);
@@ -79,6 +91,12 @@ export async function PUT(request) {
     }
 
     const existing = storeData.staff[index];
+
+    // Check duplicate email with other staff
+    if (email && storeData.staff.some(s => s.id !== id && s.email && s.email.toLowerCase() === email.toLowerCase())) {
+      return NextResponse.json({ success: false, message: 'Email is already used by another staff member' }, { status: 400 });
+    }
+
     let updatedPassword = existing.password;
     if (password !== undefined && password.trim() !== '') {
       updatedPassword = await hashPassword(password.trim());
@@ -88,6 +106,7 @@ export async function PUT(request) {
       ...existing,
       name: name !== undefined ? name.trim() : existing.name,
       username: username !== undefined ? username.trim() : existing.username,
+      email: email !== undefined ? email.trim().toLowerCase() : (existing.email || ''),
       password: updatedPassword,
       role: role !== undefined ? role : existing.role,
       phone: phone !== undefined ? phone.trim() : (existing.phone || ''),

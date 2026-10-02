@@ -11,6 +11,7 @@ const INITIAL_DATA = {
     username: 'superadmin',
     password: 'superadmin@123',
     fullName: 'System Super Admin',
+    email: 'superadmin@bazarpos.com',
   },
   stores: {
     'default': {
@@ -105,9 +106,15 @@ export async function initPostgresTables() {
           username VARCHAR(100) UNIQUE NOT NULL,
           password VARCHAR(255) NOT NULL,
           full_name VARCHAR(255) DEFAULT 'System Super Admin',
+          email VARCHAR(255) DEFAULT 'superadmin@bazarpos.com',
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `;
+
+      // Auto add email column if migrating existing table
+      try {
+        await sql`ALTER TABLE bazarpos_superadmin ADD COLUMN IF NOT EXISTS email VARCHAR(255) DEFAULT 'superadmin@bazarpos.com';`;
+      } catch (e) {}
 
       await sql`
         CREATE TABLE IF NOT EXISTS bazarpos_stores (
@@ -999,11 +1006,12 @@ export async function getSuperAdmin() {
   if (sql) {
     try {
       await initPostgresTables();
-      const rows = await sql`SELECT username, full_name FROM bazarpos_superadmin WHERE username = 'superadmin' LIMIT 1`;
+      const rows = await sql`SELECT username, full_name, email FROM bazarpos_superadmin WHERE username = 'superadmin' LIMIT 1`;
       if (rows.length > 0) {
         return {
           username: rows[0].username,
-          fullName: rows[0].full_name || 'System Super Admin'
+          fullName: rows[0].full_name || 'System Super Admin',
+          email: rows[0].email || 'superadmin@bazarpos.com'
         };
       }
     } catch (e) {
@@ -1014,7 +1022,8 @@ export async function getSuperAdmin() {
   const db = ensureDb();
   return {
     username: db.superAdmin.username,
-    fullName: db.superAdmin.fullName
+    fullName: db.superAdmin.fullName,
+    email: db.superAdmin.email || 'superadmin@bazarpos.com'
   };
 }
 
@@ -1034,6 +1043,52 @@ export async function updateSuperAdminPassword(newPassword) {
   db.superAdmin.password = hashedPassword;
   saveDb(db);
   return true;
+}
+
+export async function updateSuperAdminProfile({ fullName, email, password }) {
+  const sql = getNeonSql();
+  let hashedPassword = null;
+  if (password && password.trim()) {
+    hashedPassword = await hashPassword(password.trim());
+  }
+
+  if (sql) {
+    try {
+      await initPostgresTables();
+      if (hashedPassword) {
+        await sql`
+          UPDATE bazarpos_superadmin 
+          SET full_name = COALESCE(${fullName || null}, full_name),
+              email = COALESCE(${email || null}, email),
+              password = ${hashedPassword},
+              updated_at = NOW()
+          WHERE username = 'superadmin'
+        `;
+      } else {
+        await sql`
+          UPDATE bazarpos_superadmin 
+          SET full_name = COALESCE(${fullName || null}, full_name),
+              email = COALESCE(${email || null}, email),
+              updated_at = NOW()
+          WHERE username = 'superadmin'
+        `;
+      }
+    } catch (e) {
+      console.warn('Postgres updateSuperAdminProfile error:', e.message);
+    }
+  }
+
+  const db = ensureDb();
+  if (fullName) db.superAdmin.fullName = fullName;
+  if (email) db.superAdmin.email = email;
+  if (hashedPassword) db.superAdmin.password = hashedPassword;
+  saveDb(db);
+
+  return {
+    username: db.superAdmin.username,
+    fullName: db.superAdmin.fullName,
+    email: db.superAdmin.email
+  };
 }
 
 export async function createStore(args) {

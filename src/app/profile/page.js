@@ -192,9 +192,10 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-1.5 font-bold">Email Address</label>
+              <label className="block text-slate-700 mb-1.5 font-bold">Email Address * (For Password Recovery)</label>
               <input
                 type="email"
+                required
                 placeholder="owner@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
