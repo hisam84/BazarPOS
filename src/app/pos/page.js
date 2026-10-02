@@ -20,9 +20,11 @@ import {
   Send,
   Boxes,
   ShoppingCart,
-  ArrowRight
+  ArrowRight,
+  Camera
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
+import BarcodeScannerModal from '@/components/BarcodeScannerModal';
 
 const WARRANTY_TYPES = [
   { value: 'none', label: 'No Warranty', color: 'bg-slate-100 text-slate-500' },
@@ -74,6 +76,8 @@ export default function POSTerminalPage() {
   const [printModal, setPrintModal] = useState(false);
   const [showAddClientModal, setShowAddClientModal] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
+  const [showProductFormScanner, setShowProductFormScanner] = useState(false);
 
   // Quick Add Forms
   const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '', address: '', due: 0 });
@@ -212,15 +216,33 @@ export default function POSTerminalPage() {
     e.preventDefault();
     if (!barcodeInput.trim()) return;
 
+    const trimmed = barcodeInput.trim();
     const matched = products.find(
-      (p) => p.barcode === barcodeInput.trim() || p.code === barcodeInput.trim().toUpperCase()
+      (p) => (p.barcode && p.barcode.toLowerCase() === trimmed.toLowerCase()) || 
+             (p.code && p.code.toLowerCase() === trimmed.toLowerCase())
     );
 
     if (matched) {
       addToCart(matched);
       setBarcodeInput('');
     } else {
-      alert('Product not found!');
+      alert(`Product with barcode "${trimmed}" not found!`);
+    }
+  };
+
+  const handleCameraScan = (code) => {
+    if (!code) return;
+    const trimmed = code.trim();
+    const matched = products.find(
+      (p) => (p.barcode && p.barcode.toLowerCase() === trimmed.toLowerCase()) || 
+             (p.code && p.code.toLowerCase() === trimmed.toLowerCase())
+    );
+
+    if (matched) {
+      addToCart(matched);
+      setBarcodeInput('');
+    } else {
+      alert(`Product with barcode "${trimmed}" not found in inventory!`);
     }
   };
 
@@ -503,16 +525,26 @@ export default function POSTerminalPage() {
         mobileTab === 'cart' ? 'hidden lg:flex' : 'flex'
       }`}>
         <div className="flex flex-col sm:flex-row gap-2.5 mb-3.5">
-          <form onSubmit={handleBarcodeSubmit} className="flex-1 relative min-w-0">
-            <Barcode className="absolute left-3 top-2.5 text-slate-400" size={17} />
-            <input
-              ref={barcodeRef}
-              type="text"
-              value={barcodeInput}
-              onChange={(e) => setBarcodeInput(e.target.value)}
-              placeholder="Scan barcode or enter code & hit Enter..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
-            />
+          <form onSubmit={handleBarcodeSubmit} className="flex-1 relative min-w-0 flex items-center">
+            <div className="relative flex-1">
+              <Barcode className="absolute left-3 top-2.5 text-slate-400" size={17} />
+              <input
+                ref={barcodeRef}
+                type="text"
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                placeholder="Scan barcode / enter code..."
+                className="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCameraScanner(true)}
+                className="absolute right-1.5 top-1.5 p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                title="Open Mobile Camera Barcode Scanner"
+              >
+                <Camera size={16} />
+              </button>
+            </div>
           </form>
 
           <div className="flex-1 relative min-w-0">
@@ -1114,13 +1146,23 @@ export default function POSTerminalPage() {
                 <div>
                   <label className="block text-slate-700 mb-1 font-bold">Barcode</label>
                   <div className="flex gap-1.5">
-                    <input
-                      type="text"
-                      placeholder="Enter barcode (optional)"
-                      value={productForm.barcode}
-                      onChange={e => setProductForm({ ...productForm, barcode: e.target.value })}
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none"
-                    />
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Enter barcode (optional)"
+                        value={productForm.barcode}
+                        onChange={e => setProductForm({ ...productForm, barcode: e.target.value })}
+                        className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowProductFormScanner(true)}
+                        className="absolute right-1 top-1 p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Scan Barcode using Camera"
+                      >
+                        <Camera size={15} />
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -1135,7 +1177,7 @@ export default function POSTerminalPage() {
                       Generate
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Unique barcode for product identification</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Unique barcode or scan via mobile camera</p>
                 </div>
               </div>
 
@@ -1643,6 +1685,25 @@ export default function POSTerminalPage() {
           </div>
         </div>
       )}
+
+      {/* ================= MOBILE CAMERA BARCODE SCANNERS ================= */}
+      <BarcodeScannerModal
+        isOpen={showCameraScanner}
+        onClose={() => setShowCameraScanner(false)}
+        onScanSuccess={handleCameraScan}
+        continuous={false}
+        title="POS Camera Barcode Scanner"
+      />
+
+      <BarcodeScannerModal
+        isOpen={showProductFormScanner}
+        onClose={() => setShowProductFormScanner(false)}
+        onScanSuccess={(code) => {
+          setProductForm(prev => ({ ...prev, barcode: code }));
+        }}
+        continuous={false}
+        title="Scan Product Barcode"
+      />
     </div>
   );
 }

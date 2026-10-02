@@ -14,8 +14,10 @@ import {
   ShieldCheck,
   Truck,
   Layers,
-  Sparkles
+  Sparkles,
+  Camera
 } from 'lucide-react';
+import BarcodeScannerModal from '@/components/BarcodeScannerModal';
 
 const DEFAULT_UNITS = [
   'Pieces (pcs)',
@@ -51,6 +53,10 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Scanner Modals
+  const [showSearchScanner, setShowSearchScanner] = useState(false);
+  const [showFormScanner, setShowFormScanner] = useState(false);
 
   // Modal
   const [showModal, setShowModal] = useState(false);
@@ -244,14 +250,22 @@ export default function InventoryPage() {
       {/* Filters & Search */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-3.5 top-3 text-slate-400" size={18} />
+          <Search className="absolute left-3.5 top-2.5 text-slate-400" size={17} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Product Name, Code, Brand, Barcode, or Supplier..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500"
           />
+          <button
+            type="button"
+            onClick={() => setShowSearchScanner(true)}
+            className="absolute right-1.5 top-1.5 p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+            title="Scan Barcode to Search Product"
+          >
+            <Camera size={16} />
+          </button>
         </div>
 
         <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar">
@@ -400,13 +414,23 @@ export default function InventoryPage() {
                 <div>
                   <label className="block text-slate-700 mb-1.5 font-bold">Barcode</label>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Enter barcode (optional)"
-                      value={form.barcode}
-                      onChange={(e) => setForm({ ...form, barcode: e.target.value })}
-                      className="flex-1 px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 font-mono text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
-                    />
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        placeholder="Enter barcode (optional)"
+                        value={form.barcode}
+                        onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                        className="w-full pl-3.5 pr-8 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 font-mono text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowFormScanner(true)}
+                        className="absolute right-1.5 top-2 p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Scan Barcode using Camera"
+                      >
+                        <Camera size={15} />
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={handleGenerateBarcode}
@@ -416,7 +440,7 @@ export default function InventoryPage() {
                       <span>Generate</span>
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1">Unique barcode for product identification</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Unique barcode or scan via mobile camera</p>
                 </div>
               </div>
 
@@ -632,6 +656,27 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+
+      {/* ================= MOBILE CAMERA BARCODE SCANNERS ================= */}
+      <BarcodeScannerModal
+        isOpen={showSearchScanner}
+        onClose={() => setShowSearchScanner(false)}
+        onScanSuccess={(code) => {
+          setSearch(code);
+        }}
+        continuous={false}
+        title="Scan Barcode to Filter Inventory"
+      />
+
+      <BarcodeScannerModal
+        isOpen={showFormScanner}
+        onClose={() => setShowFormScanner(false)}
+        onScanSuccess={(code) => {
+          setForm(prev => ({ ...prev, barcode: code }));
+        }}
+        continuous={false}
+        title="Scan Product Barcode"
+      />
     </div>
   );
 }
