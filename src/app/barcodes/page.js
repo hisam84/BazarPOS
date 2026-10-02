@@ -80,15 +80,15 @@ export default function BarcodePage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 sm:space-y-6 pb-12 max-w-7xl mx-auto text-xs">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm no-print">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <Barcode className="text-blue-600" size={24} />
-            <span>Barcode Generator & Sticker Label Printer</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <Barcode className="text-blue-600 flex-shrink-0" size={22} />
+            <span className="truncate">Barcode Generator &amp; Label Printer</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
             Generate standard scannable Code 128 barcode sticker labels for retail inventory products and shelf tags.
           </p>
         </div>
@@ -97,20 +97,20 @@ export default function BarcodePage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 transition shadow-md shadow-blue-500/20"
+            className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow-md shadow-blue-500/20 flex-shrink-0"
           >
             <Printer size={16} />
-            <span>Print {generatedLabels.length} Barcode Labels</span>
+            <span>Print {generatedLabels.length} Labels</span>
           </button>
         )}
       </div>
 
       {/* Generator Configuration Form */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 no-print">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 sm:space-y-5 no-print">
         <form onSubmit={handleGenerate} className="space-y-4 text-xs font-medium">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <label className="block text-slate-700 mb-1.5 font-bold">Select Product from Inventory</label>
+              <label className="block text-slate-700 mb-1 font-bold text-xs">Select Product</label>
               <select
                 value={selectedProductCode}
                 onChange={(e) => handleProductSelect(e.target.value)}
@@ -126,7 +126,7 @@ export default function BarcodePage() {
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-1.5 font-bold">Barcode Value / Code *</label>
+              <label className="block text-slate-700 mb-1 font-bold text-xs">Barcode Value / Code *</label>
               <input
                 type="text"
                 required
@@ -138,7 +138,7 @@ export default function BarcodePage() {
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-1.5 font-bold">Label Print Quantity</label>
+              <label className="block text-slate-700 mb-1 font-bold text-xs">Label Print Quantity</label>
               <input
                 type="number"
                 min="1"
@@ -150,9 +150,9 @@ export default function BarcodePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-2 border-t border-slate-100">
             <div>
-              <label className="block text-slate-700 mb-1.5 font-bold">Product Title on Label</label>
+              <label className="block text-slate-700 mb-1 font-bold text-xs">Product Title on Label</label>
               <input
                 type="text"
                 placeholder="Product name"
@@ -163,7 +163,7 @@ export default function BarcodePage() {
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-1.5 font-bold">Price on Label (৳)</label>
+              <label className="block text-slate-700 mb-1 font-bold text-xs">Price on Label (৳)</label>
               <input
                 type="number"
                 step="any"
@@ -175,13 +175,13 @@ export default function BarcodePage() {
             </div>
 
             {/* Toggles */}
-            <div className="flex items-center space-x-4 pt-6">
+            <div className="flex items-center space-x-4 pt-2 sm:pt-6">
               <label className="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={showStoreName}
                   onChange={(e) => setShowStoreName(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
                 <span>Store Name</span>
               </label>
@@ -191,17 +191,17 @@ export default function BarcodePage() {
                   type="checkbox"
                   checked={showPrice}
                   onChange={(e) => setShowPrice(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                 />
                 <span>Show Price</span>
               </label>
             </div>
           </div>
 
-          <div className="pt-2 flex gap-3">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
             <button
               type="submit"
-              className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center space-x-2 transition shadow-sm"
+              className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow-sm"
             >
               <RefreshCw size={14} />
               <span>Generate Barcode Labels</span>
@@ -211,7 +211,7 @@ export default function BarcodePage() {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 transition shadow-md shadow-blue-500/20"
+                className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow-md shadow-blue-500/20"
               >
                 <Printer size={14} />
                 <span>Print Sticker Sheet</span>
@@ -223,14 +223,14 @@ export default function BarcodePage() {
 
       {/* Generated Barcode Labels Preview Grid */}
       {generatedLabels.length > 0 ? (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b pb-3 no-print">
-            <h2 className="text-sm font-bold text-slate-800 flex items-center space-x-2">
-              <Tag className="text-blue-600" size={18} />
-              <span>Ready-to-Print Barcode Stickers ({generatedLabels.length} items)</span>
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3 no-print">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-800 flex items-center space-x-2">
+              <Tag className="text-blue-600 flex-shrink-0" size={18} />
+              <span>Ready-to-Print Stickers ({generatedLabels.length} items)</span>
             </h2>
-            <span className="text-[11px] text-slate-500 font-mono">
-              Format: Standard Code 128 (Scannable)
+            <span className="text-[10px] sm:text-[11px] text-slate-500 font-mono">
+              Format: Code 128 (Scannable)
             </span>
           </div>
 
