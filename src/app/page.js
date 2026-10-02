@@ -88,7 +88,7 @@ export default function Dashboard() {
       return { 
         start: todayStart, 
         end: todayEnd, 
-        label: 'Today (আজ)', 
+        label: 'Today', 
         subLabel: todayStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
       };
     }
@@ -100,7 +100,7 @@ export default function Dashboard() {
       return { 
         start: yStart, 
         end: yEnd, 
-        label: 'Yesterday (গতকাল)', 
+        label: 'Yesterday', 
         subLabel: yStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
       };
     }
@@ -110,7 +110,7 @@ export default function Dashboard() {
       return { 
         start: start7, 
         end: todayEnd, 
-        label: 'Last 7 Days (গত ৭ দিন)', 
+        label: 'Last 7 Days', 
         subLabel: `${start7.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
       };
     }
@@ -119,7 +119,7 @@ export default function Dashboard() {
       return { 
         start: mStart, 
         end: todayEnd, 
-        label: 'This Month (চলতি মাস)', 
+        label: 'This Month', 
         subLabel: `${mStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
       };
     }
@@ -129,7 +129,7 @@ export default function Dashboard() {
       return { 
         start: lmStart, 
         end: lmEnd, 
-        label: 'Last Month (গত মাস)', 
+        label: 'Last Month', 
         subLabel: `${lmStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${lmEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
       };
     }
@@ -138,7 +138,7 @@ export default function Dashboard() {
       return { 
         start: yStart, 
         end: todayEnd, 
-        label: 'This Year (চলতি বছর)', 
+        label: 'This Year', 
         subLabel: `${yStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
       };
     }
@@ -155,7 +155,7 @@ export default function Dashboard() {
     return { 
       start: null, 
       end: null, 
-      label: 'All Time (সব সময়)', 
+      label: 'All Time', 
       subLabel: 'Complete Lifetime Records' 
     };
   }, [datePreset, customStartDate, customEndDate]);
@@ -254,7 +254,7 @@ export default function Dashboard() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-800 text-sm sm:text-base">Date Filter (তারিখ অনুযায়ী হিসাব)</h3>
+                <h3 className="font-bold text-slate-800 text-sm sm:text-base">Date Range Filter</h3>
                 <span className="text-[11px] px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-full">
                   {dateRange.label}
                 </span>
@@ -272,13 +272,13 @@ export default function Dashboard() {
           {/* Quick Preset Buttons */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {[
-              { id: 'today', label: 'Today (আজ)' },
-              { id: 'yesterday', label: 'Yesterday (গতকাল)' },
-              { id: '7days', label: '7 Days (৭ দিন)' },
-              { id: 'month', label: 'This Month (মাস)' },
+              { id: 'today', label: 'Today' },
+              { id: 'yesterday', label: 'Yesterday' },
+              { id: '7days', label: '7 Days' },
+              { id: 'month', label: 'This Month' },
               { id: 'last_month', label: 'Last Month' },
-              { id: 'year', label: 'Year (বছর)' },
-              { id: 'all', label: 'All Time (সব)' }
+              { id: 'year', label: 'This Year' },
+              { id: 'all', label: 'All Time' }
             ].map((p) => {
               const active = datePreset === p.id;
               return (
@@ -308,7 +308,7 @@ export default function Dashboard() {
               }`}
             >
               <Filter size={13} />
-              <span>Custom (কাস্টম)</span>
+              <span>Custom Range</span>
               <ChevronDown size={13} className={`transform transition ${showCustomPicker ? 'rotate-180' : ''}`} />
             </button>
           </div>
@@ -318,7 +318,7 @@ export default function Dashboard() {
         {showCustomPicker && (
           <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end bg-slate-50/70 p-3 rounded-xl">
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">Start Date (শুরুর তারিখ)</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">Start Date</label>
               <input
                 type="date"
                 value={customStartDate}
@@ -327,7 +327,7 @@ export default function Dashboard() {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">End Date (শেষ তারিখ)</label>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">End Date</label>
               <input
                 type="date"
                 value={customEndDate}
@@ -341,7 +341,7 @@ export default function Dashboard() {
                 onClick={handleApplyCustomDate}
                 className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg transition"
               >
-                Apply Range (ফিল্টার করুন)
+                Apply Range
               </button>
               <button
                 onClick={() => {
@@ -364,7 +364,7 @@ export default function Dashboard() {
         {/* 1. Total Sales */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 transition group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Total Sales (মোট বিক্রি)</span>
+            <span className="text-xs font-bold text-slate-500">Total Sales</span>
             <span className="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition">
               <TrendingUp size={18} />
             </span>
@@ -379,7 +379,7 @@ export default function Dashboard() {
         {/* 2. Received Cash */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-300 transition group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Cash Received (আদায়)</span>
+            <span className="text-xs font-bold text-slate-500">Cash Received</span>
             <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition">
               <DollarSign size={18} />
             </span>
@@ -391,7 +391,7 @@ export default function Dashboard() {
         {/* 3. Customer Due Balance */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-rose-300 transition group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Due Created (বাকি)</span>
+            <span className="text-xs font-bold text-slate-500">Due Created</span>
             <span className="p-2 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-600 group-hover:text-white transition">
               <CreditCard size={18} />
             </span>
@@ -403,7 +403,7 @@ export default function Dashboard() {
         {/* 4. Operating Expenses */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-purple-300 transition group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Expenses (দোকান খরচ)</span>
+            <span className="text-xs font-bold text-slate-500">Operating Expenses</span>
             <span className="p-2 bg-purple-50 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition">
               <Receipt size={18} />
             </span>
@@ -415,7 +415,7 @@ export default function Dashboard() {
         {/* 5. Sales Returns & Refunds */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-amber-300 transition group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500">Returns (রিটার্ন ও রিফান্ড)</span>
+            <span className="text-xs font-bold text-slate-500">Sales Returns</span>
             <span className="p-2 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-600 group-hover:text-white transition">
               <RotateCcw size={18} />
             </span>
@@ -427,7 +427,7 @@ export default function Dashboard() {
         {/* 6. Net Profit */}
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-teal-300 transition group bg-gradient-to-br from-teal-50/40 to-emerald-50/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600">Net Profit (নেট লাভ)</span>
+            <span className="text-xs font-bold text-slate-600">Net Profit</span>
             <span className="p-2 bg-teal-100 text-teal-700 rounded-xl group-hover:bg-teal-600 group-hover:text-white transition">
               <Sparkles size={18} />
             </span>
@@ -437,7 +437,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Sales, Paid & Due Circular Graphs Section (সার্কেল গ্রাফ ও অ্যানালিটিক্স) */}
+      {/* Sales, Paid & Due Circular Graphs Section */}
       {(() => {
         const totalAmountBase = Math.max(totalSales, 1);
         const paidPercent = totalSales > 0 ? Math.min(100, Math.round((totalPaid / totalAmountBase) * 100)) : 0;
@@ -463,7 +463,7 @@ export default function Dashboard() {
                     <PieChart size={18} />
                   </div>
                   <h3 className="font-bold text-slate-800 text-sm sm:text-base">
-                    Sales, Cash Paid & Due Analytics (সার্কেল গ্রাফ ও বিশ্লেষণ)
+                    Sales, Cash Paid & Due Analytics
                   </h3>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -580,7 +580,7 @@ export default function Dashboard() {
                   <div className="space-y-0.5">
                     <span className="text-[11px] font-bold text-emerald-800">Cash Collection Rate</span>
                     <p className="text-base font-black text-emerald-700">৳{totalPaid.toLocaleString()}</p>
-                    <p className="text-[10px] text-emerald-600 font-medium">আদায়কৃত নগদ টাকা</p>
+                    <p className="text-[10px] text-emerald-600 font-medium">Collected Cash Revenue</p>
                   </div>
                   <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -608,7 +608,7 @@ export default function Dashboard() {
                   <div className="space-y-0.5">
                     <span className="text-[11px] font-bold text-rose-800">Due Liability Ratio</span>
                     <p className="text-base font-black text-rose-700">৳{totalDue.toLocaleString()}</p>
-                    <p className="text-[10px] text-rose-600 font-medium">কাস্টমার বাকি বিক্রি</p>
+                    <p className="text-[10px] text-rose-600 font-medium">Outstanding Receivables</p>
                   </div>
                   <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -636,7 +636,7 @@ export default function Dashboard() {
                   <div className="space-y-0.5">
                     <span className="text-[11px] font-bold text-teal-800">Net Profit Margin</span>
                     <p className="text-base font-black text-teal-700">৳{netProfit.toLocaleString()}</p>
-                    <p className="text-[10px] text-teal-600 font-medium">নিট মুনাফা মার্জিন</p>
+                    <p className="text-[10px] text-teal-600 font-medium">Net Profit Ratio</p>
                   </div>
                   <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
