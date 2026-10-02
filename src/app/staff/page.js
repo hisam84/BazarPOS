@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   UserCheck,
   Plus,
@@ -32,7 +33,8 @@ import {
 } from 'lucide-react';
 import { SYSTEM_PERMISSIONS, DEFAULT_ROLES } from '@/lib/permissions-data';
 
-export default function StaffPage() {
+function StaffContent() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('users'); // 'users' | 'roles' | 'matrix'
   const [staff, setStaff] = useState([]);
   const [roles, setRoles] = useState(DEFAULT_ROLES);
@@ -40,6 +42,18 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Auto-sync tab from query parameters
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'roles') {
+      setActiveTab('roles');
+    } else if (tabParam === 'matrix' || tabParam === 'permissions') {
+      setActiveTab('matrix');
+    } else if (tabParam === 'users' || tabParam === 'staff') {
+      setActiveTab('users');
+    }
+  }, [searchParams]);
 
   // Modals state
   const [showStaffModal, setShowStaffModal] = useState(false);
@@ -1045,5 +1059,13 @@ export default function StaffPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function StaffPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 text-sm">Loading Staff & Roles Management...</div>}>
+      <StaffContent />
+    </Suspense>
   );
 }

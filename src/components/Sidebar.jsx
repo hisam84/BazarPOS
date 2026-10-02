@@ -58,8 +58,9 @@ const STORE_NAVIGATION_ITEMS = [
     icon: Users,
     permission: 'staff_roles_manage',
     items: [
-      { name: 'Users & Staff', href: '/staff', permission: 'staff_roles_manage' },
-      { name: 'Roles & Permissions', href: '/staff?tab=roles', permission: 'staff_roles_manage' },
+      { name: 'Staff Accounts', href: '/staff?tab=users', permission: 'staff_roles_manage' },
+      { name: 'Roles & Default Permissions', href: '/staff?tab=roles', permission: 'staff_roles_manage' },
+      { name: 'Full Permissions Matrix', href: '/staff?tab=matrix', permission: 'staff_roles_manage' },
       { name: 'Sales Commission Agents', href: '/salers', permission: 'staff_roles_manage' },
     ]
   },
@@ -279,9 +280,21 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
 
   const isItemActive = (href) => {
     if (!href) return false;
-    const basePath = href.split('?')[0].split('#')[0];
+    const [basePath, query] = href.split('?');
     if (basePath === '/') return pathname === '/';
-    return pathname === basePath || pathname.startsWith(basePath + '/');
+    if (pathname === basePath) {
+      if (query && typeof window !== 'undefined') {
+        const currentSearch = window.location.search;
+        const targetParams = new URLSearchParams(query);
+        const currentParams = new URLSearchParams(currentSearch);
+        for (const [key, val] of targetParams.entries()) {
+          if (currentParams.get(key) !== val) return false;
+        }
+        return true;
+      }
+      return true;
+    }
+    return pathname.startsWith(basePath + '/');
   };
 
   const canAccess = (item) => {
