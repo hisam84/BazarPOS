@@ -15,7 +15,9 @@ import {
   PackagePlus,
   UserCheck,
   X,
-  FileText
+  FileText,
+  Mail,
+  Send
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
 
@@ -261,27 +263,77 @@ export default function POSTerminalPage() {
     }
   };
 
+  const [emailModal, setEmailModal] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSuccessMsg, setEmailSuccessMsg] = useState('');
+
+  const getInvoiceDownloadUrl = (voucher) => {
+    if (!voucher) return '';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}/invoice/${voucher.id}?storeId=${user?.storeId || 'default'}`;
+  };
+
   const getWhatsAppShareUrl = () => {
     if (!completedVoucher) return '#';
     const client = clients.find(c => c.name === completedVoucher.clientName);
     const phone = client?.phone ? client.phone.replace(/[^0-9]/g, '') : '';
+    const downloadUrl = getInvoiceDownloadUrl(completedVoucher);
+
     const text = encodeURIComponent(
       `*${user?.storeName || 'BazarPOS Outlet'}*\n` +
-      `Invoice #: ${completedVoucher.voucherNo}\n` +
-      `Date: ${new Date(completedVoucher.date).toLocaleDateString()}\n` +
-      `Total: ৳${completedVoucher.totalAmount}\n` +
-      `Paid: ৳${completedVoucher.paidAmount}\n` +
-      `Due: ৳${completedVoucher.dueAmount}\n` +
-      `Thank you for your purchase!`
+      `📄 *Invoice #:* ${completedVoucher.voucherNo}\n` +
+      `📅 *Date:* ${new Date(completedVoucher.date).toLocaleDateString()}\n` +
+      `💵 *Total Amount:* ৳${completedVoucher.totalAmount}\n` +
+      `✅ *Paid:* ৳${completedVoucher.paidAmount}\n` +
+      (completedVoucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${completedVoucher.dueAmount}\n` : '') +
+      `\n📥 *Download / View Invoice Link:*\n${downloadUrl}\n\n` +
+      `Thank you for your business!`
     );
     return `https://wa.me/${phone}?text=${text}`;
+  };
+
+  const handleSendEmailInvoice = async (e) => {
+    if (e) e.preventDefault();
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      alert('Please provide a valid recipient email address');
+      return;
+    }
+    setSendingEmail(true);
+    try {
+      const res = await fetch('/api/mail/send-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: user?.storeId || 'default',
+          recipient: recipientEmail,
+          voucher: completedVoucher,
+          invoiceUrl: getInvoiceDownloadUrl(completedVoucher)
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmailSuccessMsg(data.message || 'Invoice emailed successfully with download link!');
+        setTimeout(() => {
+          setEmailModal(false);
+          setEmailSuccessMsg('');
+        }, 2500);
+      } else {
+        alert(data.message || 'Failed to send email');
+      }
+    } catch (err) {
+      alert('Network error sending invoice email');
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   const handleSendSMS = async () => {
     if (!completedVoucher) return;
     const client = clients.find(c => c.name === completedVoucher.clientName);
     const phone = client?.phone || '01700000000';
-    const message = `[BazarPOS] Invoice #${completedVoucher.voucherNo}. Total: TK ${completedVoucher.totalAmount}. Paid: TK ${completedVoucher.paidAmount}. Thank you!`;
+    const downloadUrl = getInvoiceDownloadUrl(completedVoucher);
+    const message = `[${user?.storeName || 'BazarPOS'}] Invoice #${completedVoucher.voucherNo}. Total: TK ${completedVoucher.totalAmount}. Paid: TK ${completedVoucher.paidAmount}. Download: ${downloadUrl}`;
 
     try {
       const res = await fetch('/api/sms/send', {
@@ -295,6 +347,7 @@ export default function POSTerminalPage() {
       alert('SMS send error');
     }
   };
+
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
@@ -815,25 +868,39 @@ export default function POSTerminalPage() {
                 </button>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <a
                   href={getWhatsAppShareUrl()}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1"
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs"
                 >
                   <Share2 size={13} />
-                  <span>WhatsApp</span>
+                  <span>WhatsApp (with Link)</span>
                 </a>
                 <button
+                  type="button"
+                  onClick={() => {
+                    const client = clients.find(c => c.name === completedVoucher.clientName);
+                    if (client?.email) setRecipientEmail(client.email);
+                    setEmailModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs"
+                >
+                  <Mail size={13} />
+                  <span>Email Invoice</span>
+                </button>
+                <button
+                  type="button"
                   onClick={handleSendSMS}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs"
                 >
                   <MessageSquare size={13} />
                   <span>SMS</span>
                 </button>
               </div>
             </div>
+
 
             {/* Printable Content Area */}
             <div className="flex-1 overflow-y-auto max-h-[65vh] p-2 bg-slate-100/60 rounded-xl border border-slate-200">
@@ -919,6 +986,83 @@ export default function POSTerminalPage() {
           </div>
         </div>
       )}
+
+      {/* SEND EMAIL INVOICE MODAL */}
+      {emailModal && completedVoucher && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center space-x-2">
+                <Mail className="text-indigo-600" size={20} />
+                <h3 className="font-bold text-slate-800 text-base">
+                  Email Invoice & Download Link
+                </h3>
+              </div>
+              <button onClick={() => setEmailModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs text-slate-600 space-y-1">
+              <p className="flex justify-between">
+                <span>Invoice:</span>
+                <span className="font-bold text-slate-900">{completedVoucher.voucherNo}</span>
+              </p>
+              <p className="flex justify-between">
+                <span>Customer:</span>
+                <span className="font-medium text-slate-800">{completedVoucher.clientName}</span>
+              </p>
+              <p className="flex justify-between">
+                <span>Total Amount:</span>
+                <span className="font-bold text-indigo-700">৳{completedVoucher.totalAmount}</span>
+              </p>
+            </div>
+
+            {emailSuccessMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl flex items-center space-x-2 animate-fadeIn">
+                <CheckCircle size={16} />
+                <span>{emailSuccessMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSendEmailInvoice} className="space-y-3.5 text-xs font-medium">
+              <div>
+                <label className="block text-slate-700 mb-1 font-bold">Recipient Customer Email *</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="customer@example.com"
+                  value={recipientEmail}
+                  onChange={e => setRecipientEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-slate-900 focus:bg-white focus:outline-none focus:border-indigo-500 text-xs"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  The recipient will receive an HTML email with the invoice summary and a direct <strong>Download / View Full A4 Invoice</strong> link.
+                </p>
+              </div>
+
+              <div className="pt-2 border-t flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setEmailModal(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={sendingEmail}
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl flex items-center justify-center space-x-1.5 text-xs shadow-md shadow-indigo-600/20"
+                >
+                  <Send size={14} />
+                  <span>{sendingEmail ? 'Sending...' : 'Send Invoice Email'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

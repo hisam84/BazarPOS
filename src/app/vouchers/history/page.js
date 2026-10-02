@@ -9,11 +9,18 @@ import {
   Eye,
   Printer,
   Calendar,
-  X
+  X,
+  Share2,
+  Mail,
+  Send,
+  CheckCircle,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
 
 export default function VoucherHistoryPage() {
+  const [user, setUser] = useState(null);
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -22,11 +29,19 @@ export default function VoucherHistoryPage() {
   const [company, setCompany] = useState({});
   const [invoiceSettings, setInvoiceSettings] = useState({});
   const [printLayout, setPrintLayout] = useState('A4');
+  
+  // Email & share modal states
+  const [emailModal, setEmailModal] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSuccessMsg, setEmailSuccessMsg] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
     if (saved) {
       const u = JSON.parse(saved);
+      setUser(u);
       fetchVouchers(u.storeId || 'default');
     } else {
       fetchVouchers('default');
@@ -72,6 +87,72 @@ export default function VoucherHistoryPage() {
     } catch (err) {
       alert('Delete error');
     }
+  };
+
+  const getInvoiceDownloadUrl = (voucher) => {
+    if (!voucher) return '';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}/invoice/${voucher.id}?storeId=${user?.storeId || 'default'}`;
+  };
+
+  const getWhatsAppShareUrl = (voucher) => {
+    if (!voucher) return '#';
+    const phone = voucher.clientPhone ? voucher.clientPhone.replace(/[^0-9]/g, '') : '';
+    const downloadUrl = getInvoiceDownloadUrl(voucher);
+
+    const text = encodeURIComponent(
+      `*${user?.storeName || company?.name || 'BazarPOS Outlet'}*\n` +
+      `📄 *Invoice #:* ${voucher.voucherNo}\n` +
+      `📅 *Date:* ${new Date(voucher.date).toLocaleDateString()}\n` +
+      `💵 *Total Amount:* ৳${voucher.totalAmount}\n` +
+      `✅ *Paid:* ৳${voucher.paidAmount}\n` +
+      (voucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${voucher.dueAmount}\n` : '') +
+      `\n📥 *Download / View Invoice Link:*\n${downloadUrl}\n\n` +
+      `Thank you for your business!`
+    );
+    return `https://wa.me/${phone}?text=${text}`;
+  };
+
+  const handleSendEmailInvoice = async (e) => {
+    if (e) e.preventDefault();
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      alert('Please provide a valid recipient email address');
+      return;
+    }
+    setSendingEmail(true);
+    try {
+      const res = await fetch('/api/mail/send-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: user?.storeId || 'default',
+          recipient: recipientEmail,
+          voucher: selectedVoucher,
+          invoiceUrl: getInvoiceDownloadUrl(selectedVoucher)
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmailSuccessMsg(data.message || 'Invoice emailed successfully with download link!');
+        setTimeout(() => {
+          setEmailModal(false);
+          setEmailSuccessMsg('');
+        }, 2500);
+      } else {
+        alert(data.message || 'Failed to send email');
+      }
+    } catch (err) {
+      alert('Network error sending invoice email');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handleCopyLink = (voucher) => {
+    const url = getInvoiceDownloadUrl(voucher);
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const filteredVouchers = vouchers.filter(v => {
@@ -290,23 +371,154 @@ export default function VoucherHistoryPage() {
               )}
             </div>
 
-            <div className="flex space-x-3 no-print pt-2 border-t">
+            {/* Action Buttons: WhatsApp, Email, Link, Print */}
+            <div className="flex flex-wrap items-center justify-between gap-2 no-print pt-3 border-t">
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={getWhatsAppShareUrl(selectedVoucher)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center space-x-1.5 text-xs shadow-sm transition"
+                  title="Send Invoice with Download Link via WhatsApp"
+                >
+                  <Share2 size={15} />
+                  <span>WhatsApp Link</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRecipientEmail(selectedVoucher?.clientEmail || '');
+                    setEmailModal(true);
+                  }}
+                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl flex items-center space-x-1.5 text-xs shadow-sm transition"
+                  title="Send Invoice to Customer Email with PDF Download Link"
+                >
+                  <Mail size={15} />
+                  <span>Email Invoice</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleCopyLink(selectedVoucher)}
+                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl flex items-center space-x-1.5 text-xs transition"
+                  title="Copy Direct Online Invoice Download Link"
+                >
+                  {copiedLink ? <CheckCircle size={15} className="text-emerald-600" /> : <Copy size={15} />}
+                  <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
+                </button>
+
+                <a
+                  href={getInvoiceDownloadUrl(selectedVoucher)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+                  title="Open Public Invoice in new tab"
+                >
+                  <ExternalLink size={15} />
+                </a>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedVoucher(null)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center space-x-2 text-xs shadow-md shadow-blue-500/20"
+                >
+                  <Printer size={16} />
+                  <span>Print {printLayout === 'A4' ? 'A4 Invoice' : 'Thermal Slip'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EMAIL INVOICE MODAL */}
+      {emailModal && selectedVoucher && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                  <Mail size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Email Invoice</h3>
+                  <p className="text-xs text-slate-500">Sends summary & direct download link</p>
+                </div>
+              </div>
               <button
-                type="button"
-                onClick={() => setSelectedVoucher(null)}
-                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                onClick={() => {
+                  setEmailModal(false);
+                  setEmailSuccessMsg('');
+                }}
+                className="text-slate-400 hover:text-slate-600"
               >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-2 text-xs shadow-md"
-              >
-                <Printer size={16} />
-                <span>Print {printLayout === 'A4' ? 'A4 Invoice' : 'Thermal Slip'}</span>
+                <X size={18} />
               </button>
             </div>
+
+            {emailSuccessMsg ? (
+              <div className="p-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl flex items-center space-x-2 text-xs font-semibold">
+                <CheckCircle size={18} className="text-emerald-600 flex-shrink-0" />
+                <span>{emailSuccessMsg}</span>
+              </div>
+            ) : (
+              <form onSubmit={handleSendEmailInvoice} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Customer Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    placeholder="customer@example.com"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-600 space-y-1">
+                  <p className="font-bold text-slate-800">Invoice: #{selectedVoucher.voucherNo}</p>
+                  <p>Customer: {selectedVoucher.clientName}</p>
+                  <p>Total: ৳{selectedVoucher.totalAmount} | Paid: ৳{selectedVoucher.paidAmount}</p>
+                  <p className="text-[11px] text-indigo-600 break-all font-mono pt-1">
+                    Link: {getInvoiceDownloadUrl(selectedVoucher)}
+                  </p>
+                </div>
+
+                <div className="flex space-x-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setEmailModal(false)}
+                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={sendingEmail}
+                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md shadow-indigo-500/20"
+                  >
+                    {sendingEmail ? (
+                      <span>Sending...</span>
+                    ) : (
+                      <>
+                        <Send size={15} />
+                        <span>Send Invoice</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

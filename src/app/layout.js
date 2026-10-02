@@ -61,7 +61,12 @@ export default function RootLayout({ children }) {
     setTimeout(() => setToast(null), 3500);
   };
 
+  const isLoginPage = pathname === '/login';
+  const isPublicInvoice = pathname && pathname.startsWith('/invoice/');
+  const isPublicPage = isLoginPage || isPublicInvoice;
+
   const getPageTitle = () => {
+    if (isPublicInvoice) return 'Digital Invoice Receipt | BazarPOS';
     if (isLoginPage) return 'Login | BazarPOS Cloud ERP';
     if (currentUserRole === 'superadmin') {
       if (pathname.startsWith('/superadmin/companies')) return 'Manage Companies | SuperAdmin SaaS';
@@ -116,7 +121,7 @@ export default function RootLayout({ children }) {
               <p className="text-sm font-medium tracking-wide">Loading BazarPOS...</p>
             </div>
           </div>
-        ) : isLoginPage ? (
+        ) : isPublicPage ? (
           <div className="min-h-screen w-full">{children}</div>
         ) : (
           <div className="flex min-h-screen w-full">
@@ -133,3 +138,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
