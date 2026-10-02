@@ -78,6 +78,9 @@ export default function SettingsPage() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showOwnerNewPassword, setShowOwnerNewPassword] = useState(false);
+  const [showOwnerConfirmPassword, setShowOwnerConfirmPassword] = useState(false);
+  const [showBrevoKey, setShowBrevoKey] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -520,23 +523,41 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-slate-600 mb-1 text-[11px] font-semibold">New Password</label>
-                <input
-                  type="password"
-                  placeholder="Leave blank to keep current"
-                  value={ownerInfo.newPassword}
-                  onChange={e => setOwnerInfo({ ...ownerInfo, newPassword: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono"
-                />
+                <div className="relative">
+                  <input
+                    type={showOwnerNewPassword ? 'text' : 'password'}
+                    placeholder="Leave blank to keep current"
+                    value={ownerInfo.newPassword}
+                    onChange={e => setOwnerInfo({ ...ownerInfo, newPassword: e.target.value })}
+                    className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOwnerNewPassword(!showOwnerNewPassword)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showOwnerNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-slate-600 mb-1 text-[11px] font-semibold">Confirm New Password</label>
-                <input
-                  type="password"
-                  placeholder="Repeat new password"
-                  value={ownerInfo.confirmPassword}
-                  onChange={e => setOwnerInfo({ ...ownerInfo, confirmPassword: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono"
-                />
+                <div className="relative">
+                  <input
+                    type={showOwnerConfirmPassword ? 'text' : 'password'}
+                    placeholder="Repeat new password"
+                    value={ownerInfo.confirmPassword}
+                    onChange={e => setOwnerInfo({ ...ownerInfo, confirmPassword: e.target.value })}
+                    className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOwnerConfirmPassword(!showOwnerConfirmPassword)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showOwnerConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -759,13 +780,22 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <label className="block text-slate-600 mb-0.5 text-[10px]">SMTP Key</label>
-                        <input
-                          type="password"
-                          placeholder="Brevo SMTP Master Key"
-                          value={mailSettings.smtpPassword}
-                          onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
-                          className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
-                        />
+                        <div className="relative">
+                          <input
+                            type={showBrevoKey ? 'text' : 'password'}
+                            placeholder="Brevo SMTP Master Key"
+                            value={mailSettings.smtpPassword}
+                            onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
+                            className="w-full pl-3 pr-8 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowBrevoKey(!showBrevoKey)}
+                            className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                          >
+                            {showBrevoKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

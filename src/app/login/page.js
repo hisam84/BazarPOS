@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [resetNewPassword, setResetNewPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState('');
   const [smtpNotConfigured, setSmtpNotConfigured] = useState(false);
@@ -299,14 +300,24 @@ export default function LoginPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                     Confirm New Password *
                   </label>
-                  <input
-                    type="password"
-                    required
-                    value={resetConfirmPassword}
-                    onChange={(e) => setResetConfirmPassword(e.target.value)}
-                    placeholder="Re-enter new password"
-                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono text-xs"
-                  />
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-3.5 text-slate-500" size={18} />
+                    <input
+                      type={showResetConfirmPassword ? 'text' : 'password'}
+                      required
+                      value={resetConfirmPassword}
+                      onChange={(e) => setResetConfirmPassword(e.target.value)}
+                      placeholder="Re-enter new password"
+                      className="w-full pl-10 pr-11 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowResetConfirmPassword(!showResetConfirmPassword)}
+                      className="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-200"
+                    >
+                      {showResetConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button

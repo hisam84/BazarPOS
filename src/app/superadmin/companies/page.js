@@ -20,7 +20,9 @@ import {
   KeyRound,
   ExternalLink,
   ShieldCheck,
-  Clock
+  Clock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function SuperAdminCompaniesPage() {
@@ -33,6 +35,8 @@ export default function SuperAdminCompaniesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   // Form State for Create
   const [createForm, setCreateForm] = useState({
@@ -545,14 +549,23 @@ export default function SuperAdminCompaniesPage() {
                   </div>
                   <div>
                     <label className="block text-slate-700 font-semibold mb-1">Password *</label>
-                    <input
-                      type="password"
-                      required
-                      value={createForm.password}
-                      onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                      placeholder="Password"
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showCreatePassword ? 'text' : 'password'}
+                        required
+                        value={createForm.password}
+                        onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                        placeholder="Password"
+                        className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white font-mono focus:outline-none focus:border-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCreatePassword(!showCreatePassword)}
+                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showCreatePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -720,13 +733,22 @@ export default function SuperAdminCompaniesPage() {
                   </div>
                   <div>
                     <label className="block text-slate-600 font-semibold mb-1">New Password (optional)</label>
-                    <input
-                      type="password"
-                      placeholder="Leave blank to keep"
-                      value={editForm.password}
-                      onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white font-mono"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showEditPassword ? 'text' : 'password'}
+                        placeholder="Leave blank to keep"
+                        value={editForm.password}
+                        onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                        className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white font-mono focus:outline-none focus:border-purple-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowEditPassword(!showEditPassword)}
+                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                      >
+                        {showEditPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

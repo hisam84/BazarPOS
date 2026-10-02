@@ -26,7 +26,9 @@ import {
   Boxes,
   Truck,
   PieChart,
-  RotateCcw
+  RotateCcw,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { SYSTEM_PERMISSIONS, DEFAULT_ROLES } from '@/lib/permissions-data';
 
@@ -41,6 +43,7 @@ export default function StaffPage() {
 
   // Modals state
   const [showStaffModal, setShowStaffModal] = useState(false);
+  const [showStaffPassword, setShowStaffPassword] = useState(false);
   const [editStaff, setEditStaff] = useState(null);
   const [staffForm, setStaffForm] = useState({
     name: '',
@@ -745,14 +748,23 @@ export default function StaffPage() {
                   <label className="block text-slate-700 mb-1 font-semibold">
                     {editStaff ? 'New Password (Optional)' : 'Password *'}
                   </label>
-                  <input
-                    type="password"
-                    required={!editStaff}
-                    value={staffForm.password}
-                    onChange={e => setStaffForm({ ...staffForm, password: e.target.value })}
-                    placeholder={editStaff ? 'Leave empty to keep' : 'Password'}
-                    className="w-full px-3.5 py-2.5 border rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showStaffPassword ? 'text' : 'password'}
+                      required={!editStaff}
+                      value={staffForm.password}
+                      onChange={e => setStaffForm({ ...staffForm, password: e.target.value })}
+                      placeholder={editStaff ? 'Leave empty to keep' : 'Password'}
+                      className="w-full pl-3.5 pr-10 py-2.5 border rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowStaffPassword(!showStaffPassword)}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    >
+                      {showStaffPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
