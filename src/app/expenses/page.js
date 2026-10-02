@@ -252,7 +252,7 @@ function ExpensesContent() {
 
           <button
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition shadow-md shadow-rose-600/20 text-xs"
+            className="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition shadow-md shadow-rose-600/20 text-xs w-full sm:w-auto"
           >
             <Plus size={16} />
             <span>Add Transaction</span>
@@ -261,49 +261,49 @@ function ExpensesContent() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-rose-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-rose-500">Total Operating Expenses</p>
-            <p className="text-2xl font-bold font-mono text-rose-700 mt-1">৳{totalExpense.toLocaleString()}</p>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">{data.expense?.length || 0} expense vouchers</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-rose-200 shadow-sm flex items-center justify-between">
+          <div className="min-w-0 pr-2">
+            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-rose-500 truncate">Total Operating Expenses</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-rose-700 mt-0.5 truncate">৳{totalExpense.toLocaleString()}</p>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">{data.expense?.length || 0} expense vouchers</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-            <TrendingDown size={24} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-emerald-500">Total External Income</p>
-            <p className="text-2xl font-bold font-mono text-emerald-700 mt-1">৳{totalIncome.toLocaleString()}</p>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">{data.income?.length || 0} income entries</span>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <TrendingUp size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+            <TrendingDown size={22} />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Expense Categories</p>
-            <p className="text-2xl font-bold font-mono text-indigo-700 mt-1">{categories.length}</p>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">Configured categories</span>
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between">
+          <div className="min-w-0 pr-2">
+            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-500 truncate">Total External Income</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-700 mt-0.5 truncate">৳{totalIncome.toLocaleString()}</p>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">{data.income?.length || 0} income entries</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <Tag size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <TrendingUp size={22} />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div className="min-w-0 pr-2">
+            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate">Expense Categories</p>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-indigo-700 mt-0.5 truncate">{categories.length}</p>
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">Configured categories</span>
+          </div>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <Tag size={22} />
           </div>
         </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5 sm:space-y-3">
+        <div className="flex flex-col md:flex-row gap-2.5 sm:gap-3 items-stretch md:items-center justify-between">
           {/* Type Tabs */}
-          <div className="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto">
+          <div className="flex bg-slate-100 p-1 rounded-xl overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTypeTab('expense')}
-              className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+              className={`flex-1 md:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition flex items-center justify-center space-x-1.5 ${
                 activeTypeTab === 'expense' ? 'bg-white text-rose-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -312,16 +312,16 @@ function ExpensesContent() {
             </button>
             <button
               onClick={() => setActiveTypeTab('income')}
-              className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+              className={`flex-1 md:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition flex items-center justify-center space-x-1.5 ${
                 activeTypeTab === 'income' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <span>External Income</span>
+              <span>Income</span>
               <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-700 text-[10px] rounded-full">{data.income?.length || 0}</span>
             </button>
             <button
               onClick={() => setActiveTypeTab('all')}
-              className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`flex-1 md:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition text-center ${
                 activeTypeTab === 'all' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -330,11 +330,11 @@ function ExpensesContent() {
           </div>
 
           {/* Search & Category Filter */}
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-rose-500"
+              className="px-2.5 sm:px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-rose-500 flex-1 sm:flex-none"
             >
               <option value="all">All Categories</option>
               {categories.map((c, i) => (
@@ -348,7 +348,7 @@ function ExpensesContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search note, category, amount..."
+                placeholder="Search note, category..."
                 className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-rose-500 transition"
               />
             </div>
@@ -356,79 +356,142 @@ function ExpensesContent() {
         </div>
       </div>
 
-      {/* Transaction Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3.5">Date</th>
-                <th className="px-4 py-3.5">Type</th>
-                <th className="px-4 py-3.5">Category</th>
-                <th className="px-4 py-3.5">Description / Memo</th>
-                <th className="px-4 py-3.5">Payment Source</th>
-                <th className="px-4 py-3.5 text-right">Amount</th>
-                <th className="px-4 py-3.5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+      {/* Transaction Table & Mobile Cards */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-5">
+        {filteredEntries.length === 0 ? (
+          <div className="text-center py-12 text-slate-400 text-xs sm:text-sm">
+            No financial transaction entries found matching your filters.
+          </div>
+        ) : (
+          <>
+            {/* Mobile View: Clean App Cards (Zero Horizontal Scroll) */}
+            <div className="block md:hidden space-y-2.5">
               {filteredEntries.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50/80 transition">
-                  <td className="px-4 py-3 text-slate-500 font-mono">
-                    {new Date(e.date || e.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    {e.entryType === 'income' ? (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center space-x-1">
-                        <ArrowDownRight size={12} />
-                        <span>Income</span>
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center space-x-1">
-                        <ArrowUpRight size={12} />
-                        <span>Expense</span>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md text-[11px] inline-flex items-center space-x-1">
-                      <Tag size={11} className="text-slate-400" />
-                      <span>{e.category || 'General'}</span>
+                <div
+                  key={e.id}
+                  className="p-3 bg-slate-50/70 border border-slate-200 rounded-xl space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] text-slate-500">
+                      {new Date(e.date || e.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-600 max-w-xs truncate">
-                    {e.description || <span className="text-slate-400 italic">No notes</span>}
-                  </td>
-                  <td className="px-4 py-3 uppercase text-[10px] font-bold text-slate-500 font-mono">
-                    {e.paymentSource || 'Cash'}
-                  </td>
-                  <td className={`px-4 py-3 font-bold font-mono text-sm text-right ${
-                    e.entryType === 'income' ? 'text-emerald-600' : 'text-rose-600'
-                  }`}>
-                    {e.entryType === 'income' ? '+' : '-'}৳{Number(e.amount).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-right">
+
+                    <div className="flex items-center space-x-1.5">
+                      {e.entryType === 'income' ? (
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-200 inline-flex items-center space-x-0.5">
+                          <ArrowDownRight size={11} />
+                          <span>Income</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-rose-100 text-rose-700 border border-rose-200 inline-flex items-center space-x-0.5">
+                          <ArrowUpRight size={11} />
+                          <span>Expense</span>
+                        </span>
+                      )}
+
+                      <span className="font-bold text-slate-700 bg-slate-200/80 px-2 py-0.5 rounded text-[10px]">
+                        {e.category || 'General'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <p className="text-slate-700 font-medium truncate max-w-[170px]">
+                      {e.description || <span className="text-slate-400 italic">No notes</span>}
+                    </p>
+
+                    <span className={`font-black font-mono text-sm ${
+                      e.entryType === 'income' ? 'text-emerald-600' : 'text-rose-600'
+                    }`}>
+                      {e.entryType === 'income' ? '+' : '-'}৳{Number(e.amount).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-200/60 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      Source: {e.paymentSource || 'Cash'}
+                    </span>
+
                     <button
                       type="button"
                       onClick={() => handleDeleteEntry(e.id, e.entryType)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition"
                       title="Delete Entry"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={14} />
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-              {filteredEntries.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="text-center py-12 text-slate-400 text-xs">
-                    No financial transaction entries found matching your filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+
+            {/* Desktop View: Full Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3.5">Date</th>
+                    <th className="px-4 py-3.5">Type</th>
+                    <th className="px-4 py-3.5">Category</th>
+                    <th className="px-4 py-3.5">Description / Memo</th>
+                    <th className="px-4 py-3.5">Payment Source</th>
+                    <th className="px-4 py-3.5 text-right">Amount</th>
+                    <th className="px-4 py-3.5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredEntries.map((e) => (
+                    <tr key={e.id} className="hover:bg-slate-50/80 transition">
+                      <td className="px-4 py-3 text-slate-500 font-mono">
+                        {new Date(e.date || e.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        {e.entryType === 'income' ? (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center space-x-1">
+                            <ArrowDownRight size={12} />
+                            <span>Income</span>
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center space-x-1">
+                            <ArrowUpRight size={12} />
+                            <span>Expense</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md text-[11px] inline-flex items-center space-x-1">
+                          <Tag size={11} className="text-slate-400" />
+                          <span>{e.category || 'General'}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 max-w-xs truncate">
+                        {e.description || <span className="text-slate-400 italic">No notes</span>}
+                      </td>
+                      <td className="px-4 py-3 uppercase text-[10px] font-bold text-slate-500 font-mono">
+                        {e.paymentSource || 'Cash'}
+                      </td>
+                      <td className={`px-4 py-3 font-bold font-mono text-sm text-right ${
+                        e.entryType === 'income' ? 'text-emerald-600' : 'text-rose-600'
+                      }`}>
+                        {e.entryType === 'income' ? '+' : '-'}৳{Number(e.amount).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteEntry(e.id, e.entryType)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          title="Delete Entry"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ADD / CREATE TRANSACTION ENTRY MODAL */}
