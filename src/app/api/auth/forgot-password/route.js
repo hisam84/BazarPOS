@@ -70,7 +70,8 @@ export async function POST(request) {
         username: userFound.username,
         role: userFound.role.toUpperCase(),
         storeName: userFound.storeName || 'BazarPOS',
-        logoUrl: userFound.logoUrl || ''
+        logoUrl: userFound.logoUrl || '',
+        storeId: userFound.storeId || 'default'
       });
 
       if (!emailResult.success) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getStoreData } from '@/lib/db';
+import { getStoreTemplate, renderTemplate } from '@/lib/email-templates';
 
 export async function POST(request) {
   try {
@@ -21,7 +22,6 @@ export async function POST(request) {
     const fromEmail = mailSettings.fromEmail || 'noreply@bazarpos.com';
     const provider = mailSettings.provider || 'smtp';
 
-    const subject = `Invoice #${voucher.voucherNo} from ${storeName}`;
     const directLink = invoiceUrl || `https://bazarpos.com/invoice/${voucher.publicToken || voucher.id}?storeId=${storeId}`;
 
     const itemsHtml = (voucher.items || [])
@@ -42,73 +42,32 @@ export async function POST(request) {
       )
       .join('');
 
-    const htmlBody = `
-      <div style="font-family: 'Inter', Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 24px; background-color: #f8fafc; border-radius: 16px;">
-        <div style="background-color: #ffffff; padding: 28px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-          <!-- Header -->
-          <div style="border-bottom: 2px solid #2563eb; padding-bottom: 16px; margin-bottom: 20px;">
-            <h2 style="margin: 0 0 4px 0; color: #0f172a; font-size: 22px; font-weight: 800;">${storeName}</h2>
-            <p style="margin: 0; color: #64748b; font-size: 12px;">Official Sales Receipt & Invoice</p>
-          </div>
+    // Load dynamic template
+    const template = getStoreTemplate(storeData, 'invoice');
+    const variables = {
+      company_name: storeName,
+      company_phone: company.phone || '',
+      company_email: company.email || '',
+      company_address: company.address || '',
+      logo_url: company.logoUrl || '',
+      customer_name: voucher.clientName || 'Valued Customer',
+      customer_phone: voucher.clientPhone || '',
+      invoice_no: voucher.voucherNo || voucher.id,
+      invoice_date: new Date(voucher.date || Date.now()).toLocaleDateString(),
+      invoice_link: directLink,
+      items_table: itemsHtml,
+      subtotal: `৳${Number(voucher.subTotal || voucher.totalAmount).toLocaleString()}`,
+      discount: `৳${Number(voucher.discount || 0).toLocaleString()}`,
+      tax: `৳${Number(voucher.tax || 0).toLocaleString()}`,
+      total_amount: `৳${Number(voucher.totalAmount).toLocaleString()}`,
+      paid_amount: `৳${Number(voucher.paidAmount || voucher.totalAmount).toLocaleString()}`,
+      due_amount: `৳${Number(voucher.dueAmount || 0).toLocaleString()}`,
+      payment_status: voucher.status || (voucher.dueAmount > 0 ? 'DUE' : 'PAID'),
+      saler_name: voucher.salerName || voucher.createdBy || 'Store Staff'
+    };
 
-          <!-- Summary info -->
-          <table style="width: 100%; margin-bottom: 20px; font-size: 12px; color: #475569;">
-            <tr>
-              <td><strong>Invoice #:</strong> <span style="color: #0f172a; font-weight: bold;">${voucher.voucherNo}</span></td>
-              <td style="text-align: right;"><strong>Date:</strong> ${new Date(voucher.date).toLocaleDateString()}</td>
-            </tr>
-            <tr>
-              <td><strong>Customer:</strong> ${voucher.clientName || 'Valued Customer'}</td>
-              <td style="text-align: right;"><strong>Status:</strong> <span style="color: #059669; font-weight: bold;">${voucher.status || 'PAID'}</span></td>
-            </tr>
-          </table>
-
-          <!-- Items Table -->
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-            <thead>
-              <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left; font-size: 11px; text-transform: uppercase; color: #64748b;">
-                <th style="padding: 8px;">Item Description</th>
-                <th style="padding: 8px; text-align: center;">Qty</th>
-                <th style="padding: 8px; text-align: right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-            </tbody>
-          </table>
-
-          <!-- Financial Breakdown -->
-          <div style="background-color: #f8fafc; padding: 14px; border-radius: 8px; margin-bottom: 24px; font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #475569;">
-              <span>Subtotal:</span>
-              <span style="font-weight: 600; color: #0f172a;">৳${Number(voucher.subTotal || voucher.totalAmount).toLocaleString()}</span>
-            </div>
-            ${voucher.discount > 0 ? `
-              <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #dc2626;">
-                <span>Discount:</span>
-                <span>-৳${Number(voucher.discount).toLocaleString()}</span>
-              </div>
-            ` : ''}
-            <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 16px; font-weight: 800; color: #2563eb;">
-              <span>Total Amount:</span>
-              <span>৳${Number(voucher.totalAmount).toLocaleString()}</span>
-            </div>
-          </div>
-
-          <!-- Download Button -->
-          <div style="text-align: center; margin: 28px 0 16px 0;">
-            <a href="${directLink}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #2563eb, #4f46e5); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
-              📥 View & Download Full A4 Invoice
-            </a>
-            <p style="margin: 10px 0 0 0; font-size: 11px; color: #94a3b8;">Click button above to download or print your official PDF invoice</p>
-          </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 16px; font-size: 11px; color: #94a3b8;">
-          ${company.phone ? `Phone: ${company.phone} • ` : ''} ${company.address || ''}
-        </div>
-      </div>
-    `;
+    const subject = renderTemplate(template.subject, variables);
+    const htmlBody = renderTemplate(template.bodyHtml, variables);
 
     // Dispatch email via configured provider
     if (provider === 'brevo' && mailSettings.apiKey) {

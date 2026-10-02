@@ -26,6 +26,7 @@ import {
   EyeOff,
   BellRing
 } from 'lucide-react';
+import EmailTemplateEditor from '@/components/EmailTemplateEditor';
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -932,6 +933,11 @@ export default function SettingsPage() {
                   <span>{testResult.message}</span>
                 </div>
               )}
+            </div>
+
+            {/* Editable Email Templates Builder */}
+            <div className="mt-8 pt-8 border-t border-slate-200">
+              <EmailTemplateEditor storeId={user?.storeId || 'default'} companyInfo={company} />
             </div>
           </div>
         )}
