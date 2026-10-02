@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  font-size: 16.5px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 * {
   font-family: 'Noto Sans Bengali', 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -11,7 +17,29 @@
 body {
   background-color: #f8fafc;
   color: #0f172a;
+  font-size: 0.95rem;
+  line-height: 1.55;
 }
+
+/* Enhanced font scaling for crisp, comfortable readability */
+.text-\[9px\] {
+  font-size: 0.70rem !important;
+}
+.text-\[10px\] {
+  font-size: 0.75rem !important;
+}
+.text-\[11px\] {
+  font-size: 0.80rem !important;
+}
+.text-xs {
+  font-size: 0.835rem !important;
+  line-height: 1.25rem !important;
+}
+.text-sm {
+  font-size: 0.935rem !important;
+  line-height: 1.4rem !important;
+}
+
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
