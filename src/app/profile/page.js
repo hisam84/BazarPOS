@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Lock, KeyRound, CheckCircle, ShieldCheck, Phone, Mail, MapPin, Save, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, KeyRound, CheckCircle, ShieldCheck, Phone, Mail, MapPin, Save, Eye, EyeOff, Clock, Calendar, Sparkles, Shield, AlertTriangle } from 'lucide-react';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
+  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [owner, setOwner] = useState('');
@@ -40,6 +41,9 @@ export default function ProfilePage() {
         setEmail(o.email || '');
         setAddress(o.address || '');
         setUsername(o.username || currentUser.username || '');
+        if (o.subscription) {
+          setSubscription(o.subscription);
+        }
       } else {
         setOwner(currentUser.fullName || currentUser.username || '');
         setUsername(currentUser.username || '');
@@ -134,6 +138,107 @@ export default function ProfilePage() {
         <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-2xl flex items-center space-x-2">
           <ShieldCheck size={18} />
           <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {/* Subscription Period & Plan Validity Card */}
+      {subscription && (
+        <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white rounded-2xl p-5 sm:p-6 border border-indigo-500/30 shadow-xl space-y-5 relative overflow-hidden">
+          {/* Decorative background glow */}
+          <div className="absolute -right-12 -top-12 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4 relative z-10">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300 shadow-inner shrink-0">
+                <Sparkles size={22} />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+                    {subscription.planName || 'Enterprise POS License'}
+                  </h3>
+                  <span className={`px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full tracking-wider ${
+                    subscription.isExpired
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      : subscription.daysRemaining <= 15
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse'
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  }`}>
+                    {subscription.isExpired ? 'Expired' : 'Active Plan'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">
+                  Store ID: <span className="text-slate-200 font-bold">{user?.storeId || 'default'}</span> · {user?.storeName || 'Store Account'}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-left sm:text-right shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Validity Status</span>
+              <span className={`text-base font-black font-mono ${
+                subscription.isExpired ? 'text-rose-400' : 'text-emerald-400'
+              }`}>
+                {subscription.isExpired ? '0 Days (Expired)' : `${subscription.daysRemaining} Days Left`}
+              </span>
+            </div>
+          </div>
+
+          {/* Key Dates Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 backdrop-blur-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5 mb-1">
+                <Calendar size={13} className="text-indigo-400" />
+                <span>Subscription Started</span>
+              </span>
+              <p className="text-sm font-bold font-mono text-white">
+                {subscription.startDate ? new Date(subscription.startDate).toLocaleDateString() : 'N/A'}
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 backdrop-blur-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5 mb-1">
+                <Clock size={13} className="text-amber-400" />
+                <span>Valid Until / Expiry</span>
+              </span>
+              <p className="text-sm font-bold font-mono text-amber-300">
+                {subscription.expiryDate ? new Date(subscription.expiryDate).toLocaleDateString() : 'N/A'}
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3.5 backdrop-blur-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5 mb-1">
+                <ShieldCheck size={13} className="text-emerald-400" />
+                <span>Remaining Duration</span>
+              </span>
+              <p className="text-sm font-bold font-mono text-emerald-400">
+                {subscription.daysRemaining} Days Remaining
+              </p>
+            </div>
+          </div>
+
+          {/* Validity Progress Bar */}
+          <div className="space-y-1.5 relative z-10">
+            <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+              <span>Subscription Life Cycle</span>
+              <span>
+                {Math.min(100, Math.max(0, Math.round(((subscription.durationDays - subscription.daysRemaining) / (subscription.durationDays || 365)) * 100)))}% Elapsed
+              </span>
+            </div>
+            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  subscription.isExpired
+                    ? 'bg-rose-500'
+                    : subscription.daysRemaining <= 15
+                    ? 'bg-amber-500'
+                    : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                }`}
+                style={{
+                  width: `${Math.min(100, Math.max(5, Math.round(((subscription.daysRemaining) / (subscription.durationDays || 365)) * 100)))}%`
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
 

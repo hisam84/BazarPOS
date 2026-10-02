@@ -13,6 +13,16 @@ export async function GET(request) {
     const stores = await getStores();
     const store = stores[storeId] || stores['default'] || {};
 
+    const rawSub = store.subscription || {};
+    const startDate = rawSub.startDate || (store.createdAt ? String(store.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));
+    const expiryDate = rawSub.expiryDate || new Date(new Date(startDate).getTime() + 365 * 86400000).toISOString().slice(0, 10);
+    const planName = rawSub.planName || 'Enterprise POS Edition (1 Year)';
+    const status = rawSub.status || 'active';
+
+    const now = Date.now();
+    const expTime = new Date(expiryDate).getTime();
+    const diffDays = Math.ceil((expTime - now) / (1000 * 60 * 60 * 24));
+
     return NextResponse.json({
       success: true,
       owner: {
@@ -24,7 +34,17 @@ export async function GET(request) {
         address: store.address || '',
         username: store.username || '',
         status: store.status || 'active',
-        subscription: store.subscription || {}
+        subscription: {
+          planId: rawSub.planId || '1year',
+          planName,
+          status,
+          startDate,
+          expiryDate,
+          daysRemaining: diffDays > 0 ? diffDays : 0,
+          isExpired: diffDays <= 0,
+          durationDays: rawSub.durationDays || 365,
+          notes: rawSub.notes || ''
+        }
       }
     });
   } catch (error) {
