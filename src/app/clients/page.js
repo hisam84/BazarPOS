@@ -327,33 +327,33 @@ function ClientsContent() {
   const totalDueAmount = clients.reduce((acc, c) => acc + (Number(c.due) || 0), 0);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <Users className="text-blue-600" size={24} />
-            <span>Contact Directory & Vendor Management</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <Users className="text-blue-600" size={22} />
+            <span>Contact Directory & Vendors</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage your customer database, suppliers/vendors, credit balances, and bulk imports.
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
+            Manage your customer database, suppliers, credit due balances, and imports.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5">
           <button
             onClick={downloadSampleCsv}
             title="Download CSV Template"
-            className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition"
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition text-center"
           >
             <Download size={14} />
-            <span className="hidden sm:inline">CSV Template</span>
+            <span>Template</span>
           </button>
 
           <button
             onClick={exportAllContactsCsv}
             title="Export CSV"
-            className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition"
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition text-center"
           >
             <FileSpreadsheet size={14} className="text-emerald-600" />
             <span>Export CSV</span>
@@ -361,7 +361,7 @@ function ClientsContent() {
 
           <button
             onClick={() => setShowBulkModal(true)}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl text-xs transition border border-indigo-200"
+            className="inline-flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl text-xs transition border border-indigo-200 text-center"
           >
             <UploadCloud size={15} />
             <span>Bulk Upload</span>
@@ -369,7 +369,7 @@ function ClientsContent() {
 
           <button
             onClick={() => handleOpenAddModal()}
-            className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md shadow-blue-500/20 text-xs"
+            className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-md shadow-blue-500/20 text-xs text-center"
           >
             <Plus size={16} />
             <span>Add Contact</span>
@@ -378,54 +378,54 @@ function ClientsContent() {
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <UserCheck size={22} />
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-2.5 sm:space-x-4 min-w-0">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0">
+            <UserCheck size={18} />
           </div>
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Customers</span>
-            <p className="text-xl font-bold font-mono text-slate-800">{totalCustomers}</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-            <Building2 size={22} />
-          </div>
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Suppliers / Vendors</span>
-            <p className="text-xl font-bold font-mono text-slate-800">{totalSuppliers}</p>
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Customers</span>
+            <p className="text-base sm:text-xl font-bold font-mono text-slate-800 truncate">{totalCustomers}</p>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
-            <DollarSign size={22} />
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-2.5 sm:space-x-4 min-w-0">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold shrink-0">
+            <Building2 size={18} />
           </div>
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Outstanding Due</span>
-            <p className="text-xl font-bold font-mono text-rose-600">৳{totalDueAmount.toLocaleString()}</p>
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Suppliers</span>
+            <p className="text-base sm:text-xl font-bold font-mono text-slate-800 truncate">{totalSuppliers}</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-2.5 sm:space-x-4 min-w-0">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold shrink-0">
+            <DollarSign size={18} />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block truncate">Total Due</span>
+            <p className="text-base sm:text-xl font-bold font-mono text-rose-600 truncate">৳{totalDueAmount.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       {/* Filter Tabs & Search */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2.5 sm:gap-3 items-stretch md:items-center justify-between">
         {/* Tabs */}
-        <div className="flex bg-slate-100 p-1 rounded-xl w-full md:w-auto">
+        <div className="flex bg-slate-100 p-1 rounded-xl overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('all')}
-            className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+            className={`flex-1 md:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition flex items-center justify-center space-x-1.5 ${
               activeTab === 'all' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            <span>All Contacts</span>
+            <span>All</span>
             <span className="px-1.5 py-0.2 bg-slate-200 text-slate-700 text-[10px] rounded-full">{clients.length}</span>
           </button>
           <button
             onClick={() => setActiveTab('customer')}
-            className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+            className={`flex-1 md:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition flex items-center justify-center space-x-1.5 ${
               activeTab === 'customer' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -434,7 +434,7 @@ function ClientsContent() {
           </button>
           <button
             onClick={() => setActiveTab('supplier')}
-            className={`flex-1 md:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+            className={`flex-1 md:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition flex items-center justify-center space-x-1.5 ${
               activeTab === 'supplier' ? 'bg-white text-purple-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -445,7 +445,7 @@ function ClientsContent() {
 
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" size={16} />
+          <Search className="absolute left-3.5 top-2.5 sm:top-3 text-slate-400 pointer-events-none" size={16} />
           <input
             type="text"
             value={search}
@@ -456,116 +456,220 @@ function ClientsContent() {
         </div>
       </div>
 
-      {/* Clients Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3.5">ID / Code</th>
-                <th className="px-4 py-3.5">Contact Name</th>
-                <th className="px-4 py-3.5">Type</th>
-                <th className="px-4 py-3.5">Phone Number</th>
-                <th className="px-4 py-3.5">Address</th>
-                <th className="px-4 py-3.5">Current Due</th>
-                <th className="px-4 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+      {/* Clients Table & Mobile Cards */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-5">
+        {loading ? (
+          <div className="text-center py-12 text-slate-400 text-sm">Loading Contacts...</div>
+        ) : filteredClients.length === 0 ? (
+          <div className="text-center py-12 text-slate-400 text-xs sm:text-sm">No contacts found matching your filters.</div>
+        ) : (
+          <>
+            {/* Mobile View: Clean App Cards (Zero Horizontal Scroll) */}
+            <div className="block md:hidden space-y-2.5">
               {filteredClients.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50/80 transition">
-                  <td className="px-4 py-3">
-                    <span className={`font-mono font-bold px-2 py-0.5 rounded-md inline-flex items-center space-x-1 ${
-                      c.type === 'supplier'
-                        ? 'text-purple-700 bg-purple-50 border border-purple-200/80'
-                        : 'text-indigo-700 bg-indigo-50 border border-indigo-200/80'
-                    }`}>
-                      <Tag size={12} className={c.type === 'supplier' ? 'text-purple-500' : 'text-indigo-500'} />
-                      <span>{c.customerId || (c.type === 'supplier' ? 'SUPP-1001' : 'CUST-1001')}</span>
+                <div
+                  key={c.id}
+                  className="p-3 bg-slate-50/70 border border-slate-200 rounded-xl space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          c.type === 'supplier'
+                            ? 'text-purple-700 bg-purple-100 border border-purple-200'
+                            : 'text-indigo-700 bg-indigo-100 border border-indigo-200'
+                        }`}>
+                          {c.customerId || (c.type === 'supplier' ? 'SUPP-1001' : 'CUST-1001')}
+                        </span>
+                        <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                          c.type === 'supplier'
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                            : 'bg-blue-50 text-blue-700 border border-blue-200'
+                        }`}>
+                          {c.type === 'supplier' ? 'Supplier' : 'Customer'}
+                        </span>
+                      </div>
+
+                      <h4 className="font-bold text-xs text-slate-900 mt-1.5 truncate">
+                        {c.name}
+                      </h4>
+
+                      {c.phone && (
+                        <a
+                          href={`tel:${c.phone}`}
+                          className="text-[11px] text-blue-600 font-mono flex items-center space-x-1 mt-0.5"
+                        >
+                          <Phone size={11} />
+                          <span>{c.phone}</span>
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      {c.due > 0 ? (
+                        <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 font-bold font-mono text-xs block">
+                          Due: ৳{Number(c.due).toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[10px] font-bold block">
+                          No Due
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {c.address && (
+                    <p className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                      <MapPin size={11} className="shrink-0 text-slate-400" />
+                      <span className="truncate">{c.address}</span>
+                    </p>
+                  )}
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-400 font-mono truncate max-w-[140px]">
+                      {c.email || 'No email provided'}
                     </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="font-bold text-slate-800 block">{c.name}</span>
-                    {c.email && (
-                      <span className="text-[10px] text-slate-400 flex items-center space-x-1 mt-0.5">
-                        <Mail size={10} />
-                        <span>{c.email}</span>
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.type === 'supplier' ? (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border border-purple-200">
-                        Supplier
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200">
-                        Customer
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-mono font-medium text-slate-700">
-                    {c.phone ? (
-                      <span className="flex items-center space-x-1">
-                        <Phone size={12} className="text-slate-400" />
-                        <span>{c.phone}</span>
-                      </span>
-                    ) : (
-                      <span className="text-slate-400 italic">None</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600 max-w-xs truncate">
-                    {c.address ? (
-                      <span className="flex items-center space-x-1">
-                        <MapPin size={12} className="text-slate-400 shrink-0" />
-                        <span className="truncate">{c.address}</span>
-                      </span>
-                    ) : (
-                      <span className="text-slate-400 italic">None</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-bold font-mono text-xs">
-                    {c.due > 0 ? (
-                      <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200/60">
-                        ৳{Number(c.due).toLocaleString()}
-                      </span>
-                    ) : (
-                      <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 text-[11px]">
-                        ৳0 (Clear)
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end space-x-2">
+
+                    <div className="flex items-center space-x-1.5">
                       {c.due > 0 && (
                         <button
                           onClick={() => { setPayModalClient(c); setPayAmount(c.due); }}
-                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded-lg transition shadow-xs"
+                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition shadow-xs"
                         >
                           Collect Due
                         </button>
                       )}
                       <button
                         onClick={() => handleOpenEditModal(c)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition"
                         title="Edit Contact"
                       >
-                        <Edit size={16} />
+                        <Edit size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClient(c.id)}
+                        className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition"
+                        title="Delete Contact"
+                      >
+                        <Trash2 size={15} />
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-              {filteredClients.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="text-center py-12 text-slate-400 text-xs">
-                    No contacts found matching your filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+
+            {/* Desktop View: Full Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3.5">ID / Code</th>
+                    <th className="px-4 py-3.5">Contact Name</th>
+                    <th className="px-4 py-3.5">Type</th>
+                    <th className="px-4 py-3.5">Phone Number</th>
+                    <th className="px-4 py-3.5">Address</th>
+                    <th className="px-4 py-3.5">Current Due</th>
+                    <th className="px-4 py-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredClients.map((c) => (
+                    <tr key={c.id} className="hover:bg-slate-50/80 transition">
+                      <td className="px-4 py-3">
+                        <span className={`font-mono font-bold px-2 py-0.5 rounded-md inline-flex items-center space-x-1 ${
+                          c.type === 'supplier'
+                            ? 'text-purple-700 bg-purple-50 border border-purple-200/80'
+                            : 'text-indigo-700 bg-indigo-50 border border-indigo-200/80'
+                        }`}>
+                          <Tag size={12} className={c.type === 'supplier' ? 'text-purple-500' : 'text-indigo-500'} />
+                          <span>{c.customerId || (c.type === 'supplier' ? 'SUPP-1001' : 'CUST-1001')}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-slate-800 block">{c.name}</span>
+                        {c.email && (
+                          <span className="text-[10px] text-slate-400 flex items-center space-x-1 mt-0.5">
+                            <Mail size={10} />
+                            <span>{c.email}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {c.type === 'supplier' ? (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-purple-50 text-purple-700 border border-purple-200">
+                            Supplier
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200">
+                            Customer
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-mono font-medium text-slate-700">
+                        {c.phone ? (
+                          <span className="flex items-center space-x-1">
+                            <Phone size={12} className="text-slate-400" />
+                            <span>{c.phone}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic">None</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 max-w-xs truncate">
+                        {c.address ? (
+                          <span className="flex items-center space-x-1">
+                            <MapPin size={12} className="text-slate-400 shrink-0" />
+                            <span className="truncate">{c.address}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic">None</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-bold font-mono text-xs">
+                        {c.due > 0 ? (
+                          <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200/60">
+                            ৳{Number(c.due).toLocaleString()}
+                          </span>
+                        ) : (
+                          <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 text-[11px]">
+                            ৳0 (Clear)
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          {c.due > 0 && (
+                            <button
+                              onClick={() => { setPayModalClient(c); setPayAmount(c.due); }}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded-lg transition shadow-xs"
+                            >
+                              Collect Due
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleOpenEditModal(c)}
+                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                            title="Edit Contact"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClient(c.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            title="Delete Contact"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* BULK UPLOAD CONTACTS MODAL */}
