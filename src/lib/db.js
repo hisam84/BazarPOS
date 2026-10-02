@@ -150,6 +150,12 @@ export async function initPostgresTables() {
         );
       `;
 
+      // Create performance indexes
+      await sql`CREATE INDEX IF NOT EXISTS idx_bazarpos_stores_username ON bazarpos_stores(username);`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_bazarpos_superadmin_username ON bazarpos_superadmin(username);`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_bazarpos_stores_status ON bazarpos_stores(status);`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_bazarpos_store_data_updated ON bazarpos_store_data(updated_at);`;
+
       // Check and seed superadmin
       const admins = await sql`SELECT * FROM bazarpos_superadmin WHERE username = 'superadmin' LIMIT 1`;
       if (admins.length === 0) {
@@ -1037,3 +1043,44 @@ export async function createStore(args) {
 export async function updateStoreStatus(storeId, status) {
   return updateCompany(storeId, { status });
 }
+
+export async function checkNeonHealth() {
+  const sql = getNeonSql();
+  if (!sql) {
+    return {
+      connected: false,
+      mode: 'in-memory-local-json',
+      message: 'DATABASE_URL environment variable is not defined.'
+    };
+  }
+
+  const startTime = Date.now();
+  try {
+    const timeResult = await sql`SELECT NOW() as current_time, current_database() as db_name, version() as version`;
+    const latencyMs = Date.now() - startTime;
+    const tables = await sql`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+    `;
+
+    return {
+      connected: true,
+      mode: 'neon-postgresql',
+      latencyMs,
+      database: timeResult[0]?.db_name || 'PostgreSQL',
+      serverTime: timeResult[0]?.current_time,
+      tables: tables.map(t => t.table_name),
+      tableCount: tables.length,
+      status: 'healthy'
+    };
+  } catch (error) {
+    return {
+      connected: false,
+      mode: 'neon-postgresql-error',
+      error: error.message,
+      status: 'degraded'
+    };
+  }
+}
+
