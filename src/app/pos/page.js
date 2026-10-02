@@ -624,7 +624,10 @@ export default function POSTerminalPage() {
               <label className="text-[11px] font-semibold text-slate-500">Customer</label>
               <button
                 type="button"
-                onClick={() => setShowAddClientModal(true)}
+                onClick={() => {
+                  setClientForm({ name: '', phone: '', email: '', address: '', due: 0 });
+                  setShowAddClientModal(true);
+                }}
                 className="text-[10px] text-blue-600 font-bold hover:underline flex items-center space-x-0.5"
               >
                 <UserPlus size={12} />
@@ -632,106 +635,224 @@ export default function POSTerminalPage() {
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
-              className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-left text-xs font-semibold text-slate-800 flex items-center justify-between hover:bg-slate-100/80 transition"
-            >
-              <div className="min-w-0 flex-1 truncate pr-1">
-                {selectedClient ? (
-                  <span>
-                    {selectedClient}
-                    {selectedClientObj?.phone ? ` (${selectedClientObj.phone})` : ''}
-                  </span>
-                ) : (
-                  <span className="text-slate-400 font-medium">Select Customer (Walk-in)</span>
-                )}
-              </div>
-              <div className="flex items-center space-x-1 shrink-0">
-                {selectedClientObj?.due > 0 && (
-                  <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60">
-                    ৳{Number(selectedClientObj.due).toLocaleString()} Due
-                  </span>
-                )}
-                <span className="text-slate-400 text-[10px]">▼</span>
-              </div>
-            </button>
-
-            {/* Custom Searchable Dropdown */}
-            {clientDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-2xl z-30 p-2 space-y-2 max-h-72 flex flex-col animate-in fade-in zoom-in-95 duration-150">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 text-slate-400" size={13} />
-                  <input
-                    type="text"
-                    autoFocus
-                    value={clientSearch}
-                    onChange={(e) => setClientSearch(e.target.value)}
-                    placeholder="Search name, phone, ID..."
-                    className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-
-                <div className="overflow-y-auto flex-1 space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectClient(null)}
-                    className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between ${
-                      !selectedClient ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'hover:bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    <div>
-                      <p className="font-bold">Walk-in Customer</p>
-                      <p className="text-[10px] text-slate-400">Regular counter sale (No due tracking)</p>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
+                className={`w-full px-2.5 py-2 bg-slate-50 border rounded-xl text-left text-xs font-semibold flex items-center justify-between transition ${
+                  selectedClient
+                    ? 'border-blue-300 bg-blue-50/40 text-blue-900'
+                    : 'border-slate-200 text-slate-800 hover:bg-slate-100/80'
+                }`}
+              >
+                <div className="min-w-0 flex-1 truncate pr-1">
+                  {selectedClient ? (
+                    <div className="flex items-center space-x-1.5 truncate">
+                      <span className="font-bold truncate">{selectedClient}</span>
+                      {selectedClientObj?.phone && (
+                        <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
+                          ({selectedClientObj.phone})
+                        </span>
+                      )}
                     </div>
-                    {!selectedClient && <span className="font-bold text-blue-600">✓</span>}
-                  </button>
-
-                  {clients
-                    .filter(c => {
-                      const q = clientSearch.toLowerCase();
-                      return (
-                        (c.name && c.name.toLowerCase().includes(q)) ||
-                        (c.phone && c.phone.includes(q)) ||
-                        (c.customerId && c.customerId.toLowerCase().includes(q))
-                      );
-                    })
-                    .map(c => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => handleSelectClient(c)}
-                        className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between ${
-                          selectedClient === c.name ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'hover:bg-slate-100 text-slate-800'
-                        }`}
-                      >
-                        <div className="min-w-0 flex-1 pr-2">
-                          <div className="flex items-center space-x-1.5">
-                            <span className="font-bold truncate">{c.name}</span>
-                            {c.customerId && (
-                              <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-1 py-0.2 rounded">
-                                {c.customerId}
-                              </span>
-                            )}
-                          </div>
-                          {c.phone && <p className="text-[10px] text-slate-500 font-mono mt-0.5">{c.phone}</p>}
-                        </div>
-                        <div>
-                          {c.due > 0 ? (
-                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60 whitespace-nowrap">
-                              ৳{Number(c.due).toLocaleString()} Due
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded whitespace-nowrap">
-                              Clear
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                  ) : (
+                    <span className="text-slate-400 font-medium truncate block">
+                      Select Customer (Walk-in)
+                    </span>
+                  )}
                 </div>
-              </div>
-            )}
+
+                <div className="flex items-center space-x-1.5 shrink-0">
+                  {selectedClientObj?.due > 0 ? (
+                    <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60 whitespace-nowrap">
+                      ৳{Number(selectedClientObj.due).toLocaleString()} Due
+                    </span>
+                  ) : selectedClient ? (
+                    <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded whitespace-nowrap">
+                      No Due
+                    </span>
+                  ) : null}
+
+                  {selectedClient ? (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectClient(null);
+                      }}
+                      className="p-0.5 hover:bg-slate-200 rounded text-slate-400 hover:text-slate-700 transition"
+                      title="Clear Customer"
+                    >
+                      <X size={12} />
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 text-[10px]">▼</span>
+                  )}
+                </div>
+              </button>
+
+              {/* Optimized Searchable Dropdown Popup */}
+              {clientDropdownOpen && (
+                <div className="absolute left-0 top-full mt-2 w-[340px] sm:w-[380px] max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-3 space-y-2.5 max-h-96 flex flex-col animate-in fade-in zoom-in-95 duration-150">
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 text-slate-400 pointer-events-none" size={14} />
+                    <input
+                      type="text"
+                      autoFocus
+                      value={clientSearch}
+                      onChange={(e) => setClientSearch(e.target.value)}
+                      placeholder="Search by name, phone, ID..."
+                      className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+                    {clientSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setClientSearch('')}
+                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Customer List Feed */}
+                  <div className="overflow-y-auto flex-1 space-y-1.5 pr-0.5 max-h-64 custom-scrollbar">
+                    {/* Walk-in Customer Option */}
+                    <button
+                      type="button"
+                      onClick={() => handleSelectClient(null)}
+                      className={`w-full text-left p-2.5 rounded-xl text-xs transition flex items-center justify-between border ${
+                        !selectedClient
+                          ? 'bg-blue-50/80 border-blue-300 text-blue-900 shadow-xs'
+                          : 'bg-white border-slate-100 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
+                          W
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-slate-800">Walk-in Customer</p>
+                          <p className="text-[10px] text-slate-400">Regular counter checkout (No credit due)</p>
+                        </div>
+                      </div>
+                      {!selectedClient && (
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Filtered Clients */}
+                    {(() => {
+                      const q = clientSearch.toLowerCase().trim();
+                      const matched = clients.filter(c => {
+                        if (!q) return true;
+                        return (
+                          (c.name && c.name.toLowerCase().includes(q)) ||
+                          (c.phone && c.phone.includes(q)) ||
+                          (c.customerId && c.customerId.toLowerCase().includes(q))
+                        );
+                      });
+
+                      if (matched.length === 0) {
+                        return (
+                          <div className="py-6 text-center text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200 p-4 space-y-2">
+                            <p className="text-xs font-semibold text-slate-600">
+                              No customer matches &quot;{clientSearch}&quot;
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setClientForm({ name: clientSearch, phone: '', email: '', address: '', due: 0 });
+                                setShowAddClientModal(true);
+                                setClientDropdownOpen(false);
+                              }}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg transition"
+                            >
+                              + Add &quot;{clientSearch}&quot; as New Customer
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return matched.map(c => {
+                        const isSelected = selectedClient === c.name || selectedClient === c.id;
+                        return (
+                          <button
+                            key={c.id || c.name}
+                            type="button"
+                            onClick={() => handleSelectClient(c)}
+                            className={`w-full text-left p-2.5 rounded-xl text-xs transition flex items-center justify-between border ${
+                              isSelected
+                                ? 'bg-blue-50/80 border-blue-300 text-blue-900 shadow-xs'
+                                : 'bg-white border-slate-100 hover:bg-slate-50 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2.5 min-w-0 flex-1 pr-2">
+                              <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">
+                                {(c.name || 'C')[0].toUpperCase()}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center space-x-1.5">
+                                  <span className="font-bold text-slate-900 truncate">{c.name}</span>
+                                  {c.customerId && (
+                                    <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-600 px-1 py-0.2 rounded shrink-0">
+                                      {c.customerId}
+                                    </span>
+                                  )}
+                                </div>
+                                {c.phone && (
+                                  <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
+                                    📞 {c.phone}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2 shrink-0">
+                              {Number(c.due) > 0 ? (
+                                <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200/60 whitespace-nowrap">
+                                  ৳{Number(c.due).toLocaleString()} Due
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg whitespace-nowrap">
+                                  No Due
+                                </span>
+                              )}
+                              {isSelected && (
+                                <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      });
+                    })()}
+                  </div>
+
+                  {/* Bottom Footer Action */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      {clients.length} Registered Customers
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setClientForm({ name: '', phone: '', email: '', address: '', due: 0 });
+                        setShowAddClientModal(true);
+                        setClientDropdownOpen(false);
+                      }}
+                      className="text-xs font-bold text-blue-600 hover:underline flex items-center space-x-1"
+                    >
+                      <UserPlus size={12} />
+                      <span>+ Create New Customer</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div>
