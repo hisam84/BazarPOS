@@ -1,4 +1,5 @@
-import { getDb, getStores, getStoreData, getNeonSql, initPostgresTables } from './db';
+import { getDb, getStores, getStoreData, getNeonSql, initPostgresTables, updateSuperAdminPassword, updateCompany, saveStoreData } from './db';
+import { verifyPassword, hashPassword } from './password';
 
 export async function authenticateUser(username, password) {
   const sql = getNeonSql();
@@ -8,17 +9,25 @@ export async function authenticateUser(username, password) {
   if (sql) {
     try {
       await initPostgresTables();
-      const admins = await sql`SELECT * FROM bazarpos_superadmin WHERE username = ${username} AND password = ${password} LIMIT 1`;
+      const admins = await sql`SELECT * FROM bazarpos_superadmin WHERE username = ${username} LIMIT 1`;
       if (admins.length > 0) {
-        return {
-          success: true,
-          role: 'superadmin',
-          user: {
-            username: admins[0].username,
-            fullName: admins[0].full_name || 'System Super Admin',
-            role: 'superadmin'
+        const admin = admins[0];
+        const { valid, needsRehash } = await verifyPassword(password, admin.password);
+        if (valid) {
+          if (needsRehash) {
+            const hashed = await hashPassword(password);
+            await sql`UPDATE bazarpos_superadmin SET password = ${hashed} WHERE username = ${username}`;
           }
-        };
+          return {
+            success: true,
+            role: 'superadmin',
+            user: {
+              username: admin.username,
+              fullName: admin.full_name || 'System Super Admin',
+              role: 'superadmin'
+            }
+          };
+        }
       }
     } catch (e) {
       console.warn('Neon SuperAdmin check error:', e.message);
@@ -26,48 +35,63 @@ export async function authenticateUser(username, password) {
   }
 
   const db = getDb();
-  if (username === db.superAdmin?.username && password === db.superAdmin?.password) {
-    return {
-      success: true,
-      role: 'superadmin',
-      user: {
-        username: db.superAdmin.username,
-        fullName: db.superAdmin.fullName,
-        role: 'superadmin'
+  if (username === db.superAdmin?.username) {
+    const { valid, needsRehash } = await verifyPassword(password, db.superAdmin.password);
+    if (valid) {
+      if (needsRehash) {
+        await updateSuperAdminPassword(password);
       }
-    };
+      return {
+        success: true,
+        role: 'superadmin',
+        user: {
+          username: db.superAdmin.username,
+          fullName: db.superAdmin.fullName,
+          role: 'superadmin'
+        }
+      };
+    }
   }
 
   // 2. Check Store Owners (Full Store Admin)
   const stores = await getStores();
   for (const storeId in stores) {
     const store = stores[storeId];
-    if (store.username === username && store.password === password) {
-      if (store.status === 'suspended') {
-        return { success: false, message: 'This company account has been suspended. Please contact Super Admin.' };
-      }
-      
-      const expiry = store.subscription?.expiryDate;
-      const isExpired = store.subscription?.status === 'expired' || (expiry && expiry < today);
-      if (isExpired) {
-        return { 
-          success: false, 
-          message: `Your company subscription validity expired on ${expiry || 'date'}. Please contact Super Admin to renew.` 
+    if (store.username === username) {
+      const { valid, needsRehash } = await verifyPassword(password, store.password);
+      if (valid) {
+        if (store.status === 'suspended') {
+          return { success: false, message: 'This company account has been suspended. Please contact Super Admin.' };
+        }
+        
+        const expiry = store.subscription?.expiryDate;
+        const isExpired = store.subscription?.status === 'expired' || (expiry && expiry < today);
+        if (isExpired) {
+          return { 
+            success: false, 
+            message: `Your company subscription validity expired on ${expiry || 'date'}. Please contact Super Admin to renew.` 
+          };
+        }
+
+        // Auto-rehash stored password to bcrypt if it was plain text
+        if (needsRehash) {
+          const hashed = await hashPassword(password);
+          await updateCompany(store.id, { password: hashed });
+        }
+
+        return {
+          success: true,
+          role: 'owner',
+          storeId: store.id,
+          user: {
+            username: store.username,
+            fullName: store.name,
+            storeId: store.id,
+            storeName: store.name,
+            role: 'owner'
+          }
         };
       }
-
-      return {
-        success: true,
-        role: 'owner',
-        storeId: store.id,
-        user: {
-          username: store.username,
-          fullName: store.name,
-          storeId: store.id,
-          storeName: store.name,
-          role: 'owner'
-        }
-      };
     }
   }
 
@@ -77,35 +101,45 @@ export async function authenticateUser(username, password) {
     if (!parentStore) continue;
 
     const storeData = await getStoreData(storeId);
-    const staffMember = (storeData.staff || []).find(
-      s => s.username === username && s.password === password
-    );
-    if (staffMember) {
-      if (parentStore.status === 'suspended') {
-        return { success: false, message: 'This company account has been suspended. Please contact Super Admin.' };
-      }
+    const staffList = storeData.staff || [];
+    for (let i = 0; i < staffList.length; i++) {
+      const staffMember = staffList[i];
+      if (staffMember.username === username) {
+        const { valid, needsRehash } = await verifyPassword(password, staffMember.password);
+        if (valid) {
+          if (parentStore.status === 'suspended') {
+            return { success: false, message: 'This company account has been suspended. Please contact Super Admin.' };
+          }
 
-      const expiry = parentStore.subscription?.expiryDate;
-      const isExpired = parentStore.subscription?.status === 'expired' || (expiry && expiry < today);
-      if (isExpired) {
-        return { 
-          success: false, 
-          message: `Store subscription validity expired on ${expiry || 'date'}. Please contact Super Admin to renew.` 
-        };
-      }
+          const expiry = parentStore.subscription?.expiryDate;
+          const isExpired = parentStore.subscription?.status === 'expired' || (expiry && expiry < today);
+          if (isExpired) {
+            return { 
+              success: false, 
+              message: `Store subscription validity expired on ${expiry || 'date'}. Please contact Super Admin to renew.` 
+            };
+          }
 
-      return {
-        success: true,
-        role: staffMember.role || 'cashier',
-        storeId: storeId,
-        user: {
-          username: staffMember.username,
-          fullName: staffMember.name,
-          storeId: storeId,
-          storeName: parentStore.name || 'Outlet',
-          role: staffMember.role || 'cashier'
+          // Auto-rehash staff password
+          if (needsRehash) {
+            staffMember.password = await hashPassword(password);
+            await saveStoreData(storeId, storeData);
+          }
+
+          return {
+            success: true,
+            role: staffMember.role || 'cashier',
+            storeId: storeId,
+            user: {
+              username: staffMember.username,
+              fullName: staffMember.name,
+              storeId: storeId,
+              storeName: parentStore.name || 'Outlet',
+              role: staffMember.role || 'cashier'
+            }
+          };
         }
-      };
+      }
     }
   }
 

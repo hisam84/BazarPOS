@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { neon } from '@neondatabase/serverless';
+import { hashPassword } from './password';
 
 const DB_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
@@ -622,6 +623,8 @@ export async function createCompany({
   const startDate = new Date().toISOString().slice(0, 10);
   const expiryDate = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
 
+  const hashedPassword = await hashPassword(password);
+
   const newCompany = {
     id: companyId,
     name,
@@ -630,7 +633,7 @@ export async function createCompany({
     email,
     address,
     username,
-    password,
+    password: hashedPassword,
     status: 'active',
     createdAt: new Date().toISOString(),
     subscription: {
@@ -732,6 +735,11 @@ export async function createCompany({
 }
 
 export async function updateCompany(companyId, updates) {
+  let safeUpdates = { ...updates };
+  if (safeUpdates.password && safeUpdates.password.trim() !== '') {
+    safeUpdates.password = await hashPassword(safeUpdates.password);
+  }
+
   const sql = getNeonSql();
   if (sql) {
     try {
@@ -739,14 +747,14 @@ export async function updateCompany(companyId, updates) {
       const existing = await sql`SELECT * FROM bazarpos_stores WHERE id = ${companyId} LIMIT 1`;
       if (existing.length > 0) {
         const row = existing[0];
-        const updatedName = updates.name !== undefined ? updates.name : row.name;
-        const updatedOwner = updates.owner !== undefined ? updates.owner : row.owner;
-        const updatedPhone = updates.phone !== undefined ? updates.phone : row.phone;
-        const updatedEmail = updates.email !== undefined ? updates.email : row.email;
-        const updatedAddress = updates.address !== undefined ? updates.address : row.address;
-        const updatedUsername = updates.username !== undefined ? updates.username : row.username;
-        const updatedPassword = updates.password !== undefined && updates.password.trim() !== '' ? updates.password : row.password;
-        const updatedStatus = updates.status !== undefined ? updates.status : row.status;
+        const updatedName = safeUpdates.name !== undefined ? safeUpdates.name : row.name;
+        const updatedOwner = safeUpdates.owner !== undefined ? safeUpdates.owner : row.owner;
+        const updatedPhone = safeUpdates.phone !== undefined ? safeUpdates.phone : row.phone;
+        const updatedEmail = safeUpdates.email !== undefined ? safeUpdates.email : row.email;
+        const updatedAddress = safeUpdates.address !== undefined ? safeUpdates.address : row.address;
+        const updatedUsername = safeUpdates.username !== undefined ? safeUpdates.username : row.username;
+        const updatedPassword = safeUpdates.password !== undefined && safeUpdates.password.trim() !== '' ? safeUpdates.password : row.password;
+        const updatedStatus = safeUpdates.status !== undefined ? safeUpdates.status : row.status;
 
         await sql`
           UPDATE bazarpos_stores SET
@@ -770,7 +778,7 @@ export async function updateCompany(companyId, updates) {
   if (db.stores[companyId]) {
     db.stores[companyId] = {
       ...db.stores[companyId],
-      ...updates,
+      ...safeUpdates,
       id: companyId
     };
     saveDb(db);
@@ -929,18 +937,19 @@ export async function getSuperAdmin() {
 }
 
 export async function updateSuperAdminPassword(newPassword) {
+  const hashedPassword = await hashPassword(newPassword);
   const sql = getNeonSql();
   if (sql) {
     try {
       await initPostgresTables();
-      await sql`UPDATE bazarpos_superadmin SET password = ${newPassword} WHERE username = 'superadmin'`;
+      await sql`UPDATE bazarpos_superadmin SET password = ${hashedPassword} WHERE username = 'superadmin'`;
     } catch (e) {
       console.warn('Postgres updateSuperAdminPassword error:', e.message);
     }
   }
 
   const db = ensureDb();
-  db.superAdmin.password = newPassword;
+  db.superAdmin.password = hashedPassword;
   saveDb(db);
   return true;
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getStoreData, saveStoreData } from '@/lib/db';
+import { hashPassword } from '@/lib/password';
 
 export async function GET(request) {
   try {
@@ -30,11 +31,13 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'Username already taken by another staff member' }, { status: 400 });
     }
 
+    const hashedPassword = await hashPassword(password.trim());
+
     const newStaff = {
       id: 'st_' + Date.now(),
       name: name.trim(),
       username: username.trim(),
-      password: password.trim(),
+      password: hashedPassword,
       role: role || 'cashier',
       phone: phone ? phone.trim() : '',
       createdAt: new Date().toISOString()
@@ -66,11 +69,16 @@ export async function PUT(request) {
     }
 
     const existing = storeData.staff[index];
+    let updatedPassword = existing.password;
+    if (password !== undefined && password.trim() !== '') {
+      updatedPassword = await hashPassword(password.trim());
+    }
+
     storeData.staff[index] = {
       ...existing,
       name: name !== undefined ? name.trim() : existing.name,
       username: username !== undefined ? username.trim() : existing.username,
-      password: (password !== undefined && password.trim() !== '') ? password.trim() : existing.password,
+      password: updatedPassword,
       role: role !== undefined ? role : existing.role,
       phone: phone !== undefined ? phone.trim() : (existing.phone || ''),
       updatedAt: new Date().toISOString()
