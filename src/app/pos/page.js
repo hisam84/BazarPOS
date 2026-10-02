@@ -127,6 +127,9 @@ export default function POSTerminalPage() {
           id: product.id,
           code: product.code,
           name: product.name,
+          unit: product.unit || 'Pcs',
+          warranty: product.warranty || '',
+          description: product.description || '',
           costPrice: product.costPrice || 0,
           unitPrice: product.sellingPrice || 0,
           quantity: 1,
@@ -868,10 +871,18 @@ export default function POSTerminalPage() {
                     </thead>
                     <tbody>
                       {completedVoucher.items.map((item, idx) => (
-                        <tr key={idx}>
-                          <td className="py-1">{item.name}</td>
-                          <td className="py-1 text-center">{item.quantity}</td>
-                          <td className="py-1 text-right">৳{item.unitPrice * item.quantity}</td>
+                        <tr key={idx} className="border-b border-slate-100">
+                          <td className="py-1">
+                            <p className="font-semibold">{item.name}</p>
+                            {item.warranty && (
+                              <p className="text-[9px] text-blue-600 font-medium">Warranty: {item.warranty}</p>
+                            )}
+                            {item.description && (
+                              <p className="text-[9px] text-slate-500 italic leading-tight">{item.description}</p>
+                            )}
+                          </td>
+                          <td className="py-1 text-center align-top">{item.quantity}</td>
+                          <td className="py-1 text-right align-top">৳{item.unitPrice * item.quantity}</td>
                         </tr>
                       ))}
                     </tbody>

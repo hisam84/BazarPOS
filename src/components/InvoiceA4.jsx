@@ -73,10 +73,10 @@ export default function InvoiceA4({
     salerName: 'Md. Karim (Sales Counter 1)',
     paymentMethod: 'Cash / bKash',
     items: [
-      { sl: 1, code: 'PRD-101', name: 'Premium Jasmine Rice (50kg)', unit: 'Bag', quantity: 2, unitPrice: 3850, discount: 100, total: 7600 },
-      { sl: 2, code: 'PRD-104', name: 'Pure Mustard Oil (5 Liter Can)', unit: 'Can', quantity: 3, unitPrice: 920, discount: 0, total: 2760 },
-      { sl: 3, code: 'PRD-209', name: 'Aromatic Tea Powder (500g Pack)', unit: 'Pcs', quantity: 5, unitPrice: 240, discount: 50, total: 1150 },
-      { sl: 4, code: 'PRD-315', name: 'Refined Sugar (Grade A)', unit: 'Kg', quantity: 10, unitPrice: 135, discount: 0, total: 1350 }
+      { sl: 1, code: 'PRD-101', name: 'Premium Jasmine Rice (50kg)', unit: 'Bag', warranty: '1 Year Brand Warranty', description: 'Export Quality 100% Sorted Premium Grain', quantity: 2, unitPrice: 3850, discount: 100, total: 7600 },
+      { sl: 2, code: 'PRD-104', name: 'Pure Mustard Oil (5 Liter Can)', unit: 'Can', warranty: '', description: '', quantity: 3, unitPrice: 920, discount: 0, total: 2760 },
+      { sl: 3, code: 'PRD-209', name: 'Aromatic Tea Powder (500g Pack)', unit: 'Pcs', warranty: '6 Months Replacement', description: 'Selected CTC Blend', quantity: 5, unitPrice: 240, discount: 50, total: 1150 },
+      { sl: 4, code: 'PRD-315', name: 'Refined Sugar (Grade A)', unit: 'Kg', warranty: '', description: '', quantity: 10, unitPrice: 135, discount: 0, total: 1350 }
     ],
     subTotal: 13000,
     discount: 140,
@@ -293,9 +293,25 @@ export default function InvoiceA4({
                     </td>
                   )}
                   <td className="py-2 px-3">
-                    <span className="font-semibold text-slate-900 block">{item.name}</span>
-                    {item.unit && settings?.showItemUnit && (
-                      <span className="text-[10px] text-slate-500">Unit: {item.unit}</span>
+                    <span className="font-semibold text-slate-900 block leading-tight">{item.name}</span>
+                    
+                    {/* Unit & Warranty badges */}
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[10px] text-slate-500">
+                      {item.unit && settings?.showItemUnit && (
+                        <span>Unit: <strong className="text-slate-700 font-medium">{item.unit}</strong></span>
+                      )}
+                      {item.warranty && item.warranty.trim() !== '' && (
+                        <span className="text-blue-700 font-medium bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/80 inline-flex items-center space-x-0.5">
+                          <span>🛡️ Warranty: {item.warranty}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Description note if present */}
+                    {item.description && item.description.trim() !== '' && (
+                      <p className="text-[10px] text-slate-500 italic mt-0.5 leading-snug">
+                        {item.description}
+                      </p>
                     )}
                   </td>
                   <td className="py-2 px-3 text-right font-mono text-slate-700">
