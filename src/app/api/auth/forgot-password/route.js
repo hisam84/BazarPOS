@@ -69,7 +69,8 @@ export async function POST(request) {
         otpCode,
         username: userFound.username,
         role: userFound.role.toUpperCase(),
-        storeName: userFound.storeName || 'BazarPOS'
+        storeName: userFound.storeName || 'BazarPOS',
+        logoUrl: userFound.logoUrl || ''
       });
 
       if (!emailResult.success) {
@@ -211,11 +212,13 @@ async function findUserByEmail(email) {
   for (const storeId in stores) {
     const store = stores[storeId];
     if (store.email && store.email.trim().toLowerCase() === email) {
+      const storeData = await getStoreData(storeId);
       return {
         role: 'owner',
         username: store.username,
         storeName: store.name || 'Store Owner',
-        storeId: store.id
+        storeId: store.id,
+        logoUrl: storeData?.company?.logoUrl || ''
       };
     }
   }
@@ -231,7 +234,8 @@ async function findUserByEmail(email) {
           username: staff.username,
           staffId: staff.id,
           storeName: stores[storeId]?.name || 'Store Staff',
-          storeId: storeId
+          storeId: storeId,
+          logoUrl: storeData?.company?.logoUrl || ''
         };
       }
     }

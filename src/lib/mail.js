@@ -52,7 +52,7 @@ export async function getActiveMailConfig(storeId = 'default') {
 /**
  * Send Password Reset OTP Email
  */
-export async function sendPasswordResetOtpEmail({ toEmail, otpCode, username, role = 'User', storeName = 'BazarPOS' }) {
+export async function sendPasswordResetOtpEmail({ toEmail, otpCode, username, role = 'User', storeName = 'BazarPOS', logoUrl = '' }) {
   const mailConfig = await getActiveMailConfig();
 
   if (!mailConfig.configured) {
@@ -78,11 +78,18 @@ export async function sendPasswordResetOtpEmail({ toEmail, otpCode, username, ro
     });
 
     const subject = `[${storeName}] Password Reset Verification Code: ${otpCode}`;
+    const logoHtml = logoUrl ? `
+      <div style="margin-bottom: 12px; text-align: center;">
+        <img src="${logoUrl}" alt="${storeName} Logo" style="max-height: 50px; max-width: 160px; object-fit: contain; border-radius: 8px; background: #ffffff; padding: 4px;" />
+      </div>
+    ` : '';
+
     const html = `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; color: #1e293b;">
         <div style="background: linear-gradient(135deg, #2563eb, #4f46e5); padding: 20px; border-radius: 12px; color: #ffffff; text-align: center;">
-          <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">BazarPOS Security Portal</h1>
-          <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;">Password Reset Request</p>
+          ${logoHtml}
+          <h1 style="margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.5px;">${storeName}</h1>
+          <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;">Password Recovery & Security Portal</p>
         </div>
 
         <div style="padding: 24px 8px; line-height: 1.6;">
@@ -102,7 +109,7 @@ export async function sendPasswordResetOtpEmail({ toEmail, otpCode, username, ro
         </div>
 
         <div style="border-top: 1px solid #f1f5f9; padding-top: 16px; text-align: center; font-size: 11px; color: #94a3b8;">
-          This is an automated security message from BazarPOS Cloud ERP. Please do not reply directly to this email.
+          This is an automated security message from ${storeName} Cloud POS ERP. Please do not reply directly to this email.
         </div>
       </div>
     `;

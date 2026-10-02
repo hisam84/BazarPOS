@@ -18,6 +18,7 @@ const DEFAULT_USER = {
 
 export default function RootLayout({ children }) {
   const [user, setUser] = useState(DEFAULT_USER);
+  const [company, setCompany] = useState(null);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -46,6 +47,18 @@ export default function RootLayout({ children }) {
       }
     } else if (currentUser?.role !== 'superadmin' && pathname.startsWith('/superadmin')) {
       router.replace('/');
+    }
+
+    // Load store company details & logo for favicon
+    if (currentUser?.storeId && currentUser?.role !== 'superadmin') {
+      fetch(`/api/company?storeId=${currentUser.storeId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.company) {
+            setCompany(data.company);
+          }
+        })
+        .catch(() => {});
     }
   }, [pathname]);
 
@@ -107,14 +120,27 @@ export default function RootLayout({ children }) {
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.title = getPageTitle();
+
+      // Dynamic Favicon sync with Company Logo
+      const logo = company?.logoUrl || user?.logoUrl;
+      if (logo) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        link.href = logo;
+      }
     }
-  }, [pathname, user]);
+  }, [pathname, user, company]);
 
   return (
     <html lang="en">
       <head>
         <title>{getPageTitle()}</title>
         <meta name="description" content="Modern Point of Sale & Retail Billing Management ERP System" />
+        <link rel="icon" href={company?.logoUrl || user?.logoUrl || '/favicon.ico'} />
       </head>
       <body className="min-h-screen bg-slate-50 flex flex-col font-sans">
         {!isPublicPage && <SecurityWarningBanner user={user} onUserUpdated={(u) => setUser(u)} />}
@@ -130,7 +156,7 @@ export default function RootLayout({ children }) {
           <div className="min-h-screen w-full">{children}</div>
         ) : (
           <div className="flex min-h-screen w-full">
-            <Sidebar user={user} onLogout={handleLogout} />
+            <Sidebar user={user} company={company} onLogout={handleLogout} />
             <div className="flex-1 flex flex-col min-w-0">
               <Header user={user} onLogout={handleLogout} />
               <main className="flex-1 p-6 overflow-y-auto">{children}</main>

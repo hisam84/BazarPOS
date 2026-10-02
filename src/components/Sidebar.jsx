@@ -112,7 +112,7 @@ const SUPERADMIN_TREE_GROUPS = [
   }
 ];
 
-export default function Sidebar({ user, onLogout }) {
+export default function Sidebar({ user, company, onLogout }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,6 +129,7 @@ export default function Sidebar({ user, onLogout }) {
 
   const role = user?.role || 'owner';
   const isSuperAdmin = role === 'superadmin';
+  const logoUrl = !isSuperAdmin ? (company?.logoUrl || user?.logoUrl) : null;
   const treeGroups = isSuperAdmin ? SUPERADMIN_TREE_GROUPS : STORE_TREE_GROUPS;
 
   // Auto-expand group containing current route on pathname change
@@ -178,12 +179,18 @@ export default function Sidebar({ user, onLogout }) {
       <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40 flex-shrink-0">
         {!collapsed ? (
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25 border border-blue-400/30">
-              {isSuperAdmin ? '⚡' : 'B'}
-            </div>
-            <div>
-              <span className="font-bold text-base tracking-tight text-white block leading-tight">
-                {isSuperAdmin ? 'SuperAdmin' : (user?.storeName || 'BazarPOS')}
+            {logoUrl ? (
+              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center p-0.5 shadow-md shadow-blue-500/10 border border-slate-700 overflow-hidden shrink-0">
+                <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25 border border-blue-400/30 shrink-0">
+                {isSuperAdmin ? '⚡' : 'B'}
+              </div>
+            )}
+            <div className="min-w-0">
+              <span className="font-bold text-sm tracking-tight text-white block leading-tight truncate">
+                {isSuperAdmin ? 'SuperAdmin' : (company?.name || user?.storeName || 'BazarPOS')}
               </span>
               <span className="text-[10px] font-medium text-blue-400 uppercase tracking-wider block">
                 {isSuperAdmin ? 'SaaS Central' : 'Retail Cloud ERP'}
@@ -191,9 +198,15 @@ export default function Sidebar({ user, onLogout }) {
             </div>
           </div>
         ) : (
-          <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white mx-auto shadow-md border border-blue-400/30">
-            {isSuperAdmin ? '⚡' : 'B'}
-          </div>
+          logoUrl ? (
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 mx-auto shadow-md border border-slate-700 overflow-hidden">
+              <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
+            </div>
+          ) : (
+            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white mx-auto shadow-md border border-blue-400/30">
+              {isSuperAdmin ? '⚡' : 'B'}
+            </div>
+          )
         )}
 
         <button

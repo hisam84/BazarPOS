@@ -136,6 +136,22 @@ export default function SettingsPage() {
     }
   };
 
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Logo file size must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCompany(prev => ({ ...prev, logoUrl: event.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveCompany = async (e) => {
     e.preventDefault();
     setSavingCompany(true);
@@ -148,7 +164,18 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setMsg('Store branding settings saved successfully!');
+        setMsg('Store branding & logo saved successfully!');
+        // Update local session if needed
+        try {
+          const saved = localStorage.getItem('bazarpos_user');
+          if (saved) {
+            const u = JSON.parse(saved);
+            u.storeName = company.name || u.storeName;
+            u.logoUrl = company.logoUrl || '';
+            localStorage.setItem('bazarpos_user', JSON.stringify(u));
+            setUser(u);
+          }
+        } catch (e) {}
         setTimeout(() => setMsg(''), 3500);
       } else {
         setErrorMsg(data.message || 'Failed to save store branding');
@@ -771,8 +798,62 @@ export default function SettingsPage() {
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
         <h2 className="text-base font-bold text-slate-800 border-b pb-3 flex items-center space-x-2">
           <Store className="text-blue-600" size={20} />
-          <span>Store Branding & Public Receipt Details</span>
+          <span>Store Branding, Logo & Public Receipt Details</span>
         </h2>
+
+        {/* Company Logo Upload & Favicon Section */}
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shadow-xs relative shrink-0">
+                {company.logoUrl ? (
+                  <img
+                    src={company.logoUrl}
+                    alt="Company Logo"
+                    className="w-full h-full object-contain p-1"
+                  />
+                ) : (
+                  <Store className="text-slate-400" size={28} />
+                )}
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
+                  <span>Store Brand Logo & Favicon</span>
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 font-semibold rounded-full text-[10px]">
+                    Auto-Favicon
+                  </span>
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5 max-w-md">
+                  Upload your company logo. It will be used on invoice receipts, browser tab favicon, sidebar branding, and automated email templates.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <label className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl cursor-pointer transition text-xs shadow-sm flex items-center space-x-1.5">
+                <Upload size={14} />
+                <span>{company.logoUrl ? 'Change Logo' : 'Upload Logo'}</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {company.logoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setCompany(prev => ({ ...prev, logoUrl: '' }))}
+                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition text-xs border border-rose-200"
+                  title="Remove Logo"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
         <form onSubmit={handleSaveCompany} className="space-y-4 text-xs font-medium">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
