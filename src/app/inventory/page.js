@@ -225,37 +225,37 @@ export default function InventoryPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <Package className="text-blue-600" size={24} />
-            <span>Product Inventory & Stock Management</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <Package className="text-blue-600" size={22} />
+            <span>Product Inventory & Stock</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage product catalog, barcode identifiers, brands, purchase & sale prices, stock limits, and suppliers.
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
+            Manage product catalog, barcode identifiers, purchase & sale prices, stock limits, and suppliers.
           </p>
         </div>
 
         <button
           onClick={handleOpenAddModal}
-          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md shadow-blue-500/20 text-xs"
+          className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-md shadow-blue-500/20 text-xs w-full sm:w-auto"
         >
-          <Plus size={18} />
+          <Plus size={16} />
           <span>Add New Product</span>
         </button>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-2.5 sm:gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-3.5 top-2.5 text-slate-400" size={17} />
+          <Search className="absolute left-3.5 top-2.5 text-slate-400" size={16} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by Product Name, Code, Brand, Barcode, or Supplier..."
+            placeholder="Search product, code, brand, barcode..."
             className="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500"
           />
           <button
@@ -268,14 +268,14 @@ export default function InventoryPage() {
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition shrink-0 ${
                 selectedCategory === cat
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-blue-600 text-white shadow-sm font-bold'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -285,95 +285,177 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Inventory Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Inventory Table & Mobile Cards */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-5">
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-sm">Loading Products...</div>
         ) : filteredProducts.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 text-sm">No products found. Click "Add New Product" to get started!</div>
+          <div className="text-center py-12 text-slate-400 text-xs sm:text-sm">
+            No products found. Click &quot;Add New Product&quot; to get started!
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-bold border-b text-[11px] uppercase tracking-wider">
-                <tr>
-                  <th className="px-4 py-3">Code</th>
-                  <th className="px-4 py-3">Barcode</th>
-                  <th className="px-4 py-3">Product Name</th>
-                  <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Brand</th>
-                  <th className="px-4 py-3">Purchase (৳)</th>
-                  <th className="px-4 py-3">Selling (৳)</th>
-                  <th className="px-4 py-3">Stock Qty</th>
-                  <th className="px-4 py-3">Supplier</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/80 transition">
-                    <td className="px-4 py-3 font-mono font-bold text-slate-700">{p.code}</td>
-                    <td className="px-4 py-3 font-mono text-[11px] text-slate-500">{p.barcode || '-'}</td>
-                    <td className="px-4 py-3">
-                      <span className="font-bold text-slate-900 block">{p.name}</span>
+          <>
+            {/* Mobile View: Clean App Cards (Zero Horizontal Scroll) */}
+            <div className="block md:hidden space-y-2.5">
+              {filteredProducts.map((p) => (
+                <div
+                  key={p.id}
+                  className="p-3 bg-slate-50/70 border border-slate-200 rounded-xl space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono text-[10px] font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">
+                          {p.code}
+                        </span>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
+                          {p.category}
+                        </span>
+                        {p.brand && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded">
+                            {p.brand}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-xs text-slate-900 mt-1.5 break-words">
+                        {p.name}
+                      </h4>
                       {p.warrantyDays > 0 && (
-                        <span className="text-[10px] text-blue-600 font-medium">
-                          🛡️ {p.warrantyDays}d
-                          {p.warrantyType && p.warrantyType !== 'none' && (
-                            <span className={`ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
-                              (WARRANTY_TYPES.find(w => w.value === p.warrantyType) || {}).color || 'bg-slate-100 text-slate-500'
-                            }`}>
-                              {(WARRANTY_TYPES.find(w => w.value === p.warrantyType) || {}).label || p.warrantyType}
-                            </span>
-                          )}
-                        </span>
+                        <p className="text-[10px] text-blue-600 font-medium mt-0.5">
+                          🛡️ {p.warrantyDays}d {p.warrantyType && p.warrantyType !== 'none' ? `· ${p.warrantyType}` : ''}
+                        </p>
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      <span className="px-2 py-0.5 bg-slate-100 rounded font-medium">{p.category}</span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {p.brand ? (
-                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-semibold text-[11px] border border-indigo-100">
-                          {p.brand}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 italic text-[11px]">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 font-mono font-medium">৳{p.costPrice || 0}</td>
-                    <td className="px-4 py-3 font-mono font-bold text-blue-600">৳{p.sellingPrice}</td>
-                    <td className="px-4 py-3 font-bold">
-                      <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] ${
+                    </div>
+
+                    <div className="flex items-center space-x-1 shrink-0">
+                      <button
+                        onClick={() => handleOpenEditModal(p)}
+                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                        title="Edit Product"
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(p.id)}
+                        className="p-2 text-rose-600 hover:bg-rose-100 rounded-lg transition"
+                        title="Delete Product"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Selling Price</span>
+                      <span className="font-black text-blue-600 text-sm">৳{Number(p.sellingPrice || 0).toLocaleString()}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Cost Price</span>
+                      <span className="font-semibold text-slate-600 text-xs">৳{Number(p.costPrice || 0).toLocaleString()}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-400 block text-right">Stock Qty</span>
+                      <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         p.quantity <= (p.minQuantity || 5)
                           ? 'bg-rose-100 text-rose-700'
                           : 'bg-emerald-100 text-emerald-700'
                       }`}>
-                        {p.quantity <= (p.minQuantity || 5) && <AlertTriangle size={12} />}
+                        {p.quantity <= (p.minQuantity || 5) && <AlertTriangle size={10} />}
                         <span>{p.quantity} {p.unit || 'pcs'}</span>
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 font-medium">{p.supplier || '-'}</td>
-                    <td className="px-4 py-3 text-right space-x-2">
-                      <button
-                        onClick={() => handleOpenEditModal(p)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                        title="Edit Product"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(p.id)}
-                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                        title="Delete Product"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Full Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 font-bold border-b text-[11px] uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3">Code</th>
+                    <th className="px-4 py-3">Barcode</th>
+                    <th className="px-4 py-3">Product Name</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Brand</th>
+                    <th className="px-4 py-3">Purchase (৳)</th>
+                    <th className="px-4 py-3">Selling (৳)</th>
+                    <th className="px-4 py-3">Stock Qty</th>
+                    <th className="px-4 py-3">Supplier</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredProducts.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-50/80 transition">
+                      <td className="px-4 py-3 font-mono font-bold text-slate-700">{p.code}</td>
+                      <td className="px-4 py-3 font-mono text-[11px] text-slate-500">{p.barcode || '-'}</td>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-slate-900 block">{p.name}</span>
+                        {p.warrantyDays > 0 && (
+                          <span className="text-[10px] text-blue-600 font-medium">
+                            🛡️ {p.warrantyDays}d
+                            {p.warrantyType && p.warrantyType !== 'none' && (
+                              <span className={`ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                (WARRANTY_TYPES.find(w => w.value === p.warrantyType) || {}).color || 'bg-slate-100 text-slate-500'
+                              }`}>
+                                {(WARRANTY_TYPES.find(w => w.value === p.warrantyType) || {}).label || p.warrantyType}
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        <span className="px-2 py-0.5 bg-slate-100 rounded font-medium">{p.category}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {p.brand ? (
+                          <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-semibold text-[11px] border border-indigo-100">
+                            {p.brand}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 font-mono font-medium">৳{p.costPrice || 0}</td>
+                      <td className="px-4 py-3 font-mono font-bold text-blue-600">৳{p.sellingPrice}</td>
+                      <td className="px-4 py-3 font-bold">
+                        <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] ${
+                          p.quantity <= (p.minQuantity || 5)
+                            ? 'bg-rose-100 text-rose-700'
+                            : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {p.quantity <= (p.minQuantity || 5) && <AlertTriangle size={12} />}
+                          <span>{p.quantity} {p.unit || 'pcs'}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 font-medium">{p.supplier || '-'}</td>
+                      <td className="px-4 py-3 text-right space-x-2">
+                        <button
+                          onClick={() => handleOpenEditModal(p)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="Edit Product"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(p.id)}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          title="Delete Product"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
