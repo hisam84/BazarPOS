@@ -609,30 +609,202 @@ export default function POSTerminalPage() {
 
       {/* QUICK ADD PRODUCT MODAL */}
       {showAddProductModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 my-8 border border-slate-100">
             <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-slate-800 text-base">Quick Add New Product</h3>
+              <h3 className="font-bold text-slate-800 text-base flex items-center space-x-2">
+                <PackagePlus className="text-blue-600" size={20} />
+                <span>Add New Product</span>
+              </h3>
               <button onClick={() => setShowAddProductModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
-            <form onSubmit={handleQuickAddProduct} className="space-y-3 text-xs font-medium">
+            <form onSubmit={handleQuickAddProduct} className="space-y-3.5 text-xs font-medium">
+              {/* Row 1: Code & Barcode */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Product Code *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter product code"
+                    value={productForm.code}
+                    onChange={e => setProductForm({ ...productForm, code: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Barcode</label>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Enter barcode (optional)"
+                      value={productForm.barcode}
+                      onChange={e => setProductForm({ ...productForm, barcode: e.target.value })}
+                      className="flex-1 px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const code = productForm.code || 'PRD';
+                        const prefix = code.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4).padEnd(4, '0');
+                        const stamp = Date.now().toString().slice(-4);
+                        const rand = Math.floor(1000 + Math.random() * 9000);
+                        setProductForm(prev => ({ ...prev, barcode: `${prefix}${stamp}${rand}` }));
+                      }}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-[11px] shrink-0"
+                    >
+                      Generate
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Unique barcode for product identification</p>
+                </div>
+              </div>
+
+              {/* Row 2: Name & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Product Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter product name"
+                    value={productForm.name}
+                    onChange={e => setProductForm({ ...productForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Category</label>
+                  <input
+                    type="text"
+                    list="pos-categories"
+                    placeholder="Select Category"
+                    value={productForm.category}
+                    onChange={e => setProductForm({ ...productForm, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                  />
+                  <datalist id="pos-categories">
+                    {categories.filter(c => c !== 'All').map((c, i) => (
+                      <option key={i} value={c} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+
+              {/* Row 3: Prices */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Purchase Price (৳) *</label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="0.00"
+                    value={productForm.costPrice}
+                    onChange={e => setProductForm({ ...productForm, costPrice: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-bold font-mono text-xs focus:bg-white focus:outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-0.5">Cost price / buying price</p>
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Selling Price (৳) *</label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    placeholder="0.00"
+                    value={productForm.sellingPrice}
+                    onChange={e => setProductForm({ ...productForm, sellingPrice: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-bold font-mono text-blue-600 text-xs focus:bg-white focus:outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-0.5">Unit price for customers</p>
+                </div>
+              </div>
+
+              {/* Row 4: Quantity & Unit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Quantity *</label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    placeholder="0"
+                    value={productForm.quantity}
+                    onChange={e => setProductForm({ ...productForm, quantity: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 font-bold text-xs focus:bg-white focus:outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-0.5">Required for Physical products only</p>
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Unit</label>
+                  <select
+                    value={productForm.unit || 'Pieces (pcs)'}
+                    onChange={e => setProductForm({ ...productForm, unit: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                  >
+                    {['Pieces (pcs)', 'Kilogram (kg)', 'Gram (gm)', 'Liter (ltr)', 'Box (box)', 'Packet (pkt)', 'Dozen (dz)', 'Meter (m)'].map(u => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Unit of measurement for this product</p>
+                </div>
+              </div>
+
+              {/* Row 5: Low Stock Alert */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Low Stock Alert</label>
+                  <input
+                    type="number"
+                    placeholder="5"
+                    value={productForm.minQuantity}
+                    onChange={e => setProductForm({ ...productForm, minQuantity: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Row 6: Warranty & Supplier */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Warranty (Days)</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={productForm.warrantyDays || '0'}
+                    onChange={e => setProductForm({ ...productForm, warrantyDays: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-0.5">Warranty days for this product</p>
+                </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Supplier</label>
+                  <input
+                    type="text"
+                    placeholder="Enter supplier name (optional)"
+                    value={productForm.supplier || ''}
+                    onChange={e => setProductForm({ ...productForm, supplier: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-0.5">Default supplier for this product</p>
+                </div>
+              </div>
+
+              {/* Row 7: Description */}
               <div>
-                <label className="block text-slate-600 mb-1">Product Name *</label>
-                <input type="text" required value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <label className="block text-slate-700 mb-1 font-bold">Description</label>
+                <textarea
+                  rows="2"
+                  placeholder="Enter product description (optional)"
+                  value={productForm.description || ''}
+                  onChange={e => setProductForm({ ...productForm, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                ></textarea>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-600 mb-1">Selling Price (৳) *</label>
-                  <input type="number" required value={productForm.sellingPrice} onChange={e => setProductForm({...productForm, sellingPrice: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold text-blue-600" />
-                </div>
-                <div>
-                  <label className="block text-slate-600 mb-1">Stock Quantity *</label>
-                  <input type="number" required value={productForm.quantity} onChange={e => setProductForm({...productForm, quantity: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold" />
-                </div>
-              </div>
+
               <div className="pt-3 border-t flex space-x-3">
                 <button type="button" onClick={() => setShowAddProductModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save Product</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md">Save Product</button>
               </div>
             </form>
           </div>

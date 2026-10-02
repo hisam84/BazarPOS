@@ -9,12 +9,32 @@ import {
   Trash2,
   AlertTriangle,
   Barcode,
-  X
+  X,
+  RefreshCw,
+  ShieldCheck,
+  Truck,
+  Layers,
+  Sparkles
 } from 'lucide-react';
+
+const DEFAULT_UNITS = [
+  'Pieces (pcs)',
+  'Kilogram (kg)',
+  'Gram (gm)',
+  'Liter (ltr)',
+  'Box (box)',
+  'Packet (pkt)',
+  'Dozen (dz)',
+  'Meter (m)',
+  'Carton (ctn)',
+  'Pair (pr)'
+];
 
 export default function InventoryPage() {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState(['All']);
+  const [categories, setCategories] = useState(['All', 'General']);
+  const [units, setUnits] = useState(DEFAULT_UNITS);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -24,13 +44,17 @@ export default function InventoryPage() {
   const [editProduct, setEditProduct] = useState(null);
   const [form, setForm] = useState({
     code: '',
+    barcode: '',
     name: '',
-    category: 'Grocery',
+    category: 'General',
     costPrice: '',
     sellingPrice: '',
-    quantity: '',
-    minQuantity: 5,
-    barcode: ''
+    quantity: '0',
+    unit: 'Pieces (pcs)',
+    minQuantity: '5',
+    warrantyDays: '0',
+    supplier: '',
+    description: ''
   });
 
   useEffect(() => {
@@ -38,6 +62,8 @@ export default function InventoryPage() {
     if (saved) {
       const u = JSON.parse(saved);
       loadInventory(u.storeId || 'default');
+    } else {
+      loadInventory('default');
     }
   }, []);
 
@@ -47,7 +73,15 @@ export default function InventoryPage() {
       const data = await res.json();
       if (data.success) {
         setProducts(data.products || []);
-        setCategories(['All', ...(data.categories || [])]);
+        if (data.categories && data.categories.length > 0) {
+          setCategories(['All', ...data.categories.filter(c => c !== 'All')]);
+        }
+        if (data.units && data.units.length > 0) {
+          setUnits(data.units);
+        }
+        if (data.suppliers && data.suppliers.length > 0) {
+          setSuppliers(data.suppliers);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -56,17 +90,30 @@ export default function InventoryPage() {
     }
   };
 
+  const handleGenerateBarcode = () => {
+    const code = form.code ? form.code.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4).padEnd(4, '0') : 'PRD';
+    const stamp = Date.now().toString().slice(-4);
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    const newBarcode = `${code}${stamp}${rand}`;
+    setForm(prev => ({ ...prev, barcode: newBarcode }));
+  };
+
   const handleOpenAddModal = () => {
     setEditProduct(null);
+    const nextCode = 'PRD-' + (products.length + 1).toString().padStart(4, '0');
     setForm({
-      code: 'P' + (products.length + 1).toString().padStart(3, '0'),
+      code: nextCode,
+      barcode: '',
       name: '',
-      category: categories[1] || 'General',
+      category: categories.find(c => c !== 'All') || 'General',
       costPrice: '',
       sellingPrice: '',
-      quantity: '10',
-      minQuantity: 5,
-      barcode: ''
+      quantity: '0',
+      unit: 'Pieces (pcs)',
+      minQuantity: '5',
+      warrantyDays: '0',
+      supplier: '',
+      description: ''
     });
     setShowModal(true);
   };
@@ -74,14 +121,18 @@ export default function InventoryPage() {
   const handleOpenEditModal = (prod) => {
     setEditProduct(prod);
     setForm({
-      code: prod.code,
-      name: prod.name,
+      code: prod.code || '',
+      barcode: prod.barcode || '',
+      name: prod.name || '',
       category: prod.category || 'General',
-      costPrice: prod.costPrice,
-      sellingPrice: prod.sellingPrice,
-      quantity: prod.quantity,
-      minQuantity: prod.minQuantity || 5,
-      barcode: prod.barcode || ''
+      costPrice: prod.costPrice !== undefined ? prod.costPrice : '',
+      sellingPrice: prod.sellingPrice !== undefined ? prod.sellingPrice : '',
+      quantity: prod.quantity !== undefined ? prod.quantity : '0',
+      unit: prod.unit || 'Pieces (pcs)',
+      minQuantity: prod.minQuantity !== undefined ? prod.minQuantity : '5',
+      warrantyDays: prod.warrantyDays !== undefined ? prod.warrantyDays : '0',
+      supplier: prod.supplier || '',
+      description: prod.description || ''
     });
     setShowModal(true);
   };
@@ -106,7 +157,7 @@ export default function InventoryPage() {
 
       const data = await res.json();
       if (!data.success) {
-        alert(data.message || 'Save failed');
+        alert(data.message || 'Failed to save product');
         return;
       }
 
@@ -136,9 +187,10 @@ export default function InventoryPage() {
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.code.toLowerCase().includes(search.toLowerCase()) ||
-      (p.barcode && p.barcode.includes(search));
+      (p.name && p.name.toLowerCase().includes(search.toLowerCase())) ||
+      (p.code && p.code.toLowerCase().includes(search.toLowerCase())) ||
+      (p.barcode && p.barcode.includes(search)) ||
+      (p.supplier && p.supplier.toLowerCase().includes(search.toLowerCase()));
     const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
@@ -152,12 +204,14 @@ export default function InventoryPage() {
             <Package className="text-blue-600" size={24} />
             <span>Product Inventory & Stock Management</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">Manage store products, cost prices, selling prices, and stock counts.</p>
+          <p className="text-xs text-slate-500 mt-1">
+            Manage product catalog, barcode identifiers, purchase & sale prices, stock limits, and suppliers.
+          </p>
         </div>
 
         <button
           onClick={handleOpenAddModal}
-          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md shadow-blue-500/20"
+          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-md shadow-blue-500/20 text-xs"
         >
           <Plus size={18} />
           <span>Add New Product</span>
@@ -172,8 +226,8 @@ export default function InventoryPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by Product Name, Code, or Barcode..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500"
+            placeholder="Search by Product Name, Code, Barcode, or Supplier..."
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -184,7 +238,7 @@ export default function InventoryPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                 selectedCategory === cat
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -199,19 +253,20 @@ export default function InventoryPage() {
         {loading ? (
           <div className="text-center py-12 text-slate-400 text-sm">Loading Products...</div>
         ) : filteredProducts.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 text-sm">No products found. Add products to get started!</div>
+          <div className="text-center py-12 text-slate-400 text-sm">No products found. Click "Add New Product" to get started!</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 font-bold border-b text-[11px] uppercase tracking-wider">
                 <tr>
                   <th className="px-4 py-3">Code</th>
+                  <th className="px-4 py-3">Barcode</th>
                   <th className="px-4 py-3">Product Name</th>
                   <th className="px-4 py-3">Category</th>
-                  <th className="px-4 py-3">Cost Price</th>
-                  <th className="px-4 py-3">Selling Price</th>
+                  <th className="px-4 py-3">Purchase (৳)</th>
+                  <th className="px-4 py-3">Selling (৳)</th>
                   <th className="px-4 py-3">Stock Qty</th>
-                  <th className="px-4 py-3">Barcode</th>
+                  <th className="px-4 py-3">Supplier</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -219,33 +274,41 @@ export default function InventoryPage() {
                 {filteredProducts.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50/80 transition">
                     <td className="px-4 py-3 font-mono font-bold text-slate-700">{p.code}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-800">{p.name}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600">
+                    <td className="px-4 py-3 font-mono text-[11px] text-slate-500">{p.barcode || '-'}</td>
+                    <td className="px-4 py-3">
+                      <span className="font-bold text-slate-900 block">{p.name}</span>
+                      {p.warrantyDays > 0 && (
+                        <span className="text-[10px] text-blue-600 font-medium">{p.warrantyDays} Days Warranty</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
                       <span className="px-2 py-0.5 bg-slate-100 rounded font-medium">{p.category}</span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600 font-medium">৳{p.costPrice}</td>
-                    <td className="px-4 py-3 font-bold text-blue-600">৳{p.sellingPrice}</td>
+                    <td className="px-4 py-3 text-slate-600 font-mono font-medium">৳{p.costPrice || 0}</td>
+                    <td className="px-4 py-3 font-mono font-bold text-blue-600">৳{p.sellingPrice}</td>
                     <td className="px-4 py-3 font-bold">
-                      <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs ${
+                      <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[11px] ${
                         p.quantity <= (p.minQuantity || 5)
                           ? 'bg-rose-100 text-rose-700'
                           : 'bg-emerald-100 text-emerald-700'
                       }`}>
                         {p.quantity <= (p.minQuantity || 5) && <AlertTriangle size={12} />}
-                        <span>{p.quantity} Units</span>
+                        <span>{p.quantity} {p.unit || 'pcs'}</span>
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-500">{p.barcode || 'Auto'}</td>
+                    <td className="px-4 py-3 text-slate-500 font-medium">{p.supplier || '-'}</td>
                     <td className="px-4 py-3 text-right space-x-2">
                       <button
                         onClick={() => handleOpenEditModal(p)}
                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        title="Edit Product"
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(p.id)}
                         className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        title="Delete Product"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -258,123 +321,230 @@ export default function InventoryPage() {
         )}
       </div>
 
-      {/* ADD / EDIT PRODUCT MODAL */}
+      {/* ADD / EDIT PRODUCT MODAL (MATCHING REQUESTED DESIGN) */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-slate-800 text-lg">
-                {editProduct ? 'Edit Product Details' : 'Add New Product'}
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 my-8 border border-slate-100">
+            {/* Modal Title Bar */}
+            <div className="flex items-center justify-between border-b pb-4">
+              <h3 className="font-bold text-slate-800 text-lg flex items-center space-x-2">
+                <Package className="text-blue-600" size={22} />
+                <span>{editProduct ? 'Edit Product Details' : 'Add New Product'}</span>
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+              >
                 <X size={20} />
               </button>
             </div>
 
+            {/* Form Fields Matching Reference Image */}
             <form onSubmit={handleSaveProduct} className="space-y-4 text-xs font-medium">
-              <div className="grid grid-cols-2 gap-3">
+              {/* Row 1: Product Code * & Barcode */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-600 mb-1 font-semibold">Product Code *</label>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Product Code *</label>
                   <input
                     type="text"
                     required
+                    placeholder="Enter product code"
                     value={form.code}
                     onChange={(e) => setForm({ ...form, code: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-mono font-bold"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 font-mono text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-slate-600 mb-1 font-semibold">Category</label>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Barcode</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter barcode (optional)"
+                      value={form.barcode}
+                      onChange={(e) => setForm({ ...form, barcode: e.target.value })}
+                      className="flex-1 px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 font-mono text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleGenerateBarcode}
+                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs flex items-center space-x-1.5 transition shadow-sm shrink-0"
+                    >
+                      <RefreshCw size={13} />
+                      <span>Generate</span>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">Unique barcode for product identification</p>
+                </div>
+              </div>
+
+              {/* Row 2: Product Name * & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Product Name *</label>
                   <input
                     type="text"
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    placeholder="e.g. Grocery, Beverage"
-                    className="w-full px-3 py-2 border rounded-xl bg-slate-50"
+                    required
+                    placeholder="Enter product name"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Category</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      list="category-suggestions"
+                      placeholder="Select Category"
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                    />
+                    <datalist id="category-suggestions">
+                      {categories.filter(c => c !== 'All').map((cat) => (
+                        <option key={cat} value={cat} />
+                      ))}
+                    </datalist>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-slate-600 mb-1 font-semibold">Product Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Full Product Name"
-                  className="w-full px-3 py-2 border rounded-xl bg-slate-50 text-sm font-semibold"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              {/* Row 3: Purchase Price (৳) * & Selling Price (৳) * */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-600 mb-1 font-semibold">Cost Price (৳)</label>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Purchase Price (৳) *</label>
                   <input
                     type="number"
+                    step="any"
+                    placeholder="0.00"
                     value={form.costPrice}
                     onChange={(e) => setForm({ ...form, costPrice: e.target.value })}
-                    placeholder="Buy Price"
-                    className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold text-slate-700"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 font-bold font-mono text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Cost price / buying price</p>
                 </div>
+
                 <div>
-                  <label className="block text-slate-600 mb-1 font-semibold">Selling Price (৳) *</label>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Selling Price (৳) *</label>
                   <input
                     type="number"
+                    step="any"
                     required
+                    placeholder="0.00"
                     value={form.sellingPrice}
                     onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })}
-                    placeholder="Sale Price"
-                    className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold text-blue-600"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-blue-600 font-bold font-mono text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Unit price for customers</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Row 4: Quantity * & Unit */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-600 mb-1 font-semibold">Current Stock Qty *</label>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Quantity *</label>
                   <input
                     type="number"
+                    step="any"
                     required
+                    placeholder="0"
                     value={form.quantity}
                     onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-bold"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 font-bold text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">Required for Physical products only</p>
                 </div>
+
                 <div>
-                  <label className="block text-slate-600 mb-1 font-semibold">Low Stock Alert Limit</label>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Unit</label>
+                  <select
+                    value={form.unit}
+                    onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                  >
+                    {units.map((u) => (
+                      <option key={u} value={u}>{u}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1">Unit of measurement for this product</p>
+                </div>
+              </div>
+
+              {/* Row 5: Low Stock Alert */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Low Stock Alert</label>
                   <input
                     type="number"
+                    placeholder="5"
                     value={form.minQuantity}
                     onChange={(e) => setForm({ ...form, minQuantity: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-xl bg-slate-50"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
                   />
+                </div>
+                <div className="hidden sm:block"></div>
+              </div>
+
+              {/* Row 6: Warranty (Days) & Supplier */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Warranty (Days)</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={form.warrantyDays}
+                    onChange={(e) => setForm({ ...form, warrantyDays: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Warranty days for this product</p>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Supplier</label>
+                  <input
+                    type="text"
+                    list="supplier-suggestions"
+                    placeholder="Enter supplier name (optional)"
+                    value={form.supplier}
+                    onChange={(e) => setForm({ ...form, supplier: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                  />
+                  <datalist id="supplier-suggestions">
+                    {suppliers.map((s, idx) => (
+                      <option key={idx} value={s} />
+                    ))}
+                  </datalist>
+                  <p className="text-[10px] text-slate-400 mt-1">Default supplier for this product</p>
                 </div>
               </div>
 
+              {/* Row 7: Description */}
               <div>
-                <label className="block text-slate-600 mb-1 font-semibold">Barcode String (Optional)</label>
-                <input
-                  type="text"
-                  value={form.barcode}
-                  onChange={(e) => setForm({ ...form, barcode: e.target.value })}
-                  placeholder="Leave empty to auto-generate"
-                  className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-mono"
-                />
+                <label className="block text-slate-700 mb-1.5 font-bold">Description</label>
+                <textarea
+                  rows="3"
+                  placeholder="Enter product description (optional)"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                ></textarea>
               </div>
 
-              <div className="pt-3 border-t flex space-x-3">
+              {/* Action Buttons */}
+              <div className="pt-4 border-t flex space-x-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl"
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl"
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition shadow-md shadow-blue-500/20"
                 >
                   {editProduct ? 'Update Product' : 'Save Product'}
                 </button>
