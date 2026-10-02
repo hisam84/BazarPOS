@@ -155,7 +155,7 @@ export default function RootLayout({ children }) {
         <meta name="application-name" content="BazarPOS" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <link rel="icon" href={company?.faviconUrl || user?.faviconUrl || company?.logoUrl || user?.logoUrl || '/icons/icon.svg'} />
+        <link rel="icon" href={company?.faviconUrl || user?.faviconUrl || company?.logoUrl || user?.logoUrl || '/icons/icon-192.png'} />
       </head>
       <body className="min-h-screen bg-slate-50 flex flex-col font-sans">
         {!isPublicPage && <SecurityWarningBanner user={user} onUserUpdated={(u) => setUser(u)} />}
