@@ -212,9 +212,11 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
         } ${collapsed ? 'w-20' : 'w-72'}`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40 flex-shrink-0">
+        <div className={`h-16 border-b border-slate-800/80 bg-slate-950/40 flex-shrink-0 flex items-center ${
+          collapsed ? 'px-2 justify-center relative' : 'px-4 justify-between'
+        }`}>
           {!collapsed ? (
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 min-w-0">
               {logoUrl ? (
                 <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center p-0.5 shadow-md shadow-blue-500/10 border border-slate-700 overflow-hidden shrink-0">
                   <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
@@ -234,36 +236,48 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
               </div>
             </div>
           ) : (
-            logoUrl ? (
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 mx-auto shadow-md border border-slate-700 overflow-hidden">
-                <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
+            <button
+              onClick={() => setCollapsed(false)}
+              className="group relative flex items-center justify-center focus:outline-none"
+              title="Click to expand sidebar"
+            >
+              {logoUrl ? (
+                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-1 shadow-md border border-slate-700 overflow-hidden transition-transform duration-200 group-hover:scale-105 group-hover:border-blue-500 shrink-0">
+                  <img src={logoUrl} alt="Store Logo" className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white shadow-md border border-blue-400/30 transition-transform duration-200 group-hover:scale-105 shrink-0">
+                  {isSuperAdmin ? '⚡' : 'B'}
+                </div>
+              )}
+              {/* Subtle hover expand indicator */}
+              <div className="absolute -right-1.5 -bottom-1.5 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-xs">
+                <ChevronRight size={11} />
               </div>
-            ) : (
-              <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white mx-auto shadow-md border border-blue-400/30">
-                {isSuperAdmin ? '⚡' : 'B'}
-              </div>
-            )
+            </button>
           )}
 
-          <div className="flex items-center space-x-1">
-            {/* Desktop Collapse/Expand Button */}
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition hidden lg:flex"
-              title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-            >
-              {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-            </button>
+          {!collapsed && (
+            <div className="flex items-center space-x-1">
+              {/* Desktop Collapse Button */}
+              <button
+                onClick={() => setCollapsed(true)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition hidden lg:flex"
+                title="Collapse Sidebar"
+              >
+                <ChevronLeft size={18} />
+              </button>
 
-            {/* Mobile Close Drawer Button */}
-            <button
-              onClick={() => setMobileOpen?.(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition lg:hidden"
-              title="Close Menu"
-            >
-              <X size={18} />
-            </button>
-          </div>
+              {/* Mobile Close Drawer Button */}
+              <button
+                onClick={() => setMobileOpen?.(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition lg:hidden"
+                title="Close Menu"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
         </div>
 
       {/* Quick Search Filter (Only when expanded) */}
@@ -447,6 +461,17 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
               <Settings size={14} />
             </Link>
           </div>
+        )}
+
+        {/* Expand Toggle Button when collapsed */}
+        {collapsed && (
+          <button
+            onClick={() => setCollapsed(false)}
+            className="w-full mb-1.5 hidden lg:flex items-center justify-center p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition shadow-xs"
+            title="Expand Sidebar"
+          >
+            <ChevronRight size={18} />
+          </button>
         )}
 
         {/* Logout Button */}
