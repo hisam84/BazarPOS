@@ -151,6 +151,7 @@ export default function ClientsPage() {
       (c.name && c.name.toLowerCase().includes(q)) ||
       (c.customerId && c.customerId.toLowerCase().includes(q)) ||
       (c.phone && c.phone.includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q)) ||
       (c.address && c.address.toLowerCase().includes(q))
     );
   });

@@ -56,7 +56,7 @@ export default function POSTerminalPage() {
   const [showAddProductModal, setShowAddProductModal] = useState(false);
 
   // Quick Add Forms
-  const [clientForm, setClientForm] = useState({ name: '', phone: '', address: '', due: 0 });
+  const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '', address: '', due: 0 });
   const [productForm, setProductForm] = useState({
     code: '',
     name: '',
@@ -199,7 +199,7 @@ export default function POSTerminalPage() {
       if (data.success) {
         setSelectedClient(clientForm.name);
         setShowAddClientModal(false);
-        setClientForm({ name: '', phone: '', address: '', due: 0 });
+        setClientForm({ name: '', phone: '', email: '', address: '', due: 0 });
         loadPOSData(user?.storeId || 'default');
       }
     } catch (err) {
@@ -705,19 +705,25 @@ export default function POSTerminalPage() {
             <form onSubmit={handleQuickAddClient} className="space-y-3 text-xs font-medium">
               <div>
                 <label className="block text-slate-600 mb-1">Customer Name *</label>
-                <input type="text" required value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" required value={clientForm.name} onChange={e => setClientForm({...clientForm, name: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" placeholder="e.g. Rahim Chowdhury" />
               </div>
-              <div>
-                <label className="block text-slate-600 mb-1">Phone Number</label>
-                <input type="text" value={clientForm.phone} onChange={e => setClientForm({...clientForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-600 mb-1">Phone Number</label>
+                  <input type="text" value={clientForm.phone} onChange={e => setClientForm({...clientForm, phone: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50 font-mono" placeholder="01700000000" />
+                </div>
+                <div>
+                  <label className="block text-slate-600 mb-1">Email Address</label>
+                  <input type="email" value={clientForm.email} onChange={e => setClientForm({...clientForm, email: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" placeholder="customer@mail.com" />
+                </div>
               </div>
               <div>
                 <label className="block text-slate-600 mb-1">Address</label>
-                <input type="text" value={clientForm.address} onChange={e => setClientForm({...clientForm, address: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" />
+                <input type="text" value={clientForm.address} onChange={e => setClientForm({...clientForm, address: e.target.value})} className="w-full px-3 py-2 border rounded-xl bg-slate-50" placeholder="e.g. Dhaka, Bangladesh" />
               </div>
               <div className="pt-3 border-t flex space-x-3">
                 <button type="button" onClick={() => setShowAddClientModal(false)} className="flex-1 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl">Save & Select</button>
+                <button type="submit" className="flex-1 py-2.5 bg-blue-600 text-white font-semibold rounded-xl shadow-md">Save &amp; Select</button>
               </div>
             </form>
           </div>
