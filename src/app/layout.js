@@ -167,7 +167,7 @@ export default function RootLayout({ children }) {
                 onLogout={handleLogout}
                 onToggleMobileSidebar={() => setSidebarMobileOpen(!sidebarMobileOpen)}
               />
-              <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-y-auto">{children}</main>
+              <main className="flex-1 p-2.5 sm:p-4 md:p-5 overflow-y-auto">{children}</main>
             </div>
           </div>
         )}

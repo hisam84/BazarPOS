@@ -49,63 +49,63 @@ export default function Header({ user, onLogout, onToggleMobileSidebar }) {
       </div>
 
       {/* Quick Action Shortcuts & User Menu */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
         {/* Quick Action Shortcuts */}
         {isSuperAdmin ? (
-          <div className="hidden md:flex items-center space-x-2 border-r pr-4 border-slate-200 text-xs font-semibold">
+          <div className="hidden md:flex items-center space-x-1.5 border-r pr-3 border-slate-200 text-xs font-semibold">
             <Link
               href="/superadmin/companies"
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition border border-indigo-200/80"
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition border border-indigo-200/80"
               title="Add New Company"
             >
               <Building2 size={14} />
-              <span>+ New Company</span>
+              <span className="hidden xl:inline">+ New Company</span>
             </Link>
             <Link
               href="/superadmin/subscriptions"
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg transition border border-slate-200"
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg transition border border-slate-200"
               title="Subscription & Validity Management"
             >
               <Clock size={14} className="text-indigo-600" />
-              <span>Validity</span>
+              <span className="hidden xl:inline">Validity</span>
             </Link>
           </div>
         ) : (
-          <div className="hidden md:flex items-center space-x-2 border-r pr-4 border-slate-200 text-xs font-semibold text-slate-600">
+          <div className="hidden md:flex items-center space-x-1.5 border-r pr-3 border-slate-200 text-xs font-semibold text-slate-600">
             <Link
               href="/cash-register"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="Cash Register Reconciliation"
             >
               <DollarSign size={14} className="text-emerald-600" />
-              <span>Cash Register</span>
+              <span className="hidden xl:inline">Cash Register</span>
             </Link>
 
             <Link
               href="/stock-adjustment"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="Stock Adjustment & Loss"
             >
               <AlertOctagon size={14} className="text-rose-600" />
-              <span>Adjustment</span>
+              <span className="hidden xl:inline">Adjustment</span>
             </Link>
 
             <Link
               href="/branches"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="Branches & Transfers"
             >
               <Building2 size={14} className="text-blue-600" />
-              <span>Branches</span>
+              <span className="hidden xl:inline">Branches</span>
             </Link>
 
             <Link
               href="/audit-logs"
-              className="flex items-center space-x-1 px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
+              className="flex items-center space-x-1 px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition"
               title="System Activity Audit Log"
             >
               <ShieldCheck size={14} className="text-indigo-600" />
-              <span>Audit Logs</span>
+              <span className="hidden xl:inline">Audit Logs</span>
             </Link>
           </div>
         )}

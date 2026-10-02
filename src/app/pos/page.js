@@ -473,7 +473,7 @@ export default function POSTerminalPage() {
   });
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] lg:h-[calc(100vh-5.5rem)] flex flex-col lg:flex-row gap-4 lg:gap-6 relative pb-16 lg:pb-0">
+    <div className="min-h-[calc(100vh-5.5rem)] flex flex-col lg:flex-row gap-3.5 sm:gap-4 lg:gap-5 relative pb-16 lg:pb-0">
       {/* Mobile Tab Switcher */}
       <div className="flex lg:hidden items-center p-1 bg-slate-200/80 rounded-xl text-xs font-bold gap-1 shrink-0">
         <button
@@ -499,50 +499,50 @@ export default function POSTerminalPage() {
       </div>
 
       {/* LEFT: Product Grid & Search */}
-      <div className={`flex-1 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 flex-col min-w-0 shadow-sm ${
+      <div className={`flex-1 bg-white rounded-2xl p-3.5 sm:p-4 md:p-5 border border-slate-200/90 flex flex-col min-w-0 shadow-sm ${
         mobileTab === 'cart' ? 'hidden lg:flex' : 'flex'
       }`}>
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <form onSubmit={handleBarcodeSubmit} className="flex-1 relative">
-            <Barcode className="absolute left-3.5 top-3 text-slate-400" size={18} />
+        <div className="flex flex-col sm:flex-row gap-2.5 mb-3.5">
+          <form onSubmit={handleBarcodeSubmit} className="flex-1 relative min-w-0">
+            <Barcode className="absolute left-3 top-2.5 text-slate-400" size={17} />
             <input
               ref={barcodeRef}
               type="text"
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
               placeholder="Scan barcode or enter code & hit Enter..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
             />
           </form>
 
-          <div className="flex-1 relative">
-            <Search className="absolute left-3.5 top-3 text-slate-400" size={18} />
+          <div className="flex-1 relative min-w-0">
+            <Search className="absolute left-3 top-2.5 text-slate-400" size={17} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search product name..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-blue-500"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition"
             />
           </div>
 
           <button
             onClick={() => setShowAddProductModal(true)}
-            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1 whitespace-nowrap"
+            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 whitespace-nowrap shrink-0 shadow-sm shadow-blue-500/10 transition"
           >
-            <PackagePlus size={16} />
+            <PackagePlus size={15} />
             <span>+ Add Product</span>
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 overflow-x-auto pb-3 mb-3 no-scrollbar">
+        <div className="flex items-center space-x-1.5 overflow-x-auto pb-2.5 mb-2.5 no-scrollbar shrink-0">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                 selectedCategory === cat
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/20 font-bold'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -551,33 +551,33 @@ export default function POSTerminalPage() {
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pr-1">
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2.5 sm:gap-3.5 pr-1 content-start">
           {filteredProducts.map((p) => (
             <div
               key={p.id}
               onClick={() => addToCart(p)}
-              className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 cursor-pointer hover:border-blue-500 hover:shadow-md transition flex flex-col justify-between group"
+              className="bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-xl p-3 cursor-pointer hover:border-blue-500 hover:shadow-md transition flex flex-col justify-between group select-none min-w-0"
             >
-              <div>
-                <div className="flex items-start justify-between">
-                  <span className="text-[10px] font-mono font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">
+              <div className="min-w-0">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[10px] font-mono font-bold bg-slate-200/90 text-slate-700 px-1.5 py-0.5 rounded truncate max-w-[50%]">
                     {p.code}
                   </span>
-                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                    p.quantity <= p.minQuantity ? 'bg-rose-100 text-rose-600' : 'bg-slate-200 text-slate-600'
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap ${
+                    p.quantity <= (p.minQuantity || 0) ? 'bg-rose-100 text-rose-600 font-bold' : 'bg-slate-200/80 text-slate-600'
                   }`}>
                     Stock: {p.quantity}
                   </span>
                 </div>
-                <h4 className="font-semibold text-slate-800 text-xs mt-2 line-clamp-2 group-hover:text-blue-600 transition">
+                <h4 className="font-bold text-slate-800 text-xs mt-2 line-clamp-2 min-h-[30px] group-hover:text-blue-600 transition leading-snug break-words">
                   {p.name}
                 </h4>
               </div>
 
-              <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-200">
-                <span className="font-bold text-sm text-blue-600">৳{p.sellingPrice}</span>
-                <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                  <Plus size={14} />
+              <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-200/80">
+                <span className="font-black text-xs sm:text-sm text-blue-600 truncate">৳{Number(p.sellingPrice).toLocaleString()}</span>
+                <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center opacity-90 sm:opacity-0 group-hover:opacity-100 transition shrink-0">
+                  <Plus size={13} />
                 </span>
               </div>
             </div>
@@ -608,7 +608,7 @@ export default function POSTerminalPage() {
       )}
 
       {/* RIGHT: Cart Drawer */}
-      <div className={`w-full lg:w-96 bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 flex-col shadow-sm ${
+      <div className={`w-full lg:w-[360px] xl:w-[400px] 2xl:w-[420px] bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 md:p-5 flex flex-col min-w-0 shadow-sm shrink-0 ${
         mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'
       }`}>
         <h2 className="text-base font-bold text-slate-800 pb-3 border-b border-slate-100 flex items-center justify-between">
@@ -618,7 +618,7 @@ export default function POSTerminalPage() {
           </span>
         </h2>
 
-        <div className="grid grid-cols-2 gap-2 my-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2.5 my-2.5">
           <div className="relative" ref={clientDropdownRef}>
             <div className="flex items-center justify-between mb-1">
               <label className="text-[11px] font-semibold text-slate-500">Customer</label>
