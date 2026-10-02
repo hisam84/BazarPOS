@@ -53,6 +53,7 @@ export async function POST(request) {
       unit = 'Pieces (pcs)',
       minQuantity = 5,
       warrantyDays = 0,
+      warrantyType = 'none',
       supplier = '',
       description = '',
       barcode
@@ -87,6 +88,7 @@ export async function POST(request) {
       unit: unit || 'Pieces (pcs)',
       minQuantity: Number(minQuantity) >= 0 ? Number(minQuantity) : 5,
       warrantyDays: Number(warrantyDays) || 0,
+      warrantyType: warrantyType || 'none',
       supplier: supplier ? supplier.trim() : '',
       description: description ? description.trim() : '',
       barcode: finalBarcode,
@@ -137,6 +139,7 @@ export async function PUT(request) {
       unit: updates.unit !== undefined ? updates.unit : (storeData.products[index].unit || 'Pieces (pcs)'),
       minQuantity: updates.minQuantity !== undefined ? Number(updates.minQuantity) : storeData.products[index].minQuantity,
       warrantyDays: updates.warrantyDays !== undefined ? Number(updates.warrantyDays) : (storeData.products[index].warrantyDays || 0),
+      warrantyType: updates.warrantyType !== undefined ? updates.warrantyType : (storeData.products[index].warrantyType || 'none'),
       supplier: updates.supplier !== undefined ? updates.supplier : (storeData.products[index].supplier || ''),
       description: updates.description !== undefined ? updates.description : (storeData.products[index].description || ''),
       updatedAt: new Date().toISOString()

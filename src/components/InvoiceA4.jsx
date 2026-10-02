@@ -302,7 +302,7 @@ export default function InvoiceA4({
                       )}
                       {item.warranty && item.warranty.trim() !== '' && (
                         <span className="text-blue-700 font-medium bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200/80 inline-flex items-center space-x-0.5">
-                          <span>🛡️ Warranty: {item.warranty}</span>
+                          <span>🛡️ Warranty: {item.warranty}{item.warrantyType && item.warrantyType !== 'none' ? ` (${item.warrantyType.charAt(0).toUpperCase() + item.warrantyType.slice(1)})` : ''}</span>
                         </span>
                       )}
                       {(item.serialNumber || item.serialNo) && (item.serialNumber || item.serialNo).trim() !== '' && (

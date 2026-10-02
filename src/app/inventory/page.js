@@ -30,6 +30,18 @@ const DEFAULT_UNITS = [
   'Pair (pr)'
 ];
 
+const WARRANTY_TYPES = [
+  { value: 'none', label: 'No Warranty', color: 'bg-slate-100 text-slate-500' },
+  { value: 'replacement', label: 'Replacement', color: 'bg-blue-100 text-blue-700' },
+  { value: 'service', label: 'Service', color: 'bg-indigo-100 text-indigo-700' },
+  { value: 'exchange', label: 'Exchange', color: 'bg-violet-100 text-violet-700' },
+  { value: 'repair', label: 'Repair', color: 'bg-amber-100 text-amber-700' },
+  { value: 'refund', label: 'Refund', color: 'bg-emerald-100 text-emerald-700' },
+  { value: 'brand', label: 'Brand Warranty', color: 'bg-green-100 text-green-700' },
+  { value: 'limited', label: 'Limited', color: 'bg-orange-100 text-orange-700' },
+  { value: 'lifetime', label: 'Lifetime', color: 'bg-rose-100 text-rose-700' },
+];
+
 export default function InventoryPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(['All', 'General']);
@@ -53,6 +65,7 @@ export default function InventoryPage() {
     unit: 'Pieces (pcs)',
     minQuantity: '5',
     warrantyDays: '0',
+    warrantyType: 'none',
     supplier: '',
     description: ''
   });
@@ -112,6 +125,7 @@ export default function InventoryPage() {
       unit: 'Pieces (pcs)',
       minQuantity: '5',
       warrantyDays: '0',
+      warrantyType: 'none',
       supplier: '',
       description: ''
     });
@@ -131,6 +145,7 @@ export default function InventoryPage() {
       unit: prod.unit || 'Pieces (pcs)',
       minQuantity: prod.minQuantity !== undefined ? prod.minQuantity : '5',
       warrantyDays: prod.warrantyDays !== undefined ? prod.warrantyDays : '0',
+      warrantyType: prod.warrantyType || 'none',
       supplier: prod.supplier || '',
       description: prod.description || ''
     });
@@ -278,7 +293,16 @@ export default function InventoryPage() {
                     <td className="px-4 py-3">
                       <span className="font-bold text-slate-900 block">{p.name}</span>
                       {p.warrantyDays > 0 && (
-                        <span className="text-[10px] text-blue-600 font-medium">{p.warrantyDays} Days Warranty</span>
+                        <span className="text-[10px] text-blue-600 font-medium">
+                          🛡️ {p.warrantyDays}d
+                          {p.warrantyType && p.warrantyType !== 'none' && (
+                            <span className={`ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
+                              (WARRANTY_TYPES.find(w => w.value === p.warrantyType) || {}).color || 'bg-slate-100 text-slate-500'
+                            }`}>
+                              {(WARRANTY_TYPES.find(w => w.value === p.warrantyType) || {}).label || p.warrantyType}
+                            </span>
+                          )}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-slate-600">
@@ -488,10 +512,10 @@ export default function InventoryPage() {
                 <div className="hidden sm:block"></div>
               </div>
 
-              {/* Row 6: Warranty (Days) & Supplier */}
+              {/* Row 6: Warranty */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-700 mb-1.5 font-bold">Warranty (Days)</label>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Warranty Duration (Days)</label>
                   <input
                     type="number"
                     placeholder="0"
@@ -499,9 +523,26 @@ export default function InventoryPage() {
                     onChange={(e) => setForm({ ...form, warrantyDays: e.target.value })}
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Warranty days for this product</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Enter 0 for no warranty period</p>
                 </div>
 
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Warranty Type</label>
+                  <select
+                    value={form.warrantyType || 'none'}
+                    onChange={(e) => setForm({ ...form, warrantyType: e.target.value })}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                  >
+                    {WARRANTY_TYPES.map(wt => (
+                      <option key={wt.value} value={wt.value}>{wt.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1">Type of warranty coverage</p>
+                </div>
+              </div>
+
+              {/* Row 7: Supplier */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-slate-700 mb-1.5 font-bold">Supplier</label>
                   <input
@@ -519,6 +560,7 @@ export default function InventoryPage() {
                   </datalist>
                   <p className="text-[10px] text-slate-400 mt-1">Default supplier for this product</p>
                 </div>
+                <div className="hidden sm:block"></div>
               </div>
 
               {/* Row 7: Description */}

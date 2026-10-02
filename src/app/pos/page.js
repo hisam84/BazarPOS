@@ -24,6 +24,18 @@ import {
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
 
+const WARRANTY_TYPES = [
+  { value: 'none', label: 'No Warranty', color: 'bg-slate-100 text-slate-500' },
+  { value: 'replacement', label: 'Replacement', color: 'bg-blue-100 text-blue-700' },
+  { value: 'service', label: 'Service', color: 'bg-indigo-100 text-indigo-700' },
+  { value: 'exchange', label: 'Exchange', color: 'bg-violet-100 text-violet-700' },
+  { value: 'repair', label: 'Repair', color: 'bg-amber-100 text-amber-700' },
+  { value: 'refund', label: 'Refund', color: 'bg-emerald-100 text-emerald-700' },
+  { value: 'brand', label: 'Brand Warranty', color: 'bg-green-100 text-green-700' },
+  { value: 'limited', label: 'Limited', color: 'bg-orange-100 text-orange-700' },
+  { value: 'lifetime', label: 'Lifetime', color: 'bg-rose-100 text-rose-700' },
+];
+
 export default function POSTerminalPage() {
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
@@ -65,6 +77,9 @@ export default function POSTerminalPage() {
     sellingPrice: '',
     quantity: '10',
     minQuantity: 5,
+    warrantyDays: '0',
+    warrantyType: 'none',
+    supplier: '',
     barcode: ''
   });
 
@@ -638,7 +653,7 @@ export default function POSTerminalPage() {
                     <div className="pt-1.5 border-t border-slate-200/80 bg-blue-50/50 p-2 rounded-lg border border-blue-100/80">
                       <div className="flex items-center justify-between text-[10px] mb-1">
                         <span className="text-blue-700 font-bold flex items-center gap-1">
-                          🛡️ Warranty: {item.warranty}
+                          🛡️ Warranty: {item.warranty}{item.warrantyType && item.warrantyType !== 'none' ? ` · ${item.warrantyType.charAt(0).toUpperCase() + item.warrantyType.slice(1)}` : ''}
                         </span>
                         <span className="text-slate-500 font-medium">Serial / IMEI</span>
                       </div>
@@ -908,19 +923,36 @@ export default function POSTerminalPage() {
                 </div>
               </div>
 
-              {/* Row 6: Warranty & Supplier */}
+              {/* Row 6: Warranty */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Warranty (Days)</label>
+                  <label className="block text-slate-700 mb-1 font-bold">Warranty Duration (Days)</label>
                   <input
                     type="number"
                     placeholder="0"
                     value={productForm.warrantyDays || '0'}
                     onChange={e => setProductForm({ ...productForm, warrantyDays: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
                   />
-                  <p className="text-[10px] text-slate-400 mt-0.5">Warranty days for this product</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Enter 0 for no warranty period</p>
                 </div>
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Warranty Type</label>
+                  <select
+                    value={productForm.warrantyType || 'none'}
+                    onChange={e => setProductForm({ ...productForm, warrantyType: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
+                  >
+                    {WARRANTY_TYPES.map(wt => (
+                      <option key={wt.value} value={wt.value}>{wt.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Type of warranty coverage</p>
+                </div>
+              </div>
+
+              {/* Row 7: Supplier */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 mb-1 font-bold">Supplier</label>
                   <input
@@ -928,10 +960,11 @@ export default function POSTerminalPage() {
                     placeholder="Enter supplier name (optional)"
                     value={productForm.supplier || ''}
                     onChange={e => setProductForm({ ...productForm, supplier: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
                   />
                   <p className="text-[10px] text-slate-400 mt-0.5">Default supplier for this product</p>
                 </div>
+                <div className="hidden sm:block"></div>
               </div>
 
               {/* Row 7: Description */}
