@@ -15,7 +15,8 @@ import {
   Send,
   CheckCircle,
   ExternalLink,
-  Copy
+  Copy,
+  RotateCcw
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
 
@@ -271,17 +272,24 @@ export default function VoucherHistoryPage() {
                         {v.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right space-x-2">
+                    <td className="px-4 py-3 text-right space-x-1.5">
+                      <a
+                        href={`/sales-return?invoiceNo=${encodeURIComponent(v.voucherNo || v.voucherNumber || v.id)}`}
+                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center"
+                        title="Process Return / Warranty Claim"
+                      >
+                        <RotateCcw size={16} />
+                      </a>
                       <button
                         onClick={() => setSelectedVoucher(v)}
-                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition inline-flex items-center"
                         title="View / Print Invoice"
                       >
                         <Eye size={16} />
                       </button>
                       <button
                         onClick={() => handleDeleteVoucher(v.id)}
-                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition inline-flex items-center"
                         title="Delete Voucher"
                       >
                         <Trash2 size={16} />

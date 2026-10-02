@@ -109,6 +109,7 @@ const STORE_NAVIGATION_ITEMS = [
     items: [
       { name: 'POS Terminal', href: '/pos', badge: 'Live', permission: 'pos_terminal' },
       { name: 'All Sales / Invoices', href: '/vouchers/history', permission: 'view_invoices' },
+      { name: 'Sales Return & Warranty', href: '/sales-return', permission: 'pos_terminal' },
     ]
   },
   {
