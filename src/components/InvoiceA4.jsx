@@ -127,7 +127,19 @@ export default function InvoiceA4({
               <img
                 src={settings?.logoUrl || company?.logoUrl}
                 alt="Logo"
-                className="h-12 w-auto max-w-[100px] object-contain"
+                style={{
+                  height: (() => {
+                    const sz = settings?.logoSize || 'medium';
+                    if (sz === 'small') return '32px';
+                    if (sz === 'large') return '80px';
+                    if (sz === 'xlarge') return '112px';
+                    if (sz === 'custom') return `${settings?.logoCustomPx || 64}px`;
+                    return '48px'; // medium
+                  })(),
+                  width: 'auto',
+                  objectFit: 'contain',
+                  maxWidth: '200px'
+                }}
               />
             )}
             {settings?.showStoreName && (

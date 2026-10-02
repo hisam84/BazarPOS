@@ -121,7 +121,9 @@ export default function InvoiceSettingsPage() {
 
     // Design
     paperSize: 'A4',
-    accentColor: '#2563eb'
+    accentColor: '#2563eb',
+    logoSize: 'medium',
+    logoCustomPx: 64
   });
 
   const bannerInputRef = useRef(null);
@@ -372,15 +374,71 @@ export default function InvoiceSettingsPage() {
                   </label>
                 </div>
                 {settings.logoUrl ? (
-                  <div className="flex items-center space-x-3 border border-slate-200 rounded-xl p-2 bg-slate-50">
-                    <img src={settings.logoUrl} alt="Logo" className="h-10 w-10 object-contain rounded" />
-                    <button
-                      type="button"
-                      onClick={removeLogo}
-                      className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
-                    >
-                      Remove Logo
-                    </button>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 border border-slate-200 rounded-xl p-2 bg-slate-50">
+                      <img
+                        src={settings.logoUrl}
+                        alt="Logo"
+                        style={{ height: settings.logoSize === 'custom' ? `${settings.logoCustomPx || 64}px` : settings.logoSize === 'small' ? '32px' : settings.logoSize === 'large' ? '80px' : settings.logoSize === 'xlarge' ? '112px' : '48px' }}
+                        className="w-auto object-contain rounded"
+                      />
+                      <div className="flex-1">
+                        <p className="text-[10px] text-slate-500 font-medium">Logo Preview</p>
+                        <p className="text-[10px] text-slate-400">
+                          {settings.logoSize === 'custom' ? `${settings.logoCustomPx || 64}px height` : settings.logoSize === 'small' ? '32px height' : settings.logoSize === 'large' ? '80px height' : settings.logoSize === 'xlarge' ? '112px height' : '48px height'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    {/* Logo Size Picker */}
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-600 mb-1.5">Logo Size</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[
+                          { value: 'small', label: 'S', desc: '32px' },
+                          { value: 'medium', label: 'M', desc: '48px' },
+                          { value: 'large', label: 'L', desc: '80px' },
+                          { value: 'xlarge', label: 'XL', desc: '112px' },
+                          { value: 'custom', label: 'Custom', desc: '' },
+                        ].map(sz => (
+                          <button
+                            key={sz.value}
+                            type="button"
+                            onClick={() => setSettings({ ...settings, logoSize: sz.value })}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${
+                              settings.logoSize === sz.value
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400'
+                            }`}
+                          >
+                            {sz.label}{sz.desc ? <span className="ml-0.5 opacity-70">({sz.desc})</span> : ''}
+                          </button>
+                        ))}
+                      </div>
+                      {settings.logoSize === 'custom' && (
+                        <div className="mt-2 flex items-center space-x-2">
+                          <input
+                            type="range"
+                            min="24"
+                            max="160"
+                            step="4"
+                            value={settings.logoCustomPx || 64}
+                            onChange={(e) => setSettings({ ...settings, logoCustomPx: Number(e.target.value) })}
+                            className="flex-1 h-1.5 accent-blue-600"
+                          />
+                          <span className="text-[11px] font-mono font-bold text-slate-700 w-12 text-center">
+                            {settings.logoCustomPx || 64}px
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <button

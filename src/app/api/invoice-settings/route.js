@@ -60,6 +60,8 @@ const DEFAULT_INVOICE_SETTINGS = {
   paperSize: 'A4',
   accentColor: '#2563eb', // Royal Blue / Indigo
   compactTable: false,
+  logoSize: 'medium', // 'small' | 'medium' | 'large' | 'xlarge' | 'custom'
+  logoCustomPx: 64,
 };
 
 export async function GET(request) {
