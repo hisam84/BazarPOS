@@ -5,17 +5,15 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   ShoppingCart,
+  ShoppingBag,
   FileText,
   Package,
   Barcode,
   Users,
-  UserCheck,
   Truck,
   Receipt,
-  Scale,
   BarChart3,
   Settings,
-  ShieldAlert,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -27,374 +25,379 @@ import {
   Boxes,
   DollarSign,
   AlertOctagon,
-  ArrowRightLeft,
   ShieldCheck,
-  Clock
+  Clock,
+  Search,
+  Store,
+  Folder,
+  FolderOpen
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+
+// Store Navigation Tree Definition
+const STORE_TREE_GROUPS = [
+  {
+    id: 'sales_group',
+    title: 'Sales & Invoicing',
+    icon: ShoppingBag,
+    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    items: [
+      { name: 'POS Terminal', href: '/pos', icon: ShoppingCart, badge: 'Live', badgeColor: 'bg-emerald-500 text-white' },
+      { name: 'Sales & Invoices', href: '/vouchers/history', icon: FileText },
+      { name: 'Customers & Due', href: '/clients', icon: Users },
+      { name: 'Invoice Layout Setup', href: '/invoice-settings', icon: Receipt },
+    ]
+  },
+  {
+    id: 'inventory_group',
+    title: 'Inventory & Stock',
+    icon: Package,
+    badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    items: [
+      { name: 'Product Catalog', href: '/inventory', icon: Boxes },
+      { name: 'Stock Adjustments', href: '/stock-adjustment', icon: AlertOctagon },
+      { name: 'Suppliers & PO', href: '/suppliers', icon: Truck },
+      { name: 'Barcode Generator', href: '/barcodes', icon: Barcode },
+    ]
+  },
+  {
+    id: 'finance_group',
+    title: 'Finance & Outlets',
+    icon: DollarSign,
+    badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    items: [
+      { name: 'Daily Cash Register', href: '/cash-register', icon: DollarSign },
+      { name: 'Expense Manager', href: '/expenses', icon: Receipt },
+      { name: 'Branches & Transfer', href: '/branches', icon: Building2 },
+    ]
+  },
+  {
+    id: 'reports_group',
+    title: 'Reports & Audit',
+    icon: BarChart3,
+    badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    items: [
+      { name: 'Income Statement', href: '/reports?type=income', icon: PieChart },
+      { name: 'Expense Summary', href: '/reports?type=expense', icon: Receipt },
+      { name: 'Stock Valuation', href: '/reports?type=stock', icon: Boxes },
+      { name: 'Audit History Logs', href: '/audit-logs', icon: ShieldCheck },
+    ]
+  },
+  {
+    id: 'settings_group',
+    title: 'Settings & Admin',
+    icon: Settings,
+    badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+    items: [
+      { name: 'Company Settings', href: '/settings', icon: Settings },
+      { name: 'Staff & Roles', href: '/staff', icon: Shield },
+      { name: 'Owner Profile', href: '/profile', icon: User },
+    ]
+  }
+];
+
+// Super Admin Navigation Tree Definition
+const SUPERADMIN_TREE_GROUPS = [
+  {
+    id: 'saas_platform',
+    title: 'SaaS Platform',
+    icon: Shield,
+    badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    items: [
+      { name: 'Platform Overview', href: '/superadmin/dashboard', icon: LayoutDashboard },
+      { name: 'Manage Companies', href: '/superadmin/companies', icon: Building2 },
+      { name: 'Subscriptions & Validity', href: '/superadmin/subscriptions', icon: Clock },
+      { name: 'Security & Settings', href: '/superadmin/settings', icon: ShieldCheck },
+    ]
+  }
+];
 
 export default function Sidebar({ user, onLogout }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [reportsOpen, setReportsOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Track open state of tree groups (default all open for easy access)
+  const [openGroups, setOpenGroups] = useState({
+    sales_group: true,
+    inventory_group: true,
+    finance_group: true,
+    reports_group: false,
+    settings_group: false,
+    saas_platform: true,
+  });
 
   const role = user?.role || 'owner';
   const isSuperAdmin = role === 'superadmin';
+  const treeGroups = isSuperAdmin ? SUPERADMIN_TREE_GROUPS : STORE_TREE_GROUPS;
+
+  // Auto-expand group containing current route on pathname change
+  useEffect(() => {
+    treeGroups.forEach(group => {
+      const hasActive = group.items.some(item => {
+        const itemPath = item.href.split('?')[0];
+        return pathname === itemPath || (itemPath !== '/' && pathname.startsWith(itemPath));
+      });
+      if (hasActive) {
+        setOpenGroups(prev => ({ ...prev, [group.id]: true }));
+      }
+    });
+  }, [pathname, treeGroups]);
+
+  const toggleGroup = (groupId) => {
+    setOpenGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
+
+  const isItemActive = (href) => {
+    const basePath = href.split('?')[0];
+    if (basePath === '/') return pathname === '/';
+    return pathname === basePath || pathname.startsWith(basePath + '/');
+  };
+
+  // Filter groups and items if search query is entered
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return treeGroups;
+    const q = searchQuery.toLowerCase();
+    return treeGroups
+      .map(group => {
+        const matchingItems = group.items.filter(item =>
+          item.name.toLowerCase().includes(q) || group.title.toLowerCase().includes(q)
+        );
+        return matchingItems.length > 0 ? { ...group, items: matchingItems } : null;
+      })
+      .filter(Boolean);
+  }, [searchQuery, treeGroups]);
 
   return (
     <aside
-      className={`bg-slate-900 text-slate-100 min-h-screen transition-all duration-300 flex flex-col no-print ${
-        collapsed ? 'w-20' : 'w-64'
+      className={`bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-slate-100 min-h-screen transition-all duration-300 flex flex-col no-print border-r border-slate-800/80 shadow-2xl z-30 ${
+        collapsed ? 'w-20' : 'w-72'
       }`}
     >
       {/* Brand Header */}
-      <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800">
-        {!collapsed && (
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-md">
-              B
+      <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40">
+        {!collapsed ? (
+          <div className="flex items-center space-x-3">
+            <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-500/25 border border-blue-400/30">
+              {isSuperAdmin ? '⚡' : 'B'}
             </div>
-            <span className="font-bold text-lg tracking-wide text-white">
-              {isSuperAdmin ? 'SuperAdmin' : 'BazarPOS'}
-            </span>
+            <div>
+              <span className="font-bold text-base tracking-tight text-white block leading-tight">
+                {isSuperAdmin ? 'SuperAdmin' : (user?.storeName || 'BazarPOS')}
+              </span>
+              <span className="text-[10px] font-medium text-blue-400 uppercase tracking-wider block">
+                {isSuperAdmin ? 'SaaS Central' : 'Retail Cloud ERP'}
+              </span>
+            </div>
           </div>
-        )}
-        {collapsed && (
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white mx-auto shadow-md">
-            B
+        ) : (
+          <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-bold text-white mx-auto shadow-md border border-blue-400/30">
+            {isSuperAdmin ? '⚡' : 'B'}
           </div>
         )}
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition"
+          title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>
 
-      {/* Nav Menu Sections */}
-      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
-        {isSuperAdmin ? (
-          /* ================= SUPER ADMIN SAAS NAVIGATION ================= */
-          <div>
-            {!collapsed && (
-              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-2 px-3 flex items-center space-x-1">
-                <Shield size={12} />
-                <span>SaaS Management</span>
-              </p>
+      {/* Quick Search Filter (Only when expanded) */}
+      {!collapsed && (
+        <div className="px-3 pt-3 pb-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 text-slate-500 pointer-events-none" size={14} />
+            <input
+              type="text"
+              placeholder="Search menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-950/60 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs font-bold px-1"
+              >
+                ✕
+              </button>
             )}
-            <div className="space-y-1.5">
-              <Link
-                href="/superadmin/dashboard"
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  pathname === '/superadmin/dashboard'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-300 hover:bg-slate-800'
-                } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                title="Platform Overview"
-              >
-                <LayoutDashboard size={18} />
-                {!collapsed && <span>Platform Overview</span>}
-              </Link>
-
-              <Link
-                href="/superadmin/companies"
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  pathname === '/superadmin/companies'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-300 hover:bg-slate-800'
-                } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                title="Manage Companies"
-              >
-                <Building2 size={18} />
-                {!collapsed && (
-                  <div className="flex items-center justify-between flex-1">
-                    <span>Manage Companies</span>
-                  </div>
-                )}
-              </Link>
-
-              <Link
-                href="/superadmin/subscriptions"
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  pathname === '/superadmin/subscriptions'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-300 hover:bg-slate-800'
-                } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                title="Subscription & Validity Management"
-              >
-                <Clock size={18} />
-                {!collapsed && <span>Subscriptions & Validity</span>}
-              </Link>
-
-              <Link
-                href="/superadmin/settings"
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  pathname === '/superadmin/settings'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'text-slate-300 hover:bg-slate-800'
-                } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                title="Admin Security Settings"
-              >
-                <ShieldCheck size={18} />
-                {!collapsed && <span>Security & Settings</span>}
-              </Link>
-            </div>
           </div>
-        ) : (
-          /* ================= STORE POS NAVIGATION (NON-SUPERADMIN) ================= */
-          <>
-            {/* MAIN MENU */}
-            <div>
-              {!collapsed && (
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-                  Main Menu
-                </p>
-              )}
-              <div className="space-y-1">
-                <Link
-                  href="/"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <LayoutDashboard size={18} />
-                  {!collapsed && <span>Dashboard</span>}
-                </Link>
-                <Link
-                  href="/pos"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/pos' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <ShoppingCart size={18} />
-                  {!collapsed && <span>New Sale (POS)</span>}
-                </Link>
-                <Link
-                  href="/vouchers/history"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/vouchers/history' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <FileText size={18} />
-                  {!collapsed && <span>Sales Reports</span>}
-                </Link>
-              </div>
-            </div>
+        </div>
+      )}
 
-            {/* MANAGEMENT */}
-            <div>
+      {/* Main Nav Tree */}
+      <nav className="flex-1 px-3 py-3 space-y-3 overflow-y-auto custom-scrollbar">
+        {/* Top Level Direct Link: Dashboard */}
+        {!isSuperAdmin && (
+          <div className="space-y-1">
+            <Link
+              href="/"
+              className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 group ${
+                pathname === '/'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25 border border-blue-400/30'
+                  : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+              } ${collapsed ? 'justify-center space-x-0' : ''}`}
+              title="Dashboard"
+            >
+              <LayoutDashboard size={18} className={pathname === '/' ? 'text-white' : 'text-blue-400 group-hover:text-blue-300'} />
               {!collapsed && (
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-                  Management
-                </p>
+                <div className="flex items-center justify-between flex-1">
+                  <span>Dashboard</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold">
+                    Home
+                  </span>
+                </div>
               )}
-              <div className="space-y-1">
-                <Link
-                  href="/inventory"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/inventory' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Package size={18} />
-                  {!collapsed && <span>Inventory Catalog</span>}
-                </Link>
-                <Link
-                  href="/stock-adjustment"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/stock-adjustment' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <AlertOctagon size={18} />
-                  {!collapsed && <span>Stock Adjustment</span>}
-                </Link>
-                <Link
-                  href="/suppliers"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/suppliers' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Truck size={18} />
-                  {!collapsed && <span>Suppliers & PO</span>}
-                </Link>
-                <Link
-                  href="/barcodes"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/barcodes' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Barcode size={18} />
-                  {!collapsed && <span>Barcodes</span>}
-                </Link>
-                <Link
-                  href="/clients"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/clients' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Users size={18} />
-                  {!collapsed && <span>Clients & Due</span>}
-                </Link>
-              </div>
-            </div>
+            </Link>
+          </div>
+        )}
 
-            {/* FINANCE & CASH */}
-            <div>
-              {!collapsed && (
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-                  Finance & Outlets
-                </p>
-              )}
-              <div className="space-y-1">
-                <Link
-                  href="/cash-register"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/cash-register' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <DollarSign size={18} />
-                  {!collapsed && <span>Cash Register (Day)</span>}
-                </Link>
-                <Link
-                  href="/expenses"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/expenses' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Receipt size={18} />
-                  {!collapsed && <span>Expenses</span>}
-                </Link>
-                <Link
-                  href="/branches"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/branches' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Building2 size={18} />
-                  {!collapsed && <span>Branches & Transfers</span>}
-                </Link>
-              </div>
-            </div>
+        {/* Tree Categories */}
+        <div className="space-y-2">
+          {filteredGroups.map(group => {
+            const isOpen = searchQuery ? true : openGroups[group.id];
+            const GroupIcon = group.icon;
+            const hasActiveChild = group.items.some(item => isItemActive(item.href));
 
-            {/* REPORTS (Collapsible Submenu) */}
-            <div>
-              {!collapsed && (
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-                  Analytics & Audit
-                </p>
-              )}
-              <div className="space-y-1">
+            return (
+              <div key={group.id} className="rounded-xl bg-slate-950/20 border border-slate-800/40 p-1">
+                {/* Category Header (Tree Branch Root) */}
                 <button
-                  onClick={() => setReportsOpen(!reportsOpen)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition ${
-                    collapsed ? 'justify-center' : ''
-                  }`}
+                  onClick={() => toggleGroup(group.id)}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-bold transition-all duration-150 ${
+                    hasActiveChild
+                      ? 'text-blue-400 bg-blue-500/10'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                  } ${collapsed ? 'justify-center px-1' : ''}`}
+                  title={group.title}
                 >
-                  <div className="flex items-center space-x-3">
-                    <BarChart3 size={18} />
-                    {!collapsed && <span>Financial Reports</span>}
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <span className={`p-1 rounded-lg ${hasActiveChild ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800/80 text-slate-400'}`}>
+                      <GroupIcon size={14} />
+                    </span>
+                    {!collapsed && (
+                      <span className="truncate tracking-wide text-xs uppercase text-[11px] font-bold">
+                        {group.title}
+                      </span>
+                    )}
                   </div>
+
                   {!collapsed && (
-                    <ChevronDown size={14} className={`transition-transform ${reportsOpen ? 'rotate-180' : ''}`} />
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[10px] font-semibold text-slate-500 px-1.5 py-0.2 rounded-full bg-slate-800/60">
+                        {group.items.length}
+                      </span>
+                      <ChevronDown
+                        size={14}
+                        className={`text-slate-400 transition-transform duration-200 ${
+                          isOpen ? 'rotate-180 text-blue-400' : ''
+                        }`}
+                      />
+                    </div>
                   )}
                 </button>
 
-                {reportsOpen && !collapsed && (
-                  <div className="pl-6 space-y-1 border-l-2 border-slate-800 ml-4 py-1">
-                    <Link
-                      href="/reports?type=income"
-                      className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
-                    >
-                      <PieChart size={14} />
-                      <span>Income Statement</span>
-                    </Link>
-                    <Link
-                      href="/reports?type=expense"
-                      className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
-                    >
-                      <Receipt size={14} />
-                      <span>Expense Summary</span>
-                    </Link>
-                    <Link
-                      href="/reports?type=stock"
-                      className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800/60"
-                    >
-                      <Boxes size={14} />
-                      <span>Stock Valuation</span>
-                    </Link>
+                {/* Tree Child Nodes (Collapsed: hidden or icon stack) */}
+                {isOpen && !collapsed && (
+                  <div className="relative mt-1 ml-3.5 pl-3 border-l-2 border-slate-800/80 space-y-0.5 py-1">
+                    {group.items.map((item, idx) => {
+                      const active = isItemActive(item.href);
+                      const ItemIcon = item.icon;
+
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={`relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 group ${
+                            active
+                              ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-600/20'
+                              : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                          }`}
+                        >
+                          {/* Tree node branch connector dot */}
+                          <span
+                            className={`absolute -left-[17px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border-2 transition-all ${
+                              active
+                                ? 'bg-blue-500 border-slate-900 ring-2 ring-blue-500/40 scale-110'
+                                : 'bg-slate-700 border-slate-900 group-hover:bg-blue-400'
+                            }`}
+                          />
+
+                          <div className="flex items-center space-x-2 min-w-0">
+                            <ItemIcon
+                              size={14}
+                              className={`shrink-0 transition-colors ${
+                                active ? 'text-white' : 'text-slate-400 group-hover:text-blue-300'
+                              }`}
+                            />
+                            <span className="truncate">{item.name}</span>
+                          </div>
+
+                          {item.badge && (
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm shrink-0 ml-1.5 ${
+                                item.badgeColor || 'bg-slate-700 text-slate-200'
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
-
-                <Link
-                  href="/audit-logs"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/audit-logs' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <ShieldCheck size={18} />
-                  {!collapsed && <span>Audit History Logs</span>}
-                </Link>
               </div>
-            </div>
-
-            {/* SETTINGS */}
-            <div>
-              {!collapsed && (
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3">
-                  Settings & Roles
-                </p>
-              )}
-              <div className="space-y-1">
-                <Link
-                  href="/settings"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/settings' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Settings size={18} />
-                  {!collapsed && <span>Company Settings</span>}
-                </Link>
-
-                <Link
-                  href="/invoice-settings"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/invoice-settings' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <FileText size={18} />
-                  {!collapsed && <span>Invoice Settings</span>}
-                </Link>
-
-                <Link
-                  href="/staff"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname === '/staff' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
-                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
-                >
-                  <Shield size={18} />
-                  {!collapsed && <span>Staff RBAC Roles</span>}
-                </Link>
-              </div>
-            </div>
-          </>
-        )}
+            );
+          })}
+        </div>
       </nav>
 
+      {/* User Info & Store Status */}
+      <div className="p-3 border-t border-slate-800/80 bg-slate-950/40 space-y-2">
+        {!collapsed && (
+          <div className="flex items-center justify-between px-2 py-1.5 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div className="flex items-center space-x-2.5 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
+                {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-white truncate leading-tight">
+                  {user?.fullName || user?.username || 'User'}
+                </p>
+                <p className="text-[10px] text-emerald-400 font-medium capitalize flex items-center space-x-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
+                  <span>{user?.role || 'Staff'}</span>
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/profile"
+              className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+              title="My Profile"
+            >
+              <Settings size={14} />
+            </Link>
+          </div>
+        )}
 
-      {/* Logout Footer */}
-      <div className="p-3 border-t border-slate-800">
+        {/* Logout Button */}
         <button
           onClick={onLogout}
-          className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition ${
-            collapsed ? 'justify-center space-x-0' : ''
+          className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 border border-transparent hover:border-rose-500/20 transition duration-150 ${
+            collapsed ? 'justify-center space-x-0 px-2' : ''
           }`}
-          title="Logout"
+          title="Sign Out"
         >
-          <LogOut size={18} />
-          {!collapsed && <span>Logout</span>}
+          <LogOut size={16} />
+          {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
     </aside>
   );
 }
+
