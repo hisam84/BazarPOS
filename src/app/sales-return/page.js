@@ -277,51 +277,51 @@ function SalesReturnContent() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto text-xs">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm no-print">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <RotateCcw className="text-blue-600" size={24} />
-            <span>Sales Returns, Refunds &amp; Warranty Claims</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <RotateCcw className="text-blue-600 flex-shrink-0" size={22} />
+            <span className="truncate">Sales Returns &amp; Warranty</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
             Process customer invoice returns, warranty replacements/repairs, auto-restock inventory, and print return slips.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-slate-100 p-1 rounded-xl">
+        <div className="grid grid-cols-2 sm:flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto gap-1">
           <button
             type="button"
             onClick={() => setActiveTab('process')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
               activeTab === 'process' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <RotateCcw size={14} />
-            <span>Process Return / Warranty</span>
+            <RotateCcw size={14} className="flex-shrink-0" />
+            <span className="truncate">Process Return</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
               activeTab === 'history' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Clock size={14} />
-            <span>Return History Logs ({returnsHistory.length})</span>
+            <Clock size={14} className="flex-shrink-0" />
+            <span className="truncate">History ({returnsHistory.length})</span>
           </button>
         </div>
       </div>
 
       {/* TAB 1: PROCESS NEW RETURN / WARRANTY CLAIM */}
       {activeTab === 'process' && (
-        <div className="space-y-6 no-print">
+        <div className="space-y-4 sm:space-y-6 no-print">
           {/* Step 1: Search Invoice to Return */}
           {!selectedVoucher ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-              <div className="flex items-center space-x-2 border-b pb-3 text-slate-800 font-bold text-sm">
-                <Search size={18} className="text-blue-600" />
-                <span>Step 1: Locate Original Sales Invoice or Scan Item</span>
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
+              <div className="flex items-center space-x-2 border-b border-slate-100 pb-3 text-slate-800 font-bold text-xs sm:text-sm">
+                <Search size={18} className="text-blue-600 flex-shrink-0" />
+                <span>Step 1: Locate Original Sales Invoice or Item</span>
               </div>
 
               <div className="relative">
@@ -331,18 +331,20 @@ function SalesReturnContent() {
                   autoFocus
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Enter invoice number (e.g. INV-1001), customer phone, name, or scan product serial number..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 shadow-xs transition"
+                  placeholder="Enter invoice # (e.g. INV-1001), customer phone, name, or scan serial..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 shadow-xs transition placeholder:text-slate-400"
                 />
               </div>
 
-              {/* Invoices Results Table */}
+              {/* Invoices Results */}
               <div className="border border-slate-200 rounded-xl overflow-hidden mt-4">
-                <div className="bg-slate-50 px-4 py-2.5 border-b border-slate-200 font-bold text-slate-700 flex justify-between">
+                <div className="bg-slate-50 px-3.5 py-2.5 border-b border-slate-200 font-bold text-slate-700 flex flex-wrap items-center justify-between gap-1 text-[11px] sm:text-xs">
                   <span>Recent Sales Invoices ({filteredVouchers.length} matches)</span>
-                  <span className="text-[11px] text-slate-400 font-normal">Click "Select for Return" to proceed</span>
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 font-normal">Click "Select" to proceed</span>
                 </div>
-                <div className="overflow-x-auto">
+
+                {/* Desktop View Table */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
                       <tr>
@@ -387,25 +389,62 @@ function SalesReturnContent() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Mobile View Cards */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                  {filteredVouchers.map(v => (
+                    <div key={v.id} className="p-3.5 space-y-2.5 bg-white hover:bg-slate-50/60 transition">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-indigo-700 text-xs">{v.voucherNo || v.voucherNumber || v.id}</span>
+                        <span className="text-[10px] text-slate-400">{new Date(v.date || v.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <div>
+                          <p className="font-bold text-slate-800">{v.clientName || 'Walk-in Customer'}</p>
+                          {v.clientPhone && <p className="text-[10px] text-slate-400 font-mono">{v.clientPhone}</p>}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-mono font-black text-slate-900 text-xs">৳{Number(v.totalAmount).toLocaleString()}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">{v.items?.length || 1} items</p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectVoucherForReturn(v)}
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center justify-center space-x-1.5"
+                      >
+                        <span>Select for Return</span>
+                        <ArrowRight size={13} />
+                      </button>
+                    </div>
+                  ))}
+                  {filteredVouchers.length === 0 && (
+                    <div className="text-center py-8 text-slate-400 text-xs">
+                      No invoices found matching "{searchQuery}".
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
             /* Step 2: Configure Return Items & Warranty Claim */
-            <form onSubmit={handleProcessReturn} className="space-y-6">
+            <form onSubmit={handleProcessReturn} className="space-y-4 sm:space-y-6">
               {/* Selected Invoice Banner */}
-              <div className="bg-blue-50/70 border border-blue-200 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Selected Sales Invoice:</span>
-                    <span className="font-mono font-black text-sm text-indigo-900 bg-white px-2 py-0.5 rounded-md border border-blue-200">
+              <div className="bg-blue-50/70 border border-blue-200 p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-blue-700">Selected Invoice:</span>
+                    <span className="font-mono font-black text-xs sm:text-sm text-indigo-900 bg-white px-2 py-0.5 rounded-md border border-blue-200">
                       {selectedVoucher.voucherNo || selectedVoucher.voucherNumber || selectedVoucher.id}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 mt-2">
-                    <span><strong>Customer:</strong> {selectedVoucher.clientName || 'Walk-in Customer'}</span>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs text-slate-600">
+                    <span><strong>Customer:</strong> {selectedVoucher.clientName || 'Walk-in'}</span>
                     {selectedVoucher.clientPhone && <span><strong>Phone:</strong> {selectedVoucher.clientPhone}</span>}
                     <span><strong>Date:</strong> {new Date(selectedVoucher.date || selectedVoucher.createdAt).toLocaleDateString()}</span>
-                    <span><strong>Invoice Total:</strong> ৳{Number(selectedVoucher.totalAmount).toLocaleString()}</span>
+                    <span><strong>Total:</strong> ৳{Number(selectedVoucher.totalAmount).toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -418,17 +457,18 @@ function SalesReturnContent() {
                 </button>
               </div>
 
-              {/* Items Return Table */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b pb-3">
-                  <h3 className="font-bold text-slate-800 text-sm flex items-center space-x-2">
-                    <Package size={18} className="text-blue-600" />
+              {/* Items Return Section */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3">
+                  <h3 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center space-x-2">
+                    <Package size={18} className="text-blue-600 flex-shrink-0" />
                     <span>Select Items to Return or Claim Warranty</span>
                   </h3>
-                  <span className="text-[11px] text-slate-500">Check the items being returned by customer</span>
+                  <span className="text-[10px] sm:text-[11px] text-slate-500">Check the items being returned</span>
                 </div>
 
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                {/* Desktop View Table */}
+                <div className="hidden md:block border border-slate-200 rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
                       <tr>
@@ -514,16 +554,105 @@ function SalesReturnContent() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Mobile View Cards */}
+                <div className="block md:hidden space-y-3">
+                  {(selectedVoucher.items || []).map((it, idx) => {
+                    const itemState = selectedItems[idx] || {};
+                    const isChecked = !!itemState.selected;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-3.5 rounded-xl border transition space-y-3 ${
+                          isChecked
+                            ? 'bg-blue-50/40 border-blue-200'
+                            : 'bg-slate-50/50 border-slate-200 opacity-65'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleItemSelection(idx)}
+                            className="w-5 h-5 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-slate-900 text-xs leading-snug">{it.name}</h4>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              {it.brand && (
+                                <span className="px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded text-[10px] font-semibold">
+                                  {it.brand}
+                                </span>
+                              )}
+                              {it.warrantyType && (
+                                <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-bold">
+                                  🛡️ {it.warrantyType}
+                                </span>
+                              )}
+                              {(it.serialNumber || it.serial) && (
+                                <span className="px-1.5 py-0.2 bg-purple-50 text-purple-700 font-mono text-[10px] font-bold rounded">
+                                  S/N: {it.serialNumber || it.serial}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {isChecked && (
+                          <div className="pt-2 border-t border-slate-200/80 space-y-2.5 text-xs">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="bg-white p-2 rounded-lg border border-slate-200">
+                                <span className="text-[10px] text-slate-500 block">Sold: {it.quantity || 1} units</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <label className="text-[10px] font-bold text-slate-700">Return Qty:</label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max={it.quantity || 1}
+                                    value={itemState.returnedQty || 1}
+                                    onChange={e => updateItemReturnQty(idx, e.target.value)}
+                                    className="w-14 px-2 py-1 bg-slate-50 border border-slate-300 rounded font-mono font-bold text-center text-xs focus:outline-none focus:border-blue-500"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="bg-white p-2 rounded-lg border border-slate-200 text-right">
+                                <span className="text-[10px] text-slate-500 block">Refund Subtotal</span>
+                                <span className="font-mono font-bold text-rose-600 text-sm block mt-0.5">
+                                  ৳{Number(itemState.refundAmount || 0).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-600 block mb-1">Inventory Condition:</label>
+                              <select
+                                value={itemState.condition || 'Restock to Inventory'}
+                                onChange={e => updateItemField(idx, 'condition', e.target.value)}
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                              >
+                                <option value="Restock to Inventory">Good (Restock to Stock)</option>
+                                <option value="Defective / Damaged">Defective (Do NOT Restock)</option>
+                                <option value="Supplier Warranty">Sent for Warranty Repair</option>
+                              </select>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Step 3: Return Classification & Refund Settlement */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
-                <h3 className="font-bold text-slate-800 text-sm border-b pb-3 flex items-center space-x-2">
-                  <RotateCcw size={18} className="text-blue-600" />
+              <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-5">
+                <h3 className="font-bold text-slate-800 text-xs sm:text-sm border-b border-slate-100 pb-3 flex items-center space-x-2">
+                  <RotateCcw size={18} className="text-blue-600 flex-shrink-0" />
                   <span>Return Type &amp; Financial Settlement</span>
                 </h3>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setReturnType('refund')}
@@ -534,7 +663,7 @@ function SalesReturnContent() {
                     }`}
                   >
                     <span className="font-bold text-xs block">1. Refund Payment</span>
-                    <span className="text-[11px] text-slate-500 mt-1">Return money back to customer or adjust due.</span>
+                    <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Return money back or adjust balance.</span>
                   </button>
 
                   <button
@@ -547,7 +676,7 @@ function SalesReturnContent() {
                     }`}
                   >
                     <span className="font-bold text-xs block">2. Warranty Replacement</span>
-                    <span className="text-[11px] text-slate-500 mt-1">Issue a fresh replacement unit under warranty.</span>
+                    <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Issue fresh replacement unit under warranty.</span>
                   </button>
 
                   <button
@@ -560,15 +689,15 @@ function SalesReturnContent() {
                     }`}
                   >
                     <span className="font-bold text-xs block">3. Warranty Service / Repair</span>
-                    <span className="text-[11px] text-slate-500 mt-1">Accept item for repair / service slip.</span>
+                    <span className="text-[10px] sm:text-[11px] text-slate-500 mt-1">Accept item for repair / service slip.</span>
                   </button>
                 </div>
 
                 {/* Settlement Inputs */}
                 {returnType !== 'warranty_service' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-3.5 sm:p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div>
-                      <label className="block text-slate-700 mb-1 font-bold">
+                      <label className="block text-slate-700 mb-1 font-bold text-xs">
                         Refund / Credit Amount (৳) *
                       </label>
                       <input
@@ -581,7 +710,7 @@ function SalesReturnContent() {
                     </div>
 
                     <div>
-                      <label className="block text-slate-700 mb-1 font-bold">
+                      <label className="block text-slate-700 mb-1 font-bold text-xs">
                         Refund Payment Method
                       </label>
                       <select
@@ -600,7 +729,7 @@ function SalesReturnContent() {
 
                 {/* Reason & Notes */}
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">
+                  <label className="block text-slate-700 mb-1 font-bold text-xs">
                     Return Reason / Warranty Remarks / Problem Description
                   </label>
                   <textarea
@@ -613,11 +742,11 @@ function SalesReturnContent() {
                 </div>
 
                 {/* Submit Actions */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-200">
                   <button
                     type="button"
                     onClick={() => setSelectedVoucher(null)}
-                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-xs"
+                    className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-xs text-center"
                   >
                     Cancel
                   </button>
@@ -625,7 +754,7 @@ function SalesReturnContent() {
                   <button
                     type="submit"
                     disabled={processing}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition shadow-md shadow-blue-500/20 text-xs flex items-center space-x-2"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition shadow-md shadow-blue-500/20 text-xs flex items-center justify-center space-x-2"
                   >
                     <RotateCcw size={15} />
                     <span>{processing ? 'Processing Return...' : 'Confirm Return & Print Claim Slip'}</span>
@@ -641,24 +770,24 @@ function SalesReturnContent() {
       {activeTab === 'history' && (
         <div className="space-y-4 no-print">
           {/* History Search & Filter Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center justify-between">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3.5 top-2.5 text-slate-400 pointer-events-none" size={15} />
               <input
                 type="text"
                 value={historySearch}
                 onChange={e => setHistorySearch(e.target.value)}
-                placeholder="Search by Return ID, Invoice #, customer name or phone..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500 transition"
+                placeholder="Search Return ID, Invoice #, customer or phone..."
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:border-blue-500 transition placeholder:text-slate-400"
               />
             </div>
 
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold text-slate-500">Status:</span>
+              <span className="text-xs font-bold text-slate-500 flex-shrink-0">Status:</span>
               <select
                 value={historyStatusFilter}
                 onChange={e => setHistoryStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
+                className="w-full sm:w-auto px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-blue-500"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="Refunded">Refunded</option>
@@ -669,9 +798,10 @@ function SalesReturnContent() {
             </div>
           </div>
 
-          {/* History Records Table */}
+          {/* History Records Table & Cards */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop View Table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
                   <tr>
@@ -735,6 +865,60 @@ function SalesReturnContent() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile View Cards */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {filteredHistory.map(ret => (
+                <div key={ret.id} className="p-3.5 space-y-2 bg-white hover:bg-slate-50/60 transition text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-blue-700">{ret.returnNumber}</span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                      ret.status === 'Refunded'
+                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                        : ret.status === 'Replacement Issued'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-purple-50 text-purple-700 border border-purple-200'
+                    }`}>
+                      {ret.status}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-600">
+                    <div>
+                      <p className="font-bold text-slate-800">{ret.clientName || 'Walk-in'}</p>
+                      {ret.clientPhone && <p className="text-[10px] text-slate-400 font-mono">{ret.clientPhone}</p>}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono text-slate-500 text-[11px]">Inv: {ret.voucherNo || '-'}</p>
+                      <p className="text-[10px] text-slate-400">{new Date(ret.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                    <div>
+                      <span className="text-[10px] text-slate-500 block">Refund / Value:</span>
+                      <span className="font-mono font-black text-rose-600">
+                        {ret.totalRefundAmount > 0 ? `৳${Number(ret.totalRefundAmount).toLocaleString()}` : '৳0 (Warranty)'}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => { setCompletedReturn(ret); setShowSlipModal(true); }}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-lg text-xs transition inline-flex items-center space-x-1"
+                    >
+                      <Printer size={13} />
+                      <span>Print Slip</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredHistory.length === 0 && (
+                <div className="text-center py-10 text-slate-400 text-xs">
+                  No sales return or warranty records found.
+                </div>
+              )}
             </div>
           </div>
         </div>
