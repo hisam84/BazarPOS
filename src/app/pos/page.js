@@ -14,8 +14,10 @@ import {
   UserPlus,
   PackagePlus,
   UserCheck,
-  X
+  X,
+  FileText
 } from 'lucide-react';
+import InvoiceA4 from '@/components/InvoiceA4';
 
 export default function POSTerminalPage() {
   const [user, setUser] = useState(null);
@@ -23,6 +25,9 @@ export default function POSTerminalPage() {
   const [clients, setClients] = useState([]);
   const [salers, setSalers] = useState([]);
   const [categories, setCategories] = useState(['All']);
+  const [company, setCompany] = useState({});
+  const [invoiceSettings, setInvoiceSettings] = useState({});
+  const [printLayout, setPrintLayout] = useState('A4');
   
   // POS Cart & Search State
   const [cart, setCart] = useState([]);
@@ -72,15 +77,17 @@ export default function POSTerminalPage() {
 
   const loadPOSData = async (storeId) => {
     try {
-      const [prodRes, cliRes, salRes] = await Promise.all([
+      const [prodRes, cliRes, salRes, invRes] = await Promise.all([
         fetch(`/api/products?storeId=${storeId}`),
         fetch(`/api/clients?storeId=${storeId}`),
-        fetch(`/api/salers?storeId=${storeId}`)
+        fetch(`/api/salers?storeId=${storeId}`),
+        fetch(`/api/invoice-settings?storeId=${storeId}`)
       ]);
 
       const prodData = await prodRes.json();
       const cliData = await cliRes.json();
       const salData = await salRes.json();
+      const invData = await invRes.json();
 
       if (prodData.success) {
         setProducts(prodData.products || []);
@@ -93,6 +100,11 @@ export default function POSTerminalPage() {
       if (salData.success) {
         setSalers(salData.salers || []);
         if (salData.salers.length > 0 && !selectedSaler) setSelectedSaler(salData.salers[0].name);
+      }
+      if (invData.success) {
+        if (invData.settings) setInvoiceSettings(invData.settings);
+        if (invData.company) setCompany(invData.company);
+        if (invData.settings?.paperSize) setPrintLayout(invData.settings.paperSize === 'thermal' ? 'thermal' : 'A4');
       }
     } catch (err) {
       console.error(err);
@@ -629,85 +641,136 @@ export default function POSTerminalPage() {
 
       {/* PRINT RECEIPT MODAL */}
       {printModal && completedVoucher && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className={`bg-white rounded-2xl w-full shadow-2xl space-y-4 my-8 ${printLayout === 'A4' ? 'max-w-4xl max-h-[92vh] flex flex-col' : 'max-w-lg'} p-6`}>
             <div className="flex items-center justify-between no-print border-b pb-3">
-              <h3 className="font-bold text-slate-800 text-lg flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
                 <CheckCircle className="text-emerald-500" size={20} />
-                <span>Invoice Created Successfully!</span>
-              </h3>
+                <h3 className="font-bold text-slate-800 text-lg">
+                  Invoice Created Successfully!
+                </h3>
+              </div>
               <button onClick={() => setPrintModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="flex gap-2 no-print">
-              <a
-                href={getWhatsAppShareUrl()}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center justify-center space-x-1"
-              >
-                <Share2 size={14} />
-                <span>Share WhatsApp</span>
-              </a>
+            {/* Layout Toggle & Sharing */}
+            <div className="flex flex-wrap items-center justify-between gap-2 no-print">
+              <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setPrintLayout('A4')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+                    printLayout === 'A4' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <FileText size={14} />
+                  <span>A4 Paper Invoice</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrintLayout('thermal')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+                    printLayout === 'thermal' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Printer size={14} />
+                  <span>Thermal Slip (80mm)</span>
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <a
+                  href={getWhatsAppShareUrl()}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1"
+                >
+                  <Share2 size={13} />
+                  <span>WhatsApp</span>
+                </a>
+                <button
+                  onClick={handleSendSMS}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center space-x-1"
+                >
+                  <MessageSquare size={13} />
+                  <span>SMS</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Content Area */}
+            <div className="flex-1 overflow-y-auto max-h-[65vh] p-2 bg-slate-100/60 rounded-xl border border-slate-200">
+              {printLayout === 'A4' ? (
+                <div className="printable-area">
+                  <InvoiceA4
+                    invoice={completedVoucher}
+                    company={company}
+                    settings={invoiceSettings}
+                    isSample={false}
+                  />
+                </div>
+              ) : (
+                <div className="printable-area max-w-sm mx-auto border p-4 rounded-xl bg-white font-mono text-xs text-slate-800 space-y-2 shadow-sm">
+                  <div className="text-center pb-2 border-b">
+                    <h2 className="font-bold text-sm text-slate-900">{company?.name || user?.storeName || 'BazarPOS Outlet'}</h2>
+                    {company?.phone && <p>Phone: {company.phone}</p>}
+                    {company?.address && <p className="text-[10px]">{company.address}</p>}
+                    <p className="font-semibold text-blue-600 mt-1">Invoice: {completedVoucher.voucherNo}</p>
+                    <p className="text-[10px] text-slate-500">{new Date(completedVoucher.date).toLocaleString()}</p>
+                  </div>
+
+                  <div className="py-1 border-b text-[11px] space-y-1">
+                    <p>Customer: <span className="font-bold">{completedVoucher.clientName}</span></p>
+                    {completedVoucher.salerName && <p>Sales Rep: {completedVoucher.salerName}</p>}
+                  </div>
+
+                  <table className="w-full text-left text-[11px] border-b">
+                    <thead>
+                      <tr className="border-b font-bold">
+                        <th className="py-1">Item</th>
+                        <th className="py-1 text-center">Qty</th>
+                        <th className="py-1 text-right">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {completedVoucher.items.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="py-1">{item.name}</td>
+                          <td className="py-1 text-center">{item.quantity}</td>
+                          <td className="py-1 text-right">৳{item.unitPrice * item.quantity}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div className="pt-2 text-right space-y-1 font-bold">
+                    <p>Subtotal: ৳{completedVoucher.subTotal}</p>
+                    {completedVoucher.discount > 0 && <p>Discount: -৳{completedVoucher.discount}</p>}
+                    <p className="text-sm text-blue-700">Grand Total: ৳{completedVoucher.totalAmount}</p>
+                    <p className="text-emerald-600">Paid ({completedVoucher.paymentMethod}): ৳{completedVoucher.paidAmount}</p>
+                    {completedVoucher.dueAmount > 0 && <p className="text-rose-600">Due: ৳{completedVoucher.dueAmount}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex space-x-3 no-print pt-2 border-t">
               <button
-                onClick={handleSendSMS}
-                className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center justify-center space-x-1"
+                type="button"
+                onClick={() => setPrintModal(false)}
+                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
               >
-                <MessageSquare size={14} />
-                <span>Send SMS Memo</span>
+                Close
               </button>
-            </div>
-
-            <div className="printable-area border p-4 rounded-xl bg-slate-50 font-mono text-xs text-slate-800 space-y-2">
-              <div className="text-center pb-2 border-b">
-                <h2 className="font-bold text-sm text-slate-900">{user?.storeName || 'BazarPOS Outlet'}</h2>
-                <p>Phone: 01700000000 | Dhaka</p>
-                <p className="font-semibold text-blue-600 mt-1">Invoice: {completedVoucher.voucherNo}</p>
-                <p className="text-[10px] text-slate-500">{new Date(completedVoucher.date).toLocaleString()}</p>
-              </div>
-
-              <div className="py-1 border-b text-[11px] space-y-1">
-                <p>Customer: <span className="font-bold">{completedVoucher.clientName}</span></p>
-                <p>Sales Rep: {completedVoucher.salerName}</p>
-              </div>
-
-              <table className="w-full text-left text-[11px] border-b">
-                <thead>
-                  <tr className="border-b font-bold">
-                    <th className="py-1">Item</th>
-                    <th className="py-1 text-center">Qty</th>
-                    <th className="py-1 text-right">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {completedVoucher.items.map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="py-1">{item.name}</td>
-                      <td className="py-1 text-center">{item.quantity}</td>
-                      <td className="py-1 text-right">৳{item.unitPrice * item.quantity}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="pt-2 text-right space-y-1 font-bold">
-                <p>Subtotal: ৳{completedVoucher.subTotal}</p>
-                {completedVoucher.discount > 0 && <p>Discount: -৳{completedVoucher.discount}</p>}
-                <p className="text-sm text-blue-700">Grand Total: ৳{completedVoucher.totalAmount}</p>
-                <p className="text-emerald-600">Paid ({completedVoucher.paymentMethod}): ৳{completedVoucher.paidAmount}</p>
-                {completedVoucher.dueAmount > 0 && <p className="text-rose-600">Due: ৳{completedVoucher.dueAmount}</p>}
-              </div>
-            </div>
-
-            <div className="flex space-x-3 no-print pt-2">
               <button
+                type="button"
                 onClick={() => window.print()}
-                className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl flex items-center justify-center space-x-2"
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-2 text-xs shadow-md"
               >
-                <Printer size={18} />
-                <span>Print Thermal Receipt</span>
+                <Printer size={16} />
+                <span>Print {printLayout === 'A4' ? 'A4 Invoice' : 'Thermal Slip'}</span>
               </button>
             </div>
           </div>

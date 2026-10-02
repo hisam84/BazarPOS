@@ -105,6 +105,14 @@ export default function SettingsPage() {
           </h1>
           <p className="text-xs text-slate-500 mt-1">Configure store receipt header info, phone, address, and JSON backups.</p>
         </div>
+        <div>
+          <a
+            href="/invoice-settings"
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-sm transition"
+          >
+            <span>A4 Invoice Settings & Banner</span>
+          </a>
+        </div>
       </div>
 
       {msg && (

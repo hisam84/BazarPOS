@@ -375,6 +375,16 @@ export default function Sidebar({ user, onLogout }) {
                 </Link>
 
                 <Link
+                  href="/invoice-settings"
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                    pathname === '/invoice-settings' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'
+                  } ${collapsed ? 'justify-center space-x-0' : ''}`}
+                >
+                  <FileText size={18} />
+                  {!collapsed && <span>Invoice Settings</span>}
+                </Link>
+
+                <Link
                   href="/staff"
                   className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-semibold transition ${
                     pathname === '/staff' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'

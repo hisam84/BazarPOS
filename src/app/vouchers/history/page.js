@@ -11,6 +11,7 @@ import {
   Calendar,
   X
 } from 'lucide-react';
+import InvoiceA4 from '@/components/InvoiceA4';
 
 export default function VoucherHistoryPage() {
   const [vouchers, setVouchers] = useState([]);
@@ -18,21 +19,36 @@ export default function VoucherHistoryPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedVoucher, setSelectedVoucher] = useState(null);
+  const [company, setCompany] = useState({});
+  const [invoiceSettings, setInvoiceSettings] = useState({});
+  const [printLayout, setPrintLayout] = useState('A4');
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
     if (saved) {
       const u = JSON.parse(saved);
       fetchVouchers(u.storeId || 'default');
+    } else {
+      fetchVouchers('default');
     }
   }, []);
 
   const fetchVouchers = async (storeId) => {
     try {
-      const res = await fetch(`/api/vouchers?storeId=${storeId}`);
-      const data = await res.json();
+      const [vRes, invRes] = await Promise.all([
+        fetch(`/api/vouchers?storeId=${storeId}`),
+        fetch(`/api/invoice-settings?storeId=${storeId}`)
+      ]);
+      const data = await vRes.json();
+      const invData = await invRes.json();
+
       if (data.success) {
         setVouchers(data.vouchers || []);
+      }
+      if (invData.success) {
+        if (invData.settings) setInvoiceSettings(invData.settings);
+        if (invData.company) setCompany(invData.company);
+        if (invData.settings?.paperSize) setPrintLayout(invData.settings.paperSize === 'thermal' ? 'thermal' : 'A4');
       }
     } catch (err) {
       console.error(err);
@@ -175,62 +191,120 @@ export default function VoucherHistoryPage() {
 
       {/* VIEW / PRINT INVOICE MODAL */}
       {selectedVoucher && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className={`bg-white rounded-2xl w-full shadow-2xl space-y-4 my-8 ${printLayout === 'A4' ? 'max-w-4xl max-h-[92vh] flex flex-col' : 'max-w-lg'} p-6`}>
             <div className="flex items-center justify-between no-print border-b pb-3">
-              <h3 className="font-bold text-slate-800 text-lg">Invoice Details ({selectedVoucher.voucherNo})</h3>
+              <div className="flex items-center space-x-2">
+                <FileText className="text-blue-600" size={20} />
+                <h3 className="font-bold text-slate-800 text-lg">
+                  Invoice Details ({selectedVoucher.voucherNo})
+                </h3>
+              </div>
               <button onClick={() => setSelectedVoucher(null)} className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="printable-area border p-4 rounded-xl bg-slate-50 font-mono text-xs text-slate-800 space-y-2">
-              <div className="text-center pb-2 border-b">
-                <h2 className="font-bold text-sm text-slate-900">BazarPOS Voucher</h2>
-                <p className="font-semibold text-blue-600 mt-1">Invoice: {selectedVoucher.voucherNo}</p>
-                <p className="text-[10px] text-slate-500">{new Date(selectedVoucher.date).toLocaleString()}</p>
+            {/* Layout Toggle */}
+            <div className="flex items-center justify-between no-print">
+              <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setPrintLayout('A4')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+                    printLayout === 'A4' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <FileText size={14} />
+                  <span>A4 Paper Invoice</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrintLayout('thermal')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+                    printLayout === 'thermal' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Printer size={14} />
+                  <span>Thermal Slip (80mm)</span>
+                </button>
               </div>
 
-              <div className="py-1 border-b text-[11px] space-y-1">
-                <p>Customer: <span className="font-bold">{selectedVoucher.clientName}</span></p>
-                <p>Sales Rep: {selectedVoucher.salerName}</p>
-              </div>
-
-              <table className="w-full text-left text-[11px] border-b">
-                <thead>
-                  <tr className="border-b font-bold">
-                    <th className="py-1">Item</th>
-                    <th className="py-1 text-center">Qty</th>
-                    <th className="py-1 text-right">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(selectedVoucher.items || []).map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="py-1">{item.name}</td>
-                      <td className="py-1 text-center">{item.quantity}</td>
-                      <td className="py-1 text-right">৳{item.unitPrice * item.quantity}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="pt-2 text-right space-y-1 font-bold">
-                <p>Subtotal: ৳{selectedVoucher.subTotal}</p>
-                {selectedVoucher.discount > 0 && <p>Discount: -৳{selectedVoucher.discount}</p>}
-                <p className="text-sm text-blue-700">Grand Total: ৳{selectedVoucher.totalAmount}</p>
-                <p className="text-emerald-600">Paid ({selectedVoucher.paymentMethod || 'Cash'}): ৳{selectedVoucher.paidAmount}</p>
-                {selectedVoucher.dueAmount > 0 && <p className="text-rose-600">Due: ৳{selectedVoucher.dueAmount}</p>}
-              </div>
+              <span className="text-xs text-slate-500 font-mono">
+                {new Date(selectedVoucher.date).toLocaleDateString()}
+              </span>
             </div>
 
-            <div className="flex space-x-3 no-print pt-2">
+            {/* Printable Area */}
+            <div className="flex-1 overflow-y-auto max-h-[65vh] p-2 bg-slate-100/60 rounded-xl border border-slate-200">
+              {printLayout === 'A4' ? (
+                <div className="printable-area">
+                  <InvoiceA4
+                    invoice={selectedVoucher}
+                    company={company}
+                    settings={invoiceSettings}
+                    isSample={false}
+                  />
+                </div>
+              ) : (
+                <div className="printable-area max-w-sm mx-auto border p-4 rounded-xl bg-white font-mono text-xs text-slate-800 space-y-2 shadow-sm">
+                  <div className="text-center pb-2 border-b">
+                    <h2 className="font-bold text-sm text-slate-900">{company?.name || 'BazarPOS Outlet'}</h2>
+                    {company?.phone && <p>Phone: {company.phone}</p>}
+                    <p className="font-semibold text-blue-600 mt-1">Invoice: {selectedVoucher.voucherNo}</p>
+                    <p className="text-[10px] text-slate-500">{new Date(selectedVoucher.date).toLocaleString()}</p>
+                  </div>
+
+                  <div className="py-1 border-b text-[11px] space-y-1">
+                    <p>Customer: <span className="font-bold">{selectedVoucher.clientName}</span></p>
+                    {selectedVoucher.salerName && <p>Sales Rep: {selectedVoucher.salerName}</p>}
+                  </div>
+
+                  <table className="w-full text-left text-[11px] border-b">
+                    <thead>
+                      <tr className="border-b font-bold">
+                        <th className="py-1">Item</th>
+                        <th className="py-1 text-center">Qty</th>
+                        <th className="py-1 text-right">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(selectedVoucher.items || []).map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="py-1">{item.name}</td>
+                          <td className="py-1 text-center">{item.quantity}</td>
+                          <td className="py-1 text-right">৳{item.unitPrice * item.quantity}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div className="pt-2 text-right space-y-1 font-bold">
+                    <p>Subtotal: ৳{selectedVoucher.subTotal}</p>
+                    {selectedVoucher.discount > 0 && <p>Discount: -৳{selectedVoucher.discount}</p>}
+                    <p className="text-sm text-blue-700">Grand Total: ৳{selectedVoucher.totalAmount}</p>
+                    <p className="text-emerald-600">Paid ({selectedVoucher.paymentMethod || 'Cash'}): ৳{selectedVoucher.paidAmount}</p>
+                    {selectedVoucher.dueAmount > 0 && <p className="text-rose-600">Due: ৳{selectedVoucher.dueAmount}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex space-x-3 no-print pt-2 border-t">
               <button
-                onClick={() => window.print()}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-2"
+                type="button"
+                onClick={() => setSelectedVoucher(null)}
+                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
               >
-                <Printer size={18} />
-                <span>Print Invoice</span>
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-2 text-xs shadow-md"
+              >
+                <Printer size={16} />
+                <span>Print {printLayout === 'A4' ? 'A4 Invoice' : 'Thermal Slip'}</span>
               </button>
             </div>
           </div>
