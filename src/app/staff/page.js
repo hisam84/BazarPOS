@@ -370,16 +370,16 @@ function StaffContent() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 sm:space-y-6 pb-12 overflow-x-hidden">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 flex items-center space-x-2">
-            <Shield className="text-blue-600" size={24} />
-            <span>User Accounts, Roles & Granular Permissions</span>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
+            <Shield className="text-blue-600 flex-shrink-0" size={22} />
+            <span className="truncate">Staff &amp; Role Permissions</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage store staff users, configure role-level capabilities, or assign custom permission overrides per user.
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+            Manage store staff users, role capabilities, and custom permission overrides.
           </p>
         </div>
 
@@ -387,19 +387,19 @@ function StaffContent() {
           {activeTab === 'users' && (
             <button
               onClick={handleOpenAddStaff}
-              className="inline-flex items-center space-x-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-sm text-xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition shadow-sm text-xs active:scale-95"
             >
-              <Plus size={16} />
-              <span>Create Staff Account</span>
+              <Plus size={15} />
+              <span>Add Staff Account</span>
             </button>
           )}
 
           {activeTab === 'roles' && (
             <button
               onClick={handleOpenCreateRole}
-              className="inline-flex items-center space-x-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition shadow-sm text-xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition shadow-sm text-xs active:scale-95"
             >
-              <Plus size={16} />
+              <Plus size={15} />
               <span>Create Custom Role</span>
             </button>
           )}
@@ -408,54 +408,54 @@ function StaffContent() {
 
       {/* Alert Notifications */}
       {msg && (
-        <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center space-x-2 animate-fadeIn">
+        <div className="p-3 sm:p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center space-x-2 animate-fadeIn">
           <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
           <span>{msg}</span>
         </div>
       )}
       {errorMsg && (
-        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-semibold flex items-center space-x-2 animate-fadeIn">
+        <div className="p-3 sm:p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-semibold flex items-center space-x-2 animate-fadeIn">
           <AlertCircle size={16} className="text-rose-600 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center space-x-1 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200 w-fit">
+      {/* Tabs Navigation (Scrollable on mobile) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200 w-full sm:w-fit">
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap flex-shrink-0 ${
             activeTab === 'users'
-              ? 'bg-white text-blue-600 shadow-sm'
+              ? 'bg-white text-blue-600 shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Users size={16} />
+          <Users size={15} className="flex-shrink-0" />
           <span>Staff Accounts ({staff.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('roles')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap flex-shrink-0 ${
             activeTab === 'roles'
-              ? 'bg-white text-blue-600 shadow-sm'
+              ? 'bg-white text-blue-600 shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Shield size={16} />
-          <span>Roles &amp; Default Permissions ({roles.length})</span>
+          <Shield size={15} className="flex-shrink-0" />
+          <span>Roles ({roles.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('matrix')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 whitespace-nowrap flex-shrink-0 ${
             activeTab === 'matrix'
-              ? 'bg-white text-blue-600 shadow-sm'
+              ? 'bg-white text-blue-600 shadow-xs'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Layers size={16} />
-          <span>Full Permissions Matrix</span>
+          <Layers size={15} className="flex-shrink-0" />
+          <span>Permissions Matrix</span>
         </button>
       </div>
 
