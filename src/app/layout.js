@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import SecurityWarningBanner from '@/components/SecurityWarningBanner';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import './globals.css';
 
 export default function RootLayout({ children }) {
@@ -131,6 +132,13 @@ export default function RootLayout({ children }) {
         link.href = favicon;
       }
     }
+
+    // Register PWA Service Worker
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('PWA ServiceWorker error:', err);
+      });
+    }
   }, [pathname, user, company]);
 
   return (
@@ -138,7 +146,16 @@ export default function RootLayout({ children }) {
       <head>
         <title>{getPageTitle()}</title>
         <meta name="description" content="Modern Point of Sale & Retail Billing Management ERP System" />
-        <link rel="icon" href={company?.faviconUrl || user?.faviconUrl || company?.logoUrl || user?.logoUrl || '/favicon.ico'} />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+        <meta name="theme-color" content="#4f46e5" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="BazarPOS" />
+        <meta name="application-name" content="BazarPOS" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="icon" href={company?.faviconUrl || user?.faviconUrl || company?.logoUrl || user?.logoUrl || '/icons/icon.svg'} />
       </head>
       <body className="min-h-screen bg-slate-50 flex flex-col font-sans">
         {!isPublicPage && <SecurityWarningBanner user={user} onUserUpdated={(u) => setUser(u)} />}
@@ -172,6 +189,7 @@ export default function RootLayout({ children }) {
           </div>
         )}
 
+        <PWAInstallPrompt />
         <Toast toast={toast} onClose={() => setToast(null)} />
       </body>
     </html>

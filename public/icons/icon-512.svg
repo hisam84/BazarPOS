@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#3730a3" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="glyphGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#c084fc" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  <rect x="12" y="12" width="488" height="488" rx="116" fill="none" stroke="#6366f1" stroke-width="4" stroke-opacity="0.3" />
+
+  <!-- Inner Ambient Glow Circle -->
+  <circle cx="256" cy="220" r="140" fill="#6366f1" opacity="0.25" filter="url(#glow)" />
+
+  <!-- Shopping Cart & Store POS Symbol -->
+  <!-- Cart Wheels -->
+  <circle cx="196" cy="376" r="28" fill="url(#glyphGrad)" />
+  <circle cx="340" cy="376" r="28" fill="url(#glyphGrad)" />
+
+  <!-- Cart Structure & Basket -->
+  <path d="M124 148 h 44 l 38 152 h 168 l 36 -128 H 188" 
+        fill="none" 
+        stroke="url(#glyphGrad)" 
+        stroke-width="26" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+
+  <!-- POS Terminal Screen / Barcode / Cash Glyph inside Cart -->
+  <rect x="224" y="184" width="120" height="84" rx="14" fill="#1e1b4b" stroke="#818cf8" stroke-width="10" />
+  
+  <!-- Barcode Scanner Beam Lines inside POS screen -->
+  <line x1="246" y1="208" x2="246" y2="244" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" />
+  <line x1="262" y1="208" x2="262" y2="244" stroke="#818cf8" stroke-width="8" stroke-linecap="round" />
+  <line x1="280" y1="208" x2="280" y2="244" stroke="#c084fc" stroke-width="6" stroke-linecap="round" />
+  <line x1="298" y1="208" x2="298" y2="244" stroke="#38bdf8" stroke-width="10" stroke-linecap="round" />
+  <line x1="320" y1="208" x2="320" y2="244" stroke="#818cf8" stroke-width="6" stroke-linecap="round" />
+
+  <!-- Active Cashier Success Sparkle / Check Badge -->
+  <circle cx="356" cy="144" r="28" fill="url(#accentGrad)" />
+  <path d="M344 144 l 8 8 l 18 -18" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
