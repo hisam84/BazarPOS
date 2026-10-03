@@ -231,10 +231,8 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   
-  // Track open group states (Accordion)
-  const [openGroups, setOpenGroups] = useState({
-    expenses: true // Default open as sample or active
-  });
+  // Track open group states (Accordion) - Default empty so no random menu opens
+  const [openGroups, setOpenGroups] = useState({});
 
   const role = user?.role || 'owner';
   const isSuperAdmin = role === 'superadmin';
@@ -242,8 +240,9 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
   const userPermissions = user?.permissions || ['*'];
   const navItems = isSuperAdmin ? SUPERADMIN_NAVIGATION_ITEMS : STORE_NAVIGATION_ITEMS;
 
-  // Auto-expand the group containing the current route on route change
+  // Auto-expand only the group containing the current route on route change
   useEffect(() => {
+    let activeGroupId = null;
     for (const item of navItems) {
       if (item.type === 'group' && item.items) {
         const hasActive = item.items.some(sub => {
@@ -251,10 +250,16 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
           return pathname === subPath || (subPath !== '/' && pathname.startsWith(subPath));
         });
         if (hasActive) {
-          setOpenGroups({ [item.id]: true });
+          activeGroupId = item.id;
           break;
         }
       }
+    }
+
+    if (activeGroupId) {
+      setOpenGroups({ [activeGroupId]: true });
+    } else {
+      setOpenGroups({});
     }
   }, [pathname, navItems]);
 
@@ -307,7 +312,7 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
       {/* Sidebar Container */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 lg:static lg:z-30 lg:h-screen lg:sticky lg:top-0 flex flex-col bg-[#161b2e] text-slate-300 border-r border-[#222944] shadow-2xl lg:shadow-none transition-all duration-200 ease-in-out select-none shrink-0 ${
-          collapsed ? 'w-20' : 'w-64'
+          collapsed ? 'w-20' : 'w-[264px]'
         } ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
@@ -383,12 +388,12 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
         </div>
 
         {/* Navigation Items Tree List */}
-        <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-1 custom-scrollbar text-xs font-medium">
+        <div className="flex-1 overflow-y-auto py-2.5 px-2 space-y-1 custom-scrollbar text-xs font-medium">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isOpen = !!openGroups[item.id];
 
-            // 1. Direct Link Item (e.g. Home, Catalogue QR)
+            // 1. Direct Link Item (e.g. Home, Platform Overview)
             if (item.type === 'link') {
               const active = isItemActive(item.href);
               return (
@@ -397,15 +402,15 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center ${
-                    collapsed ? 'justify-center px-0' : 'justify-between px-3.5'
-                  } py-2.5 rounded-xl font-bold transition duration-150 ${
+                    collapsed ? 'justify-center px-0' : 'justify-between px-3'
+                  } py-2 rounded-xl font-bold transition duration-150 ${
                     active
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                       : 'text-slate-300 hover:bg-[#202742] hover:text-white'
                   }`}
                   title={collapsed ? item.title : undefined}
                 >
-                  <div className="flex items-center space-x-3 min-w-0">
+                  <div className="flex items-center space-x-2.5 min-w-0">
                     <Icon size={17} className={active ? 'text-white' : 'text-slate-400'} />
                     {!collapsed && <span className="truncate">{item.title}</span>}
                   </div>
@@ -426,8 +431,8 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
                   type="button"
                   onClick={() => toggleGroup(item.id)}
                   className={`w-full flex items-center ${
-                    collapsed ? 'justify-center px-0' : 'justify-between px-3.5'
-                  } py-2.5 rounded-xl font-bold transition duration-150 ${
+                    collapsed ? 'justify-center px-0' : 'justify-between px-3'
+                  } py-2 rounded-xl font-bold transition duration-150 ${
                     isOpen
                       ? 'bg-[#202744] text-white shadow-xs'
                       : isGroupActive
@@ -436,7 +441,7 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
                   }`}
                   title={collapsed ? item.title : undefined}
                 >
-                  <div className="flex items-center space-x-3 min-w-0">
+                  <div className="flex items-center space-x-2.5 min-w-0">
                     <Icon
                       size={17}
                       className={isOpen || isGroupActive ? 'text-blue-400' : 'text-slate-400'}
@@ -458,7 +463,7 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
 
                 {/* Submenu Accordion Items (when opened) */}
                 {isOpen && !collapsed && (
-                  <div className="pl-6 pr-1 py-1 space-y-1 border-l-2 border-slate-700/60 ml-5 animate-in slide-in-from-top-1 duration-150">
+                  <div className="pl-2.5 pr-1 py-1 space-y-0.5 border-l-2 border-slate-700/60 ml-4 animate-in slide-in-from-top-1 duration-150">
                     {visibleChildren.map((sub, idx) => {
                       const subActive = isItemActive(sub.href);
                       return (
@@ -466,19 +471,24 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
                           key={idx}
                           href={sub.href}
                           onClick={() => setMobileOpen(false)}
-                          className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition duration-150 font-medium ${
+                          title={sub.name}
+                          className={`group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition duration-150 font-medium ${
                             subActive
-                              ? 'bg-blue-600/90 text-white font-bold shadow-xs'
+                              ? 'bg-blue-600 text-white font-bold shadow-xs'
                               : 'text-slate-400 hover:text-white hover:bg-white/5 hover:translate-x-0.5'
                           }`}
                         >
-                          <span className="truncate flex items-center space-x-1.5">
-                            <span className="text-[11px] text-slate-500">→</span>
-                            <span>{sub.name}</span>
-                          </span>
+                          <div className="flex items-center space-x-2 min-w-0 flex-1">
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+                                subActive ? 'bg-white' : 'bg-slate-500 group-hover:bg-blue-400'
+                              }`}
+                            />
+                            <span className="truncate">{sub.name}</span>
+                          </div>
 
                           {sub.badge && (
-                            <span className="px-1.5 py-0.2 bg-emerald-500 text-white text-[9px] font-extrabold rounded-full">
+                            <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[9px] font-extrabold rounded-full shrink-0 ml-1">
                               {sub.badge}
                             </span>
                           )}
