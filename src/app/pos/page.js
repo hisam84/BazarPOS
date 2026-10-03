@@ -357,6 +357,9 @@ export default function POSTerminalPage() {
       setSaleNote('');
       setPaymentNote('');
       setNote('');
+      try {
+        localStorage.setItem('bazarpos_last_change', Date.now().toString());
+      } catch (e) {}
       loadPOSData(user?.storeId || 'default');
     } catch (err) {
       alert('Checkout error');
