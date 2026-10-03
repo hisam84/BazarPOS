@@ -178,8 +178,8 @@ export default function LoginPage() {
       {/* Main Card */}
       <div className="w-full max-w-md bg-slate-900/80 border border-slate-800 backdrop-blur-xl p-8 rounded-3xl shadow-2xl relative z-10">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-16 h-16 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center text-blue-400 mb-3 shadow-inner">
-            <Store size={32} />
+          <div className="w-16 h-16 bg-white/5 border border-slate-700/60 rounded-2xl flex items-center justify-center p-2 mb-3 shadow-lg">
+            <img src="/icon.png" alt="BazarPOS Logo" className="w-full h-full object-contain rounded-xl" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">BazarPOS</h1>
           <p className="text-slate-400 text-xs mt-1">Multi-Store Point of Sale ERP</p>

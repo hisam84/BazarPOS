@@ -69,8 +69,8 @@ export default function PWAInstallPrompt() {
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-40 sm:max-w-md animate-in slide-in-from-bottom-5 duration-300">
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-indigo-500/40 rounded-2xl p-4 shadow-2xl text-white flex items-center justify-between gap-3 backdrop-blur-md">
         <div className="flex items-center space-x-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/30">
-            <Smartphone size={20} />
+          <div className="w-10 h-10 rounded-xl bg-white/10 p-1 flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+            <img src="/icon.png" alt="BazarPOS App Icon" className="w-full h-full object-contain rounded-lg" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-1.5">

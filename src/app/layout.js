@@ -152,11 +152,12 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BazarPOS" />
-        <meta name="application-name" content="BazarPOS" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+        <link rel="shortcut icon" href="/favicon.png" />
       </head>
       <body className="min-h-screen bg-slate-50 flex flex-col font-sans">
         {!isPublicPage && <SecurityWarningBanner user={user} onUserUpdated={(u) => setUser(u)} />}

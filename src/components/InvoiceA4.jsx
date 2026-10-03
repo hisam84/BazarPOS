@@ -97,7 +97,7 @@ export default function InvoiceA4({
 
   return (
     <div
-      className="a4-invoice-sheet bg-white text-slate-900 mx-auto shadow-lg relative print:shadow-none print:m-0 print:border-none print:w-full"
+      className="a4-invoice-sheet bg-white text-slate-900 mx-auto shadow-md relative print:shadow-none print:m-0 print:border-none print:w-full min-w-[600px] sm:min-w-[640px] md:min-w-0 transition-all"
       style={{
         width: '100%',
         maxWidth: '210mm',
@@ -276,13 +276,13 @@ export default function InvoiceA4({
               className="text-white font-semibold uppercase text-[10px] tracking-wide"
               style={{ backgroundColor: accentColor }}
             >
-              {settings?.showItemSl && <th className="py-2 px-2 text-center w-8 rounded-l">#</th>}
-              {settings?.showItemCode && <th className="py-2 px-2 w-20">Code</th>}
-              <th className="py-2 px-3">Item Description</th>
-              <th className="py-2 px-3 text-right">Unit Price</th>
-              <th className="py-2 px-3 text-center w-16">Qty</th>
-              {settings?.showItemDiscount && <th className="py-2 px-2 text-right">Disc.</th>}
-              {settings?.showItemTotal && <th className="py-2 px-3 text-right rounded-r">Total (৳)</th>}
+              {settings?.showItemSl && <th className="py-2 px-2 text-center w-8 rounded-l whitespace-nowrap">#</th>}
+              {settings?.showItemCode && <th className="py-2 px-2 w-20 whitespace-nowrap">Code</th>}
+              <th className="py-2 px-3 min-w-[160px]">Item Description</th>
+              <th className="py-2 px-3 text-right whitespace-nowrap">Unit Price</th>
+              <th className="py-2 px-3 text-center w-14 whitespace-nowrap">Qty</th>
+              {settings?.showItemDiscount && <th className="py-2 px-2 text-right whitespace-nowrap">Disc.</th>}
+              {settings?.showItemTotal && <th className="py-2 px-3 text-right rounded-r whitespace-nowrap">Total (৳)</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">

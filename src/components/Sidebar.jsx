@@ -333,11 +333,13 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
                 } rounded-xl object-contain bg-white/10 p-1 border border-white/10 shrink-0 shadow-xs`}
               />
             ) : (
-              <div className={`${
-                collapsed ? 'w-10 h-10 text-base' : 'w-9 h-9 text-sm'
-              } rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white shrink-0 shadow-md shadow-blue-500/20`}>
-                B
-              </div>
+              <img
+                src="/icon.png"
+                alt="BazarPOS Icon"
+                className={`${
+                  collapsed ? 'w-10 h-10' : 'w-9 h-9'
+                } rounded-xl object-contain bg-white/10 p-0.5 border border-white/10 shrink-0 shadow-md shadow-blue-500/20`}
+              />
             )}
 
             {!collapsed && (
