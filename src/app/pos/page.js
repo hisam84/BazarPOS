@@ -78,6 +78,7 @@ export default function POSTerminalPage() {
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
   const [showProductFormScanner, setShowProductFormScanner] = useState(false);
+  const [scanningSerialItem, setScanningSerialItem] = useState(null);
 
   // Quick Add Forms
   const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '', address: '', due: 0 });
@@ -959,13 +960,24 @@ export default function POSTerminalPage() {
                         </span>
                         <span className="text-slate-500 font-medium">Serial / IMEI</span>
                       </div>
-                      <input
-                        type="text"
-                        value={item.serialNumber || ''}
-                        onChange={(e) => updateItemSerialNumber(item.id, e.target.value)}
-                        placeholder="Enter Serial No / IMEI..."
-                        className="w-full px-2.5 py-1 bg-white border border-blue-200 rounded-md text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={item.serialNumber || ''}
+                          onChange={(e) => updateItemSerialNumber(item.id, e.target.value)}
+                          placeholder="Enter Serial No / IMEI..."
+                          className="flex-1 min-w-0 px-2.5 py-1 bg-white border border-blue-200 rounded-md text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setScanningSerialItem(item)}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-md transition shadow-xs flex items-center space-x-1 shrink-0 text-xs font-bold"
+                          title="Scan Serial No / IMEI barcode with camera"
+                        >
+                          <Camera size={13} />
+                          <span className="text-[10px]">Scan</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1712,6 +1724,19 @@ export default function POSTerminalPage() {
         }}
         continuous={false}
         title="Scan Product Barcode"
+      />
+
+      <BarcodeScannerModal
+        isOpen={!!scanningSerialItem}
+        onClose={() => setScanningSerialItem(null)}
+        onScanSuccess={(code) => {
+          if (scanningSerialItem) {
+            updateItemSerialNumber(scanningSerialItem.id, code);
+          }
+          setScanningSerialItem(null);
+        }}
+        continuous={false}
+        title={scanningSerialItem ? `Scan Serial / IMEI (${scanningSerialItem.name})` : 'Scan Serial / IMEI Barcode'}
       />
     </div>
   );
