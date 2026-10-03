@@ -61,11 +61,13 @@ export default function InventoryPage() {
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [editProduct, setEditProduct] = useState(null);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [showNewBrandInput, setShowNewBrandInput] = useState(false);
   const [form, setForm] = useState({
     code: '',
     barcode: '',
     name: '',
-    category: 'General',
+    category: '',
     brand: '',
     costPrice: '',
     sellingPrice: '',
@@ -124,12 +126,14 @@ export default function InventoryPage() {
 
   const handleOpenAddModal = () => {
     setEditProduct(null);
+    setShowNewCategoryInput(false);
+    setShowNewBrandInput(false);
     const nextCode = 'PRD-' + (products.length + 1).toString().padStart(4, '0');
     setForm({
       code: nextCode,
       barcode: '',
       name: '',
-      category: categories.find(c => c !== 'All') || 'General',
+      category: '',
       brand: '',
       costPrice: '',
       sellingPrice: '',
@@ -146,6 +150,8 @@ export default function InventoryPage() {
 
   const handleOpenEditModal = (prod) => {
     setEditProduct(prod);
+    setShowNewCategoryInput(false);
+    setShowNewBrandInput(false);
     setForm({
       code: prod.code || '',
       barcode: prod.barcode || '',
@@ -526,56 +532,137 @@ export default function InventoryPage() {
                 </div>
               </div>
 
-              {/* Row 2: Product Name * & Category & Brand */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-1">
-                  <label className="block text-slate-700 mb-1.5 font-bold">Product Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter product name"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
-                  />
-                </div>
+              {/* Row 2: Product Name * (Full Width) */}
+              <div>
+                <label className="block text-slate-700 mb-1.5 font-bold">Product Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter product name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                />
+              </div>
 
+              {/* Row 3: Category & Brand / Manufacturer */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Category Field */}
                 <div>
-                  <label className="block text-slate-700 mb-1.5 font-bold">Category</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      list="category-suggestions"
-                      placeholder="Select Category"
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-slate-700 font-bold">Category</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCategoryInput(!showNewCategoryInput)}
+                      className="text-[11px] text-blue-600 font-bold hover:underline flex items-center gap-0.5 transition"
+                    >
+                      <Plus size={12} />
+                      <span>{showNewCategoryInput ? 'Select from list' : '+ Add New'}</span>
+                    </button>
+                  </div>
+                  
+                  {showNewCategoryInput ? (
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder="Type new category..."
+                        value={form.category}
+                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-blue-300 rounded-xl bg-blue-50/30 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (form.category?.trim() && !categories.includes(form.category.trim())) {
+                            setCategories(prev => [...prev, form.category.trim()]);
+                          }
+                          setShowNewCategoryInput(false);
+                        }}
+                        className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shrink-0 hover:bg-blue-500 transition shadow-xs"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <select
                       value={form.category}
-                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      onChange={(e) => {
+                        if (e.target.value === '__add_new__') {
+                          setShowNewCategoryInput(true);
+                          setForm({ ...form, category: '' });
+                        } else {
+                          setForm({ ...form, category: e.target.value });
+                        }
+                      }}
                       className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
-                    />
-                    <datalist id="category-suggestions">
+                    >
+                      <option value="">-- Select Category --</option>
                       {categories.filter(c => c !== 'All').map((cat) => (
-                        <option key={cat} value={cat} />
+                        <option key={cat} value={cat}>{cat}</option>
                       ))}
-                    </datalist>
-                  </div>
+                      <option value="__add_new__" className="text-blue-600 font-bold">+ Add New Category...</option>
+                    </select>
+                  )}
                 </div>
 
+                {/* Brand / Manufacturer Field */}
                 <div>
-                  <label className="block text-slate-700 mb-1.5 font-bold">Brand / Manufacturer</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      list="brand-suggestions"
-                      placeholder="e.g. Samsung, Nestlé, Unilever"
-                      value={form.brand}
-                      onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
-                    />
-                    <datalist id="brand-suggestions">
-                      {brands.map((b, idx) => (
-                        <option key={idx} value={b} />
-                      ))}
-                    </datalist>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-slate-700 font-bold">Brand / Manufacturer</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewBrandInput(!showNewBrandInput)}
+                      className="text-[11px] text-blue-600 font-bold hover:underline flex items-center gap-0.5 transition"
+                    >
+                      <Plus size={12} />
+                      <span>{showNewBrandInput ? 'Select from list' : '+ Add New'}</span>
+                    </button>
                   </div>
+
+                  {showNewBrandInput ? (
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder="Type new brand name..."
+                        value={form.brand}
+                        onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-blue-300 rounded-xl bg-blue-50/30 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (form.brand?.trim() && !brands.includes(form.brand.trim())) {
+                            setBrands(prev => [...prev, form.brand.trim()]);
+                          }
+                          setShowNewBrandInput(false);
+                        }}
+                        className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shrink-0 hover:bg-blue-500 transition shadow-xs"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value={form.brand}
+                      onChange={(e) => {
+                        if (e.target.value === '__add_new__') {
+                          setShowNewBrandInput(true);
+                          setForm({ ...form, brand: '' });
+                        } else {
+                          setForm({ ...form, brand: e.target.value });
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-800 text-xs focus:bg-white focus:border-blue-500 focus:outline-none transition shadow-sm"
+                    >
+                      <option value="">-- Select Brand (Optional) --</option>
+                      {brands.map((b, idx) => (
+                        <option key={idx} value={b}>{b}</option>
+                      ))}
+                      <option value="__add_new__" className="text-blue-600 font-bold">+ Add New Brand...</option>
+                    </select>
+                  )}
                 </div>
               </div>
 

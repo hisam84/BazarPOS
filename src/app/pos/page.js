@@ -82,10 +82,13 @@ export default function POSTerminalPage() {
 
   // Quick Add Forms
   const [clientForm, setClientForm] = useState({ name: '', phone: '', email: '', address: '', due: 0 });
+  const [brands, setBrands] = useState([]);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [showNewBrandInput, setShowNewBrandInput] = useState(false);
   const [productForm, setProductForm] = useState({
     code: '',
     name: '',
-    category: 'Grocery',
+    category: '',
     brand: '',
     costPrice: '',
     sellingPrice: '',
@@ -138,6 +141,11 @@ export default function POSTerminalPage() {
       if (prodData.success) {
         setProducts(prodData.products || []);
         setCategories(['All', ...(prodData.categories || [])]);
+        if (prodData.brands) {
+          setBrands(prodData.brands);
+        } else if (prodData.products) {
+          setBrands(Array.from(new Set(prodData.products.map(p => p.brand).filter(Boolean))));
+        }
       }
       if (cliData.success) {
         setClients(cliData.clients || []);
@@ -281,7 +289,9 @@ export default function POSTerminalPage() {
       const data = await res.json();
       if (data.success) {
         setShowAddProductModal(false);
-        setProductForm({ code: '', name: '', category: 'Grocery', brand: '', costPrice: '', sellingPrice: '', quantity: '10', minQuantity: 5, barcode: '' });
+        setShowNewCategoryInput(false);
+        setShowNewBrandInput(false);
+        setProductForm({ code: '', name: '', category: '', brand: '', costPrice: '', sellingPrice: '', quantity: '10', minQuantity: 5, warrantyDays: '0', warrantyType: 'none', supplier: '', barcode: '' });
         loadPOSData(user?.storeId || 'default');
       }
     } catch (err) {
@@ -1197,44 +1207,137 @@ export default function POSTerminalPage() {
                 </div>
               </div>
 
-              {/* Row 2: Name & Category & Brand */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-1">
-                  <label className="block text-slate-700 mb-1 font-bold">Product Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter product name"
-                    value={productForm.name}
-                    onChange={e => setProductForm({ ...productForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
-                  />
-                </div>
+              {/* Row 2: Product Name * (Full Width) */}
+              <div>
+                <label className="block text-slate-700 mb-1 font-bold">Product Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Enter product name"
+                  value={productForm.name}
+                  onChange={e => setProductForm({ ...productForm, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500 transition"
+                />
+              </div>
+
+              {/* Row 3: Category & Brand / Manufacturer */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Category Field */}
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Category</label>
-                  <input
-                    type="text"
-                    list="pos-categories"
-                    placeholder="Select Category"
-                    value={productForm.category}
-                    onChange={e => setProductForm({ ...productForm, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
-                  />
-                  <datalist id="pos-categories">
-                    {categories.filter(c => c !== 'All').map((c, i) => (
-                      <option key={i} value={c} />
-                    ))}
-                  </datalist>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-700 font-bold">Category</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCategoryInput(!showNewCategoryInput)}
+                      className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-0.5 transition"
+                    >
+                      <Plus size={11} />
+                      <span>{showNewCategoryInput ? 'Select from list' : '+ Add New'}</span>
+                    </button>
+                  </div>
+
+                  {showNewCategoryInput ? (
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder="Type new category..."
+                        value={productForm.category}
+                        onChange={e => setProductForm({ ...productForm, category: e.target.value })}
+                        className="w-full px-3 py-2 border border-blue-300 rounded-xl bg-blue-50/30 text-xs focus:bg-white focus:outline-none focus:border-blue-500 transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (productForm.category?.trim() && !categories.includes(productForm.category.trim())) {
+                            setCategories(prev => [...prev, productForm.category.trim()]);
+                          }
+                          setShowNewCategoryInput(false);
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold shrink-0 hover:bg-blue-500 transition"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value={productForm.category}
+                      onChange={e => {
+                        if (e.target.value === '__add_new__') {
+                          setShowNewCategoryInput(true);
+                          setProductForm({ ...productForm, category: '' });
+                        } else {
+                          setProductForm({ ...productForm, category: e.target.value });
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500 transition"
+                    >
+                      <option value="">-- Select Category --</option>
+                      {categories.filter(c => c !== 'All').map((cat, i) => (
+                        <option key={i} value={cat}>{cat}</option>
+                      ))}
+                      <option value="__add_new__" className="text-blue-600 font-bold">+ Add New Category...</option>
+                    </select>
+                  )}
                 </div>
+
+                {/* Brand Field */}
                 <div>
-                  <label className="block text-slate-700 mb-1 font-bold">Brand</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Samsung, Unilever"
-                    value={productForm.brand || ''}
-                    onChange={e => setProductForm({ ...productForm, brand: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-700 font-bold">Brand / Manufacturer</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewBrandInput(!showNewBrandInput)}
+                      className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-0.5 transition"
+                    >
+                      <Plus size={11} />
+                      <span>{showNewBrandInput ? 'Select from list' : '+ Add New'}</span>
+                    </button>
+                  </div>
+
+                  {showNewBrandInput ? (
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder="Type new brand..."
+                        value={productForm.brand || ''}
+                        onChange={e => setProductForm({ ...productForm, brand: e.target.value })}
+                        className="w-full px-3 py-2 border border-blue-300 rounded-xl bg-blue-50/30 text-xs focus:bg-white focus:outline-none focus:border-blue-500 transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (productForm.brand?.trim() && !brands.includes(productForm.brand.trim())) {
+                            setBrands(prev => [...prev, productForm.brand.trim()]);
+                          }
+                          setShowNewBrandInput(false);
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold shrink-0 hover:bg-blue-500 transition"
+                      >
+                        OK
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value={productForm.brand || ''}
+                      onChange={e => {
+                        if (e.target.value === '__add_new__') {
+                          setShowNewBrandInput(true);
+                          setProductForm({ ...productForm, brand: '' });
+                        } else {
+                          setProductForm({ ...productForm, brand: e.target.value });
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500 transition"
+                    >
+                      <option value="">-- Select Brand (Optional) --</option>
+                      {brands.map((b, i) => (
+                        <option key={i} value={b}>{b}</option>
+                      ))}
+                      <option value="__add_new__" className="text-blue-600 font-bold">+ Add New Brand...</option>
+                    </select>
+                  )}
                 </div>
               </div>
 
