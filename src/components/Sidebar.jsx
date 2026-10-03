@@ -173,11 +173,12 @@ const STORE_NAVIGATION_ITEMS = [
   {
     id: 'notification_templates',
     type: 'group',
-    title: 'SMS & Notifications',
+    title: 'Templates & Notices',
     icon: Mail,
     permission: 'company_settings',
     items: [
-      { name: 'SMS & Notice Templates', href: '/settings#templates', permission: 'company_settings' },
+      { name: 'Email Gateway & Studio', href: '/notification-templates?tab=email', permission: 'company_settings' },
+      { name: 'SMS Gateway & Templates', href: '/notification-templates?tab=sms', permission: 'company_settings' },
     ]
   },
   {

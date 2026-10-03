@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Settings,
   Download,
@@ -16,13 +17,15 @@ import {
   Lock,
   Phone,
   Mail,
+  MessageSquare,
+  Sparkles,
   MapPin,
   Eye,
   EyeOff,
   Globe,
-  Database
+  Database,
+  ArrowRight
 } from 'lucide-react';
-import SMSGatewaySettings from '@/components/SMSGatewaySettings';
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -299,6 +302,13 @@ export default function SettingsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <a
+            href="/notification-templates"
+            className="w-full sm:w-auto px-3.5 py-2 sm:px-4 sm:py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-xs transition active:scale-95"
+          >
+            <Mail size={15} />
+            <span>Email &amp; SMS Studio</span>
+          </a>
           <a
             href="/invoice-settings"
             className="w-full sm:w-auto px-3.5 py-2 sm:px-4 sm:py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-sm transition active:scale-95"
@@ -645,9 +655,41 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* 3. SMS GATEWAY & NOTIFICATION TEMPLATES */}
-      <div id="templates">
-        <SMSGatewaySettings storeId={user?.storeId || 'default'} companyInfo={company} />
+      {/* 3. NOTIFICATION & TEMPLATES STUDIO BANNER */}
+      <div id="templates" className="bg-linear-to-r from-indigo-900 via-slate-900 to-indigo-950 rounded-2xl p-5 sm:p-6 text-white border border-indigo-500/20 shadow-lg relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-xl">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-bold border border-indigo-400/20">
+              <Sparkles size={11} className="text-indigo-400" />
+              <span>Dedicated Studio Available</span>
+            </div>
+            <h2 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
+              <Mail size={18} className="text-indigo-400" />
+              <span>Email &amp; SMS Notification Templates Studio</span>
+            </h2>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Configure SMTP / Brevo email gateways, visual HTML invoice email templates, and automated Greenweb / Bulk SMS notices from a dedicated high-speed workspace.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+            <Link
+              href="/notification-templates?tab=email"
+              className="flex-1 md:flex-initial px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/30 transition active:scale-98"
+            >
+              <Mail size={14} />
+              <span>Email Studio</span>
+            </Link>
+            <Link
+              href="/notification-templates?tab=sms"
+              className="flex-1 md:flex-initial px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 border border-slate-700 transition active:scale-98"
+            >
+              <MessageSquare size={14} className="text-amber-400" />
+              <span>SMS Gateway</span>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* 4. JSON BACKUP & RESTORE */}
