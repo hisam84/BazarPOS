@@ -65,14 +65,14 @@ const STORE_NAVIGATION_ITEMS = [
   {
     id: 'contacts',
     type: 'group',
-    title: 'Contacts',
+    title: 'Customers',
     icon: Contact,
     permission: 'customers_manage',
     items: [
-      { name: 'Contact Directory', href: '/clients', permission: 'customers_manage' },
-      { name: 'Add Contact', href: '/clients?action=new', permission: 'customers_manage' },
+      { name: 'Customer Directory', href: '/clients', permission: 'customers_manage' },
+      { name: 'Add Customer', href: '/clients?action=new', permission: 'customers_manage' },
       { name: 'Suppliers & Vendors', href: '/suppliers', permission: 'suppliers_manage' },
-      { name: 'Import Contacts', href: '/clients?action=import', permission: 'customers_manage' },
+      { name: 'Import Customers', href: '/clients?action=import', permission: 'customers_manage' },
     ]
   },
   {
@@ -84,7 +84,7 @@ const STORE_NAVIGATION_ITEMS = [
     items: [
       { name: 'List Products', href: '/inventory', permission: 'inventory_view' },
       { name: 'Add Product', href: '/inventory?action=new', permission: 'inventory_manage' },
-      { name: 'Print Labels / Barcodes', href: '/barcodes', permission: 'barcodes_manage' },
+      { name: 'Barcode Labels', href: '/barcodes', permission: 'barcodes_manage' },
       { name: 'Units & Categories', href: '/inventory?tab=categories', permission: 'inventory_view' },
     ]
   },
@@ -102,7 +102,7 @@ const STORE_NAVIGATION_ITEMS = [
   {
     id: 'sell',
     type: 'group',
-    title: 'Sell',
+    title: 'Sales',
     icon: ArrowUpCircle,
     permission: 'pos_terminal',
     items: [

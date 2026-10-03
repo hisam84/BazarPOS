@@ -91,7 +91,7 @@ export default function Header({ user, onLogout, onToggleMobileSidebar }) {
               title="Stock Adjustment & Loss"
             >
               <AlertOctagon size={14} className="text-rose-600" />
-              <span className="hidden xl:inline">Adjustment</span>
+              <span className="hidden xl:inline">Stock Adjustment</span>
             </Link>
 
             <Link

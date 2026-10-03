@@ -1,0 +1,97 @@
+const fs = require('fs');
+const path = require('path');
+const zlib = require('zlib');
+
+// 1. Generate the exact SVG matching user's Icon.png
+const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Bar 1 Gradient (Light Cyan/Sky Blue) -->
+    <linearGradient id="bar1Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#70c4fc" />
+      <stop offset="100%" stop-color="#4dabf7" />
+    </linearGradient>
+
+    <!-- Bar 2 Gradient (Sky Blue) -->
+    <linearGradient id="bar2Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4dabf7" />
+      <stop offset="100%" stop-color="#339af0" />
+    </linearGradient>
+
+    <!-- Bar 3 Gradient (Bright Blue) -->
+    <linearGradient id="bar3Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#228be6" />
+      <stop offset="100%" stop-color="#1c7ed6" />
+    </linearGradient>
+
+    <!-- Bar 4 Gradient (Vivid Royal Blue) -->
+    <linearGradient id="bar4Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1c7ed6" />
+      <stop offset="100%" stop-color="#0091ff" />
+    </linearGradient>
+
+    <!-- Arrow Gradient (Lime Green to Fresh Green) -->
+    <linearGradient id="arrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#94d82d" />
+      <stop offset="60%" stop-color="#82c91e" />
+      <stop offset="100%" stop-color="#74b816" />
+    </linearGradient>
+
+    <!-- Base Shadow Gradient -->
+    <linearGradient id="baseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#334e68" />
+      <stop offset="50%" stop-color="#334e68" />
+      <stop offset="50%" stop-color="#243b53" />
+      <stop offset="100%" stop-color="#243b53" />
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow for Arrow -->
+    <filter id="arrowShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="2" dy="5" stdDeviation="4" flood-color="#000000" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- Group with safe area padding (centered in 512x512) -->
+  <g transform="translate(16, 16) scale(0.9375)">
+    <!-- 1. Bottom Base Platform -->
+    <rect x="24" y="446" width="464" height="28" rx="14" fill="url(#baseGrad)" />
+
+    <!-- 2. Vertical Growth Chart Bars (with smooth rounded tops) -->
+    <!-- Bar 1 -->
+    <rect x="52" y="336" width="76" height="110" rx="16" fill="url(#bar1Grad)" />
+
+    <!-- Bar 2 -->
+    <rect x="156" y="296" width="76" height="150" rx="16" fill="url(#bar2Grad)" />
+
+    <!-- Bar 3 -->
+    <rect x="260" y="236" width="76" height="210" rx="16" fill="url(#bar3Grad)" />
+
+    <!-- Bar 4 -->
+    <rect x="364" y="156" width="76" height="290" rx="16" fill="url(#bar4Grad)" />
+
+    <!-- 3. Curved Upward Growth Arrow (Lime Green) -->
+    <!-- Smooth curved body -->
+    <path d="M 28 296 C 60 292, 170 278, 280 200 C 345 154, 395 95, 430 46"
+          fill="none"
+          stroke="url(#arrowGrad)"
+          stroke-width="24"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          filter="url(#arrowShadow)" />
+
+    <!-- Sharp Arrow Head -->
+    <path d="M 374 58 L 442 32 L 448 104 C 448 104, 432 76, 412 68 C 392 60, 374 58, 374 58 Z"
+          fill="url(#arrowGrad)"
+          filter="url(#arrowShadow)" />
+  </g>
+</svg>`;
+
+// Save SVG to public/icons
+const iconsDir = path.join(__dirname, '..', 'public', 'icons');
+if (!fs.existsSync(iconsDir)) {
+  fs.mkdirSync(iconsDir, { recursive: true });
+}
+
+fs.writeFileSync(path.join(iconsDir, 'icon.svg'), svgContent);
+fs.writeFileSync(path.join(iconsDir, 'icon-192.svg'), svgContent);
+fs.writeFileSync(path.join(iconsDir, 'icon-512.svg'), svgContent);
+console.log('SVG icons written successfully!');

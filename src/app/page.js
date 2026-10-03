@@ -7,27 +7,28 @@ import {
   FileText,
   Package,
   Users,
-  UserCheck,
   Receipt,
-  Barcode,
-  Settings,
-  AlertTriangle,
-  ArrowUpRight,
-  DollarSign,
+  RotateCcw,
+  Sparkles,
   TrendingUp,
+  DollarSign,
   CreditCard,
   Plus,
   Calendar,
   Filter,
-  RotateCcw,
-  Sparkles,
   ChevronDown,
-  CheckCircle2,
-  Clock,
   ArrowRight,
-  PieChart
+  AlertTriangle,
+  Clock,
+  Wallet,
+  Building2,
+  Boxes,
+  ArrowDownCircle,
+  HelpCircle,
+  BarChart3,
+  CheckCircle2
 } from 'lucide-react';
-import { formatDhakaDateTime, formatDhakaDate } from '@/lib/date-utils';
+import { formatDhakaDateTime } from '@/lib/date-utils';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -37,8 +38,8 @@ export default function Dashboard() {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Date Filter State
-  const [datePreset, setDatePreset] = useState('all'); // 'today' | 'yesterday' | '7days' | 'month' | 'last_month' | 'year' | 'all' | 'custom'
+  // Date Filter State - Default to 'today' for operational clarity
+  const [datePreset, setDatePreset] = useState('today');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [showCustomPicker, setShowCustomPicker] = useState(false);
@@ -46,9 +47,13 @@ export default function Dashboard() {
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
     if (saved) {
-      const u = JSON.parse(saved);
-      setUser(u);
-      loadDashboardData(u.storeId || 'default');
+      try {
+        const u = JSON.parse(saved);
+        setUser(u);
+        loadDashboardData(u.storeId || 'default');
+      } catch (e) {
+        setLoading(false);
+      }
     } else {
       setLoading(false);
     }
@@ -63,10 +68,12 @@ export default function Dashboard() {
         fetch(`/api/sales-return?storeId=${storeId}`)
       ]);
 
-      const vData = await vRes.json();
-      const pData = await pRes.json();
-      const eData = await eRes.json();
-      const rData = await rRes.json();
+      const [vData, pData, eData, rData] = await Promise.all([
+        vRes.json(),
+        pRes.json(),
+        eRes.json(),
+        rRes.json()
+      ]);
 
       if (vData.success) setVouchers(vData.vouchers || []);
       if (pData.success) setProducts(pData.products || []);
@@ -86,11 +93,11 @@ export default function Dashboard() {
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
     if (datePreset === 'today') {
-      return { 
-        start: todayStart, 
-        end: todayEnd, 
-        label: 'Today', 
-        subLabel: todayStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
+      return {
+        start: todayStart,
+        end: todayEnd,
+        label: 'Today',
+        subLabel: todayStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       };
     }
     if (datePreset === 'yesterday') {
@@ -98,66 +105,66 @@ export default function Dashboard() {
       yStart.setDate(yStart.getDate() - 1);
       const yEnd = new Date(todayEnd);
       yEnd.setDate(yEnd.getDate() - 1);
-      return { 
-        start: yStart, 
-        end: yEnd, 
-        label: 'Yesterday', 
-        subLabel: yStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
+      return {
+        start: yStart,
+        end: yEnd,
+        label: 'Yesterday',
+        subLabel: yStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       };
     }
     if (datePreset === '7days') {
       const start7 = new Date(todayStart);
       start7.setDate(start7.getDate() - 6);
-      return { 
-        start: start7, 
-        end: todayEnd, 
-        label: 'Last 7 Days', 
-        subLabel: `${start7.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
+      return {
+        start: start7,
+        end: todayEnd,
+        label: 'Last 7 Days',
+        subLabel: `${start7.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
       };
     }
     if (datePreset === 'month') {
       const mStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-      return { 
-        start: mStart, 
-        end: todayEnd, 
-        label: 'This Month', 
-        subLabel: `${mStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
+      return {
+        start: mStart,
+        end: todayEnd,
+        label: 'This Month',
+        subLabel: `${mStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
       };
     }
     if (datePreset === 'last_month') {
       const lmStart = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0);
       const lmEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-      return { 
-        start: lmStart, 
-        end: lmEnd, 
-        label: 'Last Month', 
-        subLabel: `${lmStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${lmEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
+      return {
+        start: lmStart,
+        end: lmEnd,
+        label: 'Last Month',
+        subLabel: `${lmStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${lmEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
       };
     }
     if (datePreset === 'year') {
       const yStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
-      return { 
-        start: yStart, 
-        end: todayEnd, 
-        label: 'This Year', 
-        subLabel: `${yStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
+      return {
+        start: yStart,
+        end: todayEnd,
+        label: 'This Year',
+        subLabel: `${yStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${todayEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
       };
     }
     if (datePreset === 'custom' && customStartDate && customEndDate) {
       const cStart = new Date(customStartDate + 'T00:00:00');
       const cEnd = new Date(customEndDate + 'T23:59:59.999');
-      return { 
-        start: cStart, 
-        end: cEnd, 
-        label: 'Custom Range', 
-        subLabel: `${cStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} to ${cEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` 
+      return {
+        start: cStart,
+        end: cEnd,
+        label: 'Custom Range',
+        subLabel: `${cStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} to ${cEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
       };
     }
-    return { 
-      start: null, 
-      end: null, 
-      label: 'All Time', 
-      subLabel: 'Complete Lifetime Records' 
+    return {
+      start: null,
+      end: null,
+      label: 'All Time',
+      subLabel: 'Lifetime business records'
     };
   }, [datePreset, customStartDate, customEndDate]);
 
@@ -186,19 +193,103 @@ export default function Dashboard() {
     });
   }, [returns, dateRange]);
 
-  // Aggregated Financial Metrics
-  const totalSales = filteredVouchers.reduce((acc, v) => acc + (Number(v.totalAmount) || 0), 0);
-  const totalPaid = filteredVouchers.reduce((acc, v) => acc + (Number(v.paidAmount) || 0), 0);
-  const totalDue = filteredVouchers.reduce((acc, v) => acc + (Number(v.dueAmount) || 0), 0);
-  const totalExpense = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
-  const totalReturnsAmount = filteredReturns.reduce((acc, r) => acc + (Number(r.totalRefundAmount) || 0), 0);
-  const grossProfit = filteredVouchers.reduce((acc, v) => acc + (Number(v.profit) || 0), 0);
-  const netProfit = Math.max(0, grossProfit - totalExpense - totalReturnsAmount);
-  const netSales = Math.max(0, totalSales - totalReturnsAmount);
+  // Standard Financial Calculations (Single Source of Truth)
+  const totalSales = useMemo(() => {
+    return filteredVouchers.reduce((acc, v) => acc + (Number(v.totalAmount) || 0), 0);
+  }, [filteredVouchers]);
 
-  const lowStockProducts = products.filter(
-    (p) => (Number(p.quantity) || 0) <= (Number(p.minQuantity) || 5)
-  );
+  const totalCost = useMemo(() => {
+    return filteredVouchers.reduce((acc, v) => acc + (Number(v.totalCost) || 0), 0);
+  }, [filteredVouchers]);
+
+  const totalPaid = useMemo(() => {
+    return filteredVouchers.reduce((acc, v) => acc + (Number(v.paidAmount) || 0), 0);
+  }, [filteredVouchers]);
+
+  const totalDue = useMemo(() => {
+    return filteredVouchers.reduce((acc, v) => acc + (Number(v.dueAmount) || 0), 0);
+  }, [filteredVouchers]);
+
+  const totalExpense = useMemo(() => {
+    return filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+  }, [filteredExpenses]);
+
+  const totalReturnsAmount = useMemo(() => {
+    return filteredReturns.reduce((acc, r) => acc + (Number(r.totalRefundAmount) || 0), 0);
+  }, [filteredReturns]);
+
+  const netSales = Math.max(0, totalSales - totalReturnsAmount);
+  const grossProfit = Math.max(0, netSales - totalCost);
+  const netProfit = Math.max(0, grossProfit - totalExpense);
+  const profitMargin = netSales > 0 ? ((netProfit / netSales) * 100).toFixed(1) : '0.0';
+  const collectionRate = totalSales > 0 ? Math.min(100, Math.round((totalPaid / totalSales) * 100)) : 0;
+  const dueRate = totalSales > 0 ? Math.min(100, Math.round((totalDue / totalSales) * 100)) : 0;
+
+  // Payment Methods Distribution (Real Data)
+  const paymentMethodsData = useMemo(() => {
+    const map = {};
+    filteredVouchers.forEach((v) => {
+      const method = (v.paymentMethod || 'Cash').trim();
+      const amount = Number(v.paidAmount) || 0;
+      if (!map[method]) {
+        map[method] = { method, amount: 0, count: 0 };
+      }
+      map[method].amount += amount;
+      map[method].count += 1;
+    });
+
+    const list = Object.values(map).filter((item) => item.amount > 0 || item.count > 0);
+    const totalCollected = list.reduce((acc, item) => acc + item.amount, 0);
+
+    return list.map((item) => ({
+      ...item,
+      percentage: totalCollected > 0 ? Math.round((item.amount / totalCollected) * 100) : 0
+    })).sort((a, b) => b.amount - a.amount);
+  }, [filteredVouchers]);
+
+  // Sales Trend Chart Data (Grouped for Selected Period)
+  const chartTrendData = useMemo(() => {
+    if (filteredVouchers.length === 0) return [];
+
+    const isSingleDay = datePreset === 'today' || datePreset === 'yesterday';
+    const groups = {};
+
+    filteredVouchers.forEach((v) => {
+      const d = new Date(v.createdAt || v.date);
+      let key = '';
+      let displayLabel = '';
+
+      if (isSingleDay) {
+        // Group by 2-hour slots
+        const hour = d.getHours();
+        const slot = Math.floor(hour / 3) * 3;
+        key = `slot_${slot}`;
+        displayLabel = `${slot % 12 === 0 ? 12 : slot % 12}${slot >= 12 ? 'pm' : 'am'}`;
+      } else {
+        // Group by date (YYYY-MM-DD)
+        key = d.toISOString().split('T')[0];
+        displayLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      }
+
+      if (!groups[key]) {
+        groups[key] = { label: displayLabel, sales: 0, cogs: 0, profit: 0, sortKey: key };
+      }
+      const s = Number(v.totalAmount) || 0;
+      const c = Number(v.totalCost) || 0;
+      groups[key].sales += s;
+      groups[key].cogs += c;
+      groups[key].profit += Math.max(0, s - c);
+    });
+
+    return Object.values(groups).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+  }, [filteredVouchers, datePreset]);
+
+  // Low stock products alert
+  const lowStockProducts = useMemo(() => {
+    return products.filter(
+      (p) => (Number(p.quantity) || 0) <= (Number(p.minQuantity) || 5)
+    );
+  }, [products]);
 
   const handleApplyCustomDate = () => {
     if (customStartDate && customEndDate) {
@@ -208,68 +299,67 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-12 overflow-x-hidden">
-      {/* Top Banner & Welcome */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-4 sm:p-7 rounded-2xl border border-slate-800 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5 relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-[11px] font-semibold mb-2 border border-blue-500/30">
-            <Sparkles size={12} />
-            <span>Store Control Center</span>
+    <div className="space-y-4 sm:space-y-6 pb-12 max-w-7xl mx-auto">
+      {/* 1. Header Section - Clean, Compact, Professional */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center space-x-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
+              Welcome back, <span className="text-blue-600">{user?.fullName || 'Store Manager'}</span> 👋
+            </h1>
           </div>
-          <h1 className="text-xl sm:text-3xl font-black tracking-tight truncate">
-            Welcome Back, <span className="text-blue-400">{user?.fullName || 'Store Owner'}</span> 👋
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1 flex items-center gap-1.5 flex-wrap">
-            <span className="text-slate-400">Outlet:</span>
-            <span className="font-bold text-white bg-slate-800/80 px-2 py-0.5 rounded-lg border border-slate-700 text-xs">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+            <span>Store Context:</span>
+            <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md text-xs border border-slate-200/80">
               {user?.storeName || 'Main BazarPOS Store'}
             </span>
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 relative z-10 w-full sm:w-auto">
+        {/* Primary POS and Quick Operations */}
+        <div className="flex items-center gap-2.5 shrink-0">
           <Link
             href="/sales-return"
-            className="inline-flex items-center justify-center space-x-1.5 px-3 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs sm:text-sm rounded-xl border border-slate-700 transition shadow-sm text-center"
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition"
+            title="Process Sales Return & Warranties"
           >
-            <RotateCcw size={15} />
-            <span className="truncate">Returns</span>
+            <RotateCcw size={14} className="text-slate-500" />
+            <span>Returns</span>
           </Link>
+
           <Link
             href="/pos"
-            className="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/30 transition transform hover:-translate-y-0.5 text-center"
+            className="inline-flex items-center justify-center space-x-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition active:scale-98"
+            title="Open POS Terminal to Create New Sale"
           >
-            <ShoppingCart size={16} />
-            <span className="truncate">New Sale (POS)</span>
+            <ShoppingCart size={15} />
+            <span>+ New Sale</span>
           </Link>
         </div>
       </div>
 
-      {/* Date Filter & Period Selector Toolbar */}
-      <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0">
-              <Calendar size={18} />
+      {/* 2. Compact Date Filter Toolbar */}
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-2.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-bold shrink-0">
+              <Calendar size={15} />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-800 text-sm sm:text-base truncate">Date Filter</h3>
-                <span className="text-[10px] sm:text-[11px] px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded-full whitespace-nowrap">
+                <span className="font-bold text-slate-900 text-xs sm:text-sm">Reporting Period:</span>
+                <span className="text-[11px] px-2 py-0.5 bg-blue-50 text-blue-700 font-bold rounded-md border border-blue-200/60">
                   {dateRange.label}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 truncate">
-                <span>{dateRange.subLabel}</span>
-                <span className="mx-1 text-slate-300">•</span>
-                <span className="font-medium text-slate-700">{filteredVouchers.length} Invoices</span>
+              <p className="text-[11px] text-slate-500 truncate">
+                {dateRange.subLabel} · <span className="font-semibold text-slate-700">{filteredVouchers.length} Invoices</span>
               </p>
             </div>
           </div>
 
-          {/* Quick Preset Buttons (Scrollable Chips on mobile) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap no-scrollbar">
+          {/* Filter Preset Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
             {[
               { id: 'today', label: 'Today' },
               { id: 'yesterday', label: 'Yesterday' },
@@ -287,9 +377,9 @@ export default function Dashboard() {
                     setDatePreset(p.id);
                     setShowCustomPicker(false);
                   }}
-                  className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition shrink-0 ${
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                     active
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                      ? 'bg-slate-900 text-white shadow-xs'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                   }`}
                 >
@@ -300,9 +390,9 @@ export default function Dashboard() {
 
             <button
               onClick={() => setShowCustomPicker(!showCustomPicker)}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1 whitespace-nowrap transition shrink-0 ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 whitespace-nowrap transition cursor-pointer ${
                 datePreset === 'custom' || showCustomPicker
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                  ? 'bg-blue-600 text-white shadow-xs'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
               }`}
             >
@@ -315,14 +405,14 @@ export default function Dashboard() {
 
         {/* Custom Date Range Picker Accordion */}
         {showCustomPicker && (
-          <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end bg-slate-50/70 p-3 rounded-xl">
+          <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end bg-slate-50/80 p-3 rounded-xl">
             <div>
               <label className="block text-[11px] font-bold text-slate-600 mb-1">Start Date</label>
               <input
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="w-full text-xs font-medium px-2.5 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-xs font-medium px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
@@ -331,25 +421,25 @@ export default function Dashboard() {
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="w-full text-xs font-medium px-2.5 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-xs font-medium px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex items-center space-x-2">
               <button
                 disabled={!customStartDate || !customEndDate}
                 onClick={handleApplyCustomDate}
-                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg transition text-center"
+                className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-bold text-xs rounded-lg transition"
               >
                 Apply Range
               </button>
               <button
                 onClick={() => {
-                  setDatePreset('all');
+                  setDatePreset('today');
                   setCustomStartDate('');
                   setCustomEndDate('');
                   setShowCustomPicker(false);
                 }}
-                className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-lg transition"
+                className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-lg transition"
               >
                 Reset
               </button>
@@ -358,664 +448,593 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Financial Metrics Overview Cards (2-cols on mobile, 6 on desktop) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-4">
-        {/* 1. Total Sales */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 transition group flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">Total Sales</span>
-            <span className="p-1.5 sm:p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
-              <TrendingUp size={16} />
-            </span>
+      {/* 3. KPI Section - 6 Balanced Financial Cards with Single Source of Truth */}
+      {loading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 animate-pulse space-y-3">
+              <div className="h-3 bg-slate-200 rounded w-2/3"></div>
+              <div className="h-6 bg-slate-200 rounded w-full"></div>
+              <div className="h-3 bg-slate-100 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+          {/* 1. Total Sales */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Total Sales</span>
+              <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+                <TrendingUp size={14} />
+              </span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-2 truncate">৳{totalSales.toLocaleString()}</p>
+            <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+              <span>{filteredVouchers.length} Invoices</span>
+              <span className="font-medium text-slate-600">Net ৳{netSales.toLocaleString()}</span>
+            </div>
           </div>
-          <p className="text-base sm:text-2xl font-black text-slate-800 mt-2 truncate">৳{totalSales.toLocaleString()}</p>
-          <div className="mt-1.5 flex items-center justify-between text-[10px] sm:text-[11px]">
-            <span className="text-blue-600 font-bold truncate">{filteredVouchers.length} Inv</span>
-            <span className="text-slate-400 font-medium truncate">Net: ৳{netSales.toLocaleString()}</span>
+
+          {/* 2. Paid / Cash Received */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Cash Received</span>
+              <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
+                <DollarSign size={14} />
+              </span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-emerald-600 mt-2 truncate">৳{totalPaid.toLocaleString()}</p>
+            <p className="text-[11px] text-emerald-700 font-semibold mt-1 truncate">
+              {collectionRate}% collected
+            </p>
+          </div>
+
+          {/* 3. Customer Due (Fixed Terminology & Classification) */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Customer Due</span>
+              <span className="p-1.5 bg-rose-50 text-rose-600 rounded-lg shrink-0">
+                <CreditCard size={14} />
+              </span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-rose-600 mt-2 truncate">৳{totalDue.toLocaleString()}</p>
+            <p className="text-[11px] text-rose-600 font-semibold mt-1 truncate">
+              {dueRate}% outstanding
+            </p>
+          </div>
+
+          {/* 4. Cost of Goods Sold (COGS) */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">COGS</span>
+              <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg shrink-0">
+                <Package size={14} />
+              </span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-indigo-700 mt-2 truncate">৳{totalCost.toLocaleString()}</p>
+            <p className="text-[11px] text-slate-500 mt-1 truncate">
+              Product purchase cost
+            </p>
+          </div>
+
+          {/* 5. Operating Expenses */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500">Expenses</span>
+              <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg shrink-0">
+                <Receipt size={14} />
+              </span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-amber-700 mt-2 truncate">৳{totalExpense.toLocaleString()}</p>
+            <p className="text-[11px] text-slate-500 mt-1 truncate">
+              {filteredExpenses.length} Operating bills
+            </p>
+          </div>
+
+          {/* 6. Net Profit (Transparent Formula & Distinct Margin %) */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition bg-gradient-to-b from-teal-50/20 to-white">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-600">Net Profit</span>
+              <span className="p-1.5 bg-teal-50 text-teal-700 rounded-lg shrink-0">
+                <Sparkles size={14} />
+              </span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-teal-700 mt-2 truncate">৳{netProfit.toLocaleString()}</p>
+            <p className="text-[11px] text-teal-800 font-bold mt-1 truncate">
+              {profitMargin}% margin
+            </p>
           </div>
         </div>
+      )}
 
-        {/* 2. Received Cash */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-300 transition group flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">Cash Received</span>
-            <span className="p-1.5 sm:p-2 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition shrink-0">
-              <DollarSign size={16} />
-            </span>
-          </div>
-          <p className="text-base sm:text-2xl font-black text-emerald-600 mt-2 truncate">৳{totalPaid.toLocaleString()}</p>
-          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1.5 font-medium truncate">Collected Cash</p>
-        </div>
-
-        {/* 3. Customer Due Balance */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-rose-300 transition group flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">Due Created</span>
-            <span className="p-1.5 sm:p-2 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-600 group-hover:text-white transition shrink-0">
-              <CreditCard size={16} />
-            </span>
-          </div>
-          <p className="text-base sm:text-2xl font-black text-rose-600 mt-2 truncate">৳{totalDue.toLocaleString()}</p>
-          <p className="text-[10px] sm:text-[11px] text-rose-500 mt-1.5 font-semibold truncate">Outstanding Due</p>
-        </div>
-
-        {/* 4. Operating Expenses */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-purple-300 transition group flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">Expenses</span>
-            <span className="p-1.5 sm:p-2 bg-purple-50 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition shrink-0">
-              <Receipt size={16} />
-            </span>
-          </div>
-          <p className="text-base sm:text-2xl font-black text-purple-700 mt-2 truncate">৳{totalExpense.toLocaleString()}</p>
-          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1.5 font-medium truncate">{filteredExpenses.length} Bills</p>
-        </div>
-
-        {/* 5. Sales Returns & Refunds */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-amber-300 transition group flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">Returns</span>
-            <span className="p-1.5 sm:p-2 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-600 group-hover:text-white transition shrink-0">
-              <RotateCcw size={16} />
-            </span>
-          </div>
-          <p className="text-base sm:text-2xl font-black text-amber-700 mt-2 truncate">৳{totalReturnsAmount.toLocaleString()}</p>
-          <p className="text-[10px] sm:text-[11px] text-amber-600 mt-1.5 font-semibold truncate">{filteredReturns.length} Claims</p>
-        </div>
-
-        {/* 6. Net Profit */}
-        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-teal-300 transition group bg-gradient-to-br from-teal-50/40 to-emerald-50/40 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-600 truncate">Net Profit</span>
-            <span className="p-1.5 sm:p-2 bg-teal-100 text-teal-700 rounded-xl group-hover:bg-teal-600 group-hover:text-white transition shrink-0">
-              <Sparkles size={16} />
-            </span>
-          </div>
-          <p className="text-base sm:text-2xl font-black text-teal-700 mt-2 truncate">৳{netProfit.toLocaleString()}</p>
-          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1.5 font-medium truncate">Margin: ৳{grossProfit.toLocaleString()}</p>
-        </div>
-      </div>
-
-      {/* Sales, Paid & Due Circular Graphs Section */}
-      {(() => {
-        const totalAmountBase = Math.max(totalSales, 1);
-        const paidPercent = totalSales > 0 ? Math.min(100, Math.round((totalPaid / totalAmountBase) * 100)) : 0;
-        const duePercent = totalSales > 0 ? Math.min(100, Math.round((totalDue / totalAmountBase) * 100)) : 0;
-        const returnPercent = totalSales > 0 ? Math.min(100, Math.round((totalReturnsAmount / totalAmountBase) * 100)) : 0;
-        const profitMargin = totalSales > 0 ? Math.min(100, Math.round((netProfit / totalAmountBase) * 100)) : 0;
-
-        // SVG Donut calculation: Circumference = 2 * PI * 65 ≈ 408.4
-        const circumference = 2 * Math.PI * 65;
-        const paidDash = (paidPercent / 100) * circumference;
-        const dueDash = (duePercent / 100) * circumference;
-        const returnDash = (returnPercent / 100) * circumference;
-        const paidOffset = 0;
-        const dueOffset = -paidDash;
-        const returnOffset = -(paidDash + dueDash);
-
-        return (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3 sm:pb-4">
+      {/* 4. Core Performance & Financial Summary Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Left 2 Cols: Sales & Profit Activity Trend */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0">
-                    <PieChart size={18} />
-                  </div>
-                  <h3 className="font-bold text-slate-800 text-sm sm:text-base">
-                    Sales, Cash Paid & Due Analytics
-                  </h3>
-                </div>
-                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                  Visual cash flow recovery & liability ratio for <span className="font-semibold text-slate-700">{dateRange.label}</span>
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2">
+                  <BarChart3 size={16} className="text-blue-600" />
+                  <span>Sales & Profit Trend</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Performance timeline for <span className="font-semibold text-slate-700">{dateRange.label}</span>
                 </p>
               </div>
 
-              <span className="self-start sm:self-auto text-[11px] sm:text-xs px-2.5 py-1 bg-slate-100 text-slate-600 font-bold rounded-full">
-                Period: {dateRange.label}
-              </span>
+              <div className="flex items-center space-x-3 text-[11px] font-semibold">
+                <div className="flex items-center space-x-1 text-slate-600">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-blue-600"></span>
+                  <span>Sales</span>
+                </div>
+                <div className="flex items-center space-x-1 text-slate-600">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-indigo-300"></span>
+                  <span>COGS</span>
+                </div>
+                <div className="flex items-center space-x-1 text-slate-600">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-teal-500"></span>
+                  <span>Profit</span>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-center">
-              {/* Left Column: Big Interactive SVG Doughnut Chart */}
-              <div className="lg:col-span-5 flex flex-col items-center justify-center p-3 sm:p-4 bg-slate-50/70 rounded-2xl border border-slate-100 relative">
-                <div className="relative w-44 h-44 sm:w-56 sm:h-56 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
-                    {/* Background Track Circle */}
-                    <circle
-                      cx="80"
-                      cy="80"
-                      r="65"
-                      fill="transparent"
-                      stroke="#e2e8f0"
-                      strokeWidth="16"
-                    />
+            {/* Trend Bar Chart Visualization */}
+            <div className="mt-4">
+              {chartTrendData.length === 0 ? (
+                <div className="h-56 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                  <Clock size={28} className="opacity-40 mb-2 text-slate-400" />
+                  <p className="font-semibold text-xs sm:text-sm text-slate-600">No Sales Recorded in this Period</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Sales trends will automatically appear once transactions are made.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {/* Visual Bar Columns */}
+                  <div className="h-52 flex items-end justify-between gap-2 pt-6 px-2 border-b border-slate-100">
+                    {(() => {
+                      const maxVal = Math.max(...chartTrendData.map((d) => d.sales), 100);
+                      return chartTrendData.map((item, idx) => {
+                        const salesH = Math.max(8, Math.round((item.sales / maxVal) * 100));
+                        const cogsH = Math.max(4, Math.round((item.cogs / maxVal) * 100));
+                        const profitH = Math.max(4, Math.round((item.profit / maxVal) * 100));
 
-                    {/* Paid Cash Segment (Green) */}
-                    {totalSales > 0 && paidPercent > 0 && (
-                      <circle
-                        cx="80"
-                        cy="80"
-                        r="65"
-                        fill="transparent"
-                        stroke="#10b981"
-                        strokeWidth="16"
-                        strokeDasharray={`${paidDash} ${circumference}`}
-                        strokeDashoffset={paidOffset}
-                        strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
-                      />
-                    )}
+                        return (
+                          <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative min-w-[28px]">
+                            {/* Hover Tooltip */}
+                            <div className="absolute -top-14 opacity-0 group-hover:opacity-100 transition pointer-events-none z-20 bg-slate-900 text-white text-[10px] rounded-lg py-1 px-2 shadow-lg whitespace-nowrap">
+                              <p className="font-bold">{item.label}</p>
+                              <p>Sales: ৳{item.sales.toLocaleString()}</p>
+                              <p>Profit: ৳{item.profit.toLocaleString()}</p>
+                            </div>
 
-                    {/* Due Segment (Red/Rose) */}
-                    {totalSales > 0 && duePercent > 0 && (
-                      <circle
-                        cx="80"
-                        cy="80"
-                        r="65"
-                        fill="transparent"
-                        stroke="#f43f5e"
-                        strokeWidth="16"
-                        strokeDasharray={`${dueDash} ${circumference}`}
-                        strokeDashoffset={dueOffset}
-                        strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
-                      />
-                    )}
-
-                    {/* Returns Segment (Amber) */}
-                    {totalSales > 0 && returnPercent > 0 && (
-                      <circle
-                        cx="80"
-                        cy="80"
-                        r="65"
-                        fill="transparent"
-                        stroke="#f59e0b"
-                        strokeWidth="16"
-                        strokeDasharray={`${returnDash} ${circumference}`}
-                        strokeDashoffset={returnOffset}
-                        strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
-                      />
-                    )}
-                  </svg>
-
-                  {/* Doughnut Center Content */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-3">
-                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Total Sales
-                    </span>
-                    <span className="text-sm sm:text-xl font-black text-slate-800 truncate max-w-[120px] sm:max-w-[140px]">
-                      ৳{totalSales.toLocaleString()}
-                    </span>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-1 border border-emerald-200">
-                      {paidPercent}% Paid
-                    </span>
+                            <div className="w-full max-w-[36px] flex items-end justify-center gap-0.5 h-full pb-1">
+                              <div
+                                style={{ height: `${salesH}%` }}
+                                className="w-1/3 bg-blue-600 rounded-t-xs transition-all duration-300 group-hover:bg-blue-700"
+                                title={`Sales: ৳${item.sales}`}
+                              />
+                              <div
+                                style={{ height: `${cogsH}%` }}
+                                className="w-1/3 bg-indigo-300 rounded-t-xs transition-all duration-300 group-hover:bg-indigo-400"
+                                title={`COGS: ৳${item.cogs}`}
+                              />
+                              <div
+                                style={{ height: `${profitH}%` }}
+                                className="w-1/3 bg-teal-500 rounded-t-xs transition-all duration-300 group-hover:bg-teal-600"
+                                title={`Profit: ৳${item.profit}`}
+                              />
+                            </div>
+                            <span className="text-[10px] font-semibold text-slate-500 truncate w-full text-center mt-1">
+                              {item.label}
+                            </span>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
 
-                {/* Legend Below Chart */}
-                <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-bold">
-                  <div className="flex items-center space-x-1 text-slate-700">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span>Paid ({paidPercent}%)</span>
-                  </div>
-                  <div className="flex items-center space-x-1 text-slate-700">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
-                    <span>Due ({duePercent}%)</span>
-                  </div>
-                  {totalReturnsAmount > 0 && (
-                    <div className="flex items-center space-x-1 text-slate-700">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
-                      <span>Returns ({returnPercent}%)</span>
-                    </div>
-                  )}
-                </div>
+          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Aggregated Gross: <strong className="text-slate-800">৳{totalSales.toLocaleString()}</strong></span>
+            <span>Est. Gross Profit: <strong className="text-teal-700">৳{grossProfit.toLocaleString()}</strong></span>
+          </div>
+        </div>
+
+        {/* Right 1 Col: Financial Summary (P&L Breakdown) */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div className="border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2">
+                <FileText size={16} className="text-slate-700" />
+                <span>Financial Summary</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">Period income statement structure</p>
+            </div>
+
+            <div className="mt-3.5 space-y-2 text-xs">
+              <div className="p-2.5 bg-slate-50 rounded-lg flex items-center justify-between">
+                <span className="text-slate-600 font-medium">Gross Sales</span>
+                <span className="font-bold text-slate-900">৳{totalSales.toLocaleString()}</span>
               </div>
 
-              {/* Middle Column: 3 Mini Circular Progress Rings */}
-              <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2.5 sm:gap-3.5">
-                {/* Mini Ring 1: Cash Recovery Rate */}
-                <div className="p-3 sm:p-3.5 bg-emerald-50/50 rounded-xl border border-emerald-100 flex items-center justify-between">
-                  <div className="space-y-0.5 min-w-0">
-                    <span className="text-[11px] font-bold text-emerald-800 truncate block">Cash Collection Rate</span>
-                    <p className="text-sm sm:text-base font-black text-emerald-700 truncate">৳{totalPaid.toLocaleString()}</p>
-                    <p className="text-[10px] text-emerald-600 font-medium truncate">Collected Cash Revenue</p>
-                  </div>
-                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 ml-2">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#d1fae5"
-                        strokeWidth="3.8"
-                      />
-                      <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3.8"
-                        strokeDasharray={`${paidPercent}, 100`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span className="absolute text-[9px] sm:text-[10px] font-black text-emerald-800">{paidPercent}%</span>
-                  </div>
+              {totalReturnsAmount > 0 && (
+                <div className="p-2.5 bg-amber-50/50 rounded-lg flex items-center justify-between">
+                  <span className="text-amber-800 font-medium">Sales Returns & Refunds</span>
+                  <span className="font-bold text-amber-700">- ৳{totalReturnsAmount.toLocaleString()}</span>
                 </div>
+              )}
 
-                {/* Mini Ring 2: Customer Due Liability */}
-                <div className="p-3 sm:p-3.5 bg-rose-50/50 rounded-xl border border-rose-100 flex items-center justify-between">
-                  <div className="space-y-0.5 min-w-0">
-                    <span className="text-[11px] font-bold text-rose-800 truncate block">Due Liability Ratio</span>
-                    <p className="text-sm sm:text-base font-black text-rose-700 truncate">৳{totalDue.toLocaleString()}</p>
-                    <p className="text-[10px] text-rose-600 font-medium truncate">Outstanding Receivables</p>
-                  </div>
-                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 ml-2">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#ffe4e6"
-                        strokeWidth="3.8"
-                      />
-                      <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#f43f5e"
-                        strokeWidth="3.8"
-                        strokeDasharray={`${duePercent}, 100`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span className="absolute text-[9px] sm:text-[10px] font-black text-rose-800">{duePercent}%</span>
-                  </div>
-                </div>
-
-                {/* Mini Ring 3: Profit Margin */}
-                <div className="p-3 sm:p-3.5 bg-teal-50/50 rounded-xl border border-teal-100 flex items-center justify-between">
-                  <div className="space-y-0.5 min-w-0">
-                    <span className="text-[11px] font-bold text-teal-800 truncate block">Net Profit Margin</span>
-                    <p className="text-sm sm:text-base font-black text-teal-700 truncate">৳{netProfit.toLocaleString()}</p>
-                    <p className="text-[10px] text-teal-600 font-medium truncate">Net Profit Ratio</p>
-                  </div>
-                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 ml-2">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#ccfbf1"
-                        strokeWidth="3.8"
-                      />
-                      <path
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#0d9488"
-                        strokeWidth="3.8"
-                        strokeDasharray={`${profitMargin}, 100`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span className="absolute text-[9px] sm:text-[10px] font-black text-teal-800">{profitMargin}%</span>
-                  </div>
-                </div>
+              <div className="p-2.5 bg-slate-50/60 rounded-lg flex items-center justify-between border-t border-slate-200/60">
+                <span className="text-slate-700 font-semibold">Net Sales</span>
+                <span className="font-bold text-slate-900">৳{netSales.toLocaleString()}</span>
               </div>
 
-              {/* Right Column: Comparative Progress Bars & Ratios */}
-              <div className="lg:col-span-3 bg-slate-50/50 p-3.5 sm:p-4 rounded-2xl border border-slate-100 space-y-3">
-                <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Breakdown Distribution</h4>
-                
-                {/* Bar 1: Paid */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-600 flex items-center space-x-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>Paid Cash</span>
-                    </span>
-                    <span className="text-emerald-700 font-bold">{paidPercent}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${paidPercent}%` }}></div>
-                  </div>
-                </div>
+              <div className="p-2.5 bg-slate-50 rounded-lg flex items-center justify-between">
+                <span className="text-slate-600 font-medium">Cost of Goods Sold (COGS)</span>
+                <span className="font-bold text-indigo-700">- ৳{totalCost.toLocaleString()}</span>
+              </div>
 
-                {/* Bar 2: Due */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-600 flex items-center space-x-1">
-                      <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                      <span>Customer Due</span>
-                    </span>
-                    <span className="text-rose-700 font-bold">{duePercent}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-rose-500 rounded-full transition-all duration-500" style={{ width: `${duePercent}%` }}></div>
-                  </div>
-                </div>
+              <div className="p-2.5 bg-slate-50/60 rounded-lg flex items-center justify-between border-t border-slate-200/60">
+                <span className="text-slate-700 font-semibold">Gross Profit</span>
+                <span className="font-bold text-slate-900">৳{grossProfit.toLocaleString()}</span>
+              </div>
 
-                {/* Bar 3: Returns */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-600 flex items-center space-x-1">
-                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                      <span>Returns/Refunds</span>
-                    </span>
-                    <span className="text-amber-700 font-bold">{returnPercent}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${returnPercent}%` }}></div>
-                  </div>
-                </div>
+              <div className="p-2.5 bg-slate-50 rounded-lg flex items-center justify-between">
+                <span className="text-slate-600 font-medium">Operating Expenses</span>
+                <span className="font-bold text-amber-700">- ৳{totalExpense.toLocaleString()}</span>
+              </div>
 
-                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Invoices:</span>
-                  <span className="font-bold text-slate-800">{filteredVouchers.length} Recorded</span>
+              <div className="p-3 bg-teal-50 rounded-xl border border-teal-200/70 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-teal-900 block">Net Profit</span>
+                  <span className="text-[10px] text-teal-700 font-medium">{profitMargin}% margin</span>
                 </div>
+                <span className="text-base font-extrabold text-teal-800">৳{netProfit.toLocaleString()}</span>
               </div>
             </div>
           </div>
-        );
-      })()}
-
-      {/* Quick Action Cards Grid (4 cols on mobile, 8 on desktop) */}
-      <div>
-        <h2 className="text-xs font-bold text-slate-600 mb-2.5 uppercase tracking-wider">Quick Actions & Shortcuts</h2>
-        <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3.5">
-          <Link
-            href="/pos"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-blue-500 hover:shadow-md transition flex flex-col items-center text-center group"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <ShoppingCart size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">POS</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Instant Billing</span>
-          </Link>
 
           <Link
-            href="/sales-return"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-amber-500 hover:shadow-md transition flex flex-col items-center text-center group"
+            href="/reports?tab=income"
+            className="mt-4 w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl text-center transition flex items-center justify-center space-x-1.5"
           >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <RotateCcw size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">Returns</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Refunds</span>
-          </Link>
-
-          <Link
-            href="/inventory"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-orange-500 hover:shadow-md transition flex flex-col items-center text-center group"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <Package size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">Products</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Catalog</span>
-          </Link>
-
-          <Link
-            href="/clients"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow-md transition flex flex-col items-center text-center group"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <Users size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">Clients</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Due Ledger</span>
-          </Link>
-
-          <Link
-            href="/reports?tab=sales"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow-md transition flex flex-col items-center text-center group"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <FileText size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">Reports</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Analytics</span>
-          </Link>
-
-          <Link
-            href="/expenses"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-rose-500 hover:shadow-md transition flex flex-col items-center text-center group"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <Receipt size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">Expenses</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Bills</span>
-          </Link>
-
-          <Link
-            href="/barcodes"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-500 hover:shadow-md transition flex flex-col items-center text-center group"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <Barcode size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">Barcodes</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Stickers</span>
-          </Link>
-
-          <Link
-            href="/settings"
-            className="p-2.5 sm:p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-slate-500 hover:shadow-md transition flex flex-col items-center text-center group"
-          >
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mb-1 sm:mb-2 group-hover:scale-110 transition">
-              <Settings size={18} />
-            </div>
-            <span className="font-bold text-[11px] sm:text-xs text-slate-800 truncate w-full">Settings</span>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block mt-0.5">Config</span>
+            <span>View Full P&L Report</span>
+            <ArrowRight size={13} />
           </Link>
         </div>
       </div>
 
-      {/* Period Activity Summary & Recent Invoices */}
+      {/* 5. Payment Methods Summary & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Left 2 Cols: Filtered Invoices Feed */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-3 sm:space-y-4">
-          <div className="flex items-center justify-between">
+        {/* Payment Methods Breakdown */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
             <div>
-              <h3 className="font-bold text-slate-800 text-sm">
-                Invoices ({dateRange.label})
+              <h3 className="font-bold text-slate-900 text-xs sm:text-sm flex items-center space-x-1.5">
+                <Wallet size={15} className="text-emerald-600" />
+                <span>Payment Methods</span>
               </h3>
-              <p className="text-xs text-slate-500">
-                Found {filteredVouchers.length} matching invoices
-              </p>
+              <p className="text-[11px] text-slate-500">Collected distribution in period</p>
             </div>
-            <Link
-              href="/vouchers/history"
-              className="text-xs font-bold text-blue-600 hover:underline flex items-center space-x-1"
-            >
-              <span>View All</span>
-              <ArrowRight size={14} />
-            </Link>
+            <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+              Total: ৳{totalPaid.toLocaleString()}
+            </span>
           </div>
 
-          {filteredVouchers.length === 0 ? (
-            <div className="py-10 text-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 px-4">
-              <Clock size={28} className="mx-auto mb-2 opacity-40 text-slate-500" />
-              <p className="font-bold text-sm text-slate-600">No Invoices in This Range</p>
-              <p className="text-xs text-slate-400 mt-0.5">Try switching to &quot;Today&quot; or &quot;All Time&quot;.</p>
-              <button
-                onClick={() => setDatePreset('all')}
-                className="mt-3 px-3 py-1.5 bg-blue-50 text-blue-600 font-bold text-xs rounded-lg hover:bg-blue-100 transition"
-              >
-                Reset to All Time
-              </button>
+          {paymentMethodsData.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              <p className="text-xs font-semibold text-slate-600">No payment records in range</p>
             </div>
           ) : (
-            <>
-              {/* Mobile View: Clean App Cards (Zero Horizontal Scroll) */}
-              <div className="block md:hidden space-y-2.5">
-                {filteredVouchers.slice(0, 6).map((v) => (
-                  <Link
-                    key={v.id || v.voucherNo}
-                    href={`/invoice/${v.publicToken || v.id}`}
-                    className="block p-3 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50/50 hover:bg-blue-50/30 transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-blue-600">
-                        {v.voucherNo || v.voucherNumber || v.id}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          v.status === 'PAID'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : v.status === 'PARTIAL'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-rose-100 text-rose-700'
-                        }`}
-                      >
-                        {v.status || 'PAID'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-2 text-xs">
-                      <span className="font-semibold text-slate-700 truncate max-w-[150px]">
-                        {v.clientName || 'Walk-in Customer'}
-                      </span>
-                      <div className="text-right">
-                        <span className="font-black text-slate-800">
-                          ৳{Number(v.totalAmount || 0).toLocaleString()}
-                        </span>
-                        {Number(v.dueAmount || 0) > 0 && (
-                          <span className="block text-[10px] font-bold text-rose-600">
-                            Due: ৳{Number(v.dueAmount || 0).toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-1.5 pt-1.5 border-t border-slate-200/60 text-[10px] text-slate-400 font-mono flex items-center justify-between">
-                      <span>
-                        {formatDhakaDateTime(v.createdAt || v.date)}
-                      </span>
-                      <span className="text-blue-500 font-bold">View Invoice ➔</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-
-              {/* Desktop View: Full Table */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
-                      <th className="pb-2.5">Invoice No</th>
-                      <th className="pb-2.5">Date & Time</th>
-                      <th className="pb-2.5">Customer</th>
-                      <th className="pb-2.5 text-right">Total</th>
-                      <th className="pb-2.5 text-right">Paid</th>
-                      <th className="pb-2.5 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredVouchers.slice(0, 7).map((v) => (
-                      <tr key={v.id || v.voucherNo} className="hover:bg-slate-50/80 transition">
-                        <td className="py-2.5 font-bold text-blue-600">
-                          <Link href={`/invoice/${v.publicToken || v.id}`} className="hover:underline">
-                            {v.voucherNo || v.voucherNumber || v.id}
-                          </Link>
-                        </td>
-                        <td className="py-2.5 text-slate-500 font-mono text-[11px]">
-                          {formatDhakaDateTime(v.createdAt || v.date)}
-                        </td>
-                        <td className="py-2.5 font-semibold text-slate-700">
-                          {v.clientName || 'Walk-in'}
-                        </td>
-                        <td className="py-2.5 text-right font-bold text-slate-800">
-                          ৳{Number(v.totalAmount || 0).toLocaleString()}
-                        </td>
-                        <td className="py-2.5 text-right font-semibold text-emerald-600">
-                          ৳{Number(v.paidAmount || 0).toLocaleString()}
-                        </td>
-                        <td className="py-2.5 text-center">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              v.status === 'PAID'
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : v.status === 'PARTIAL'
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-rose-100 text-rose-700'
-                            }`}
-                          >
-                            {v.status || 'PAID'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
+            <div className="space-y-2.5">
+              {paymentMethodsData.map((item, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-medium">
+                    <span className="text-slate-700 flex items-center space-x-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span>{item.method}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">({item.count} bills)</span>
+                    </span>
+                    <span className="font-bold text-slate-900">৳{item.amount.toLocaleString()}</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                      style={{ width: `${item.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Right 1 Col: Performance Breakdown */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4 flex flex-col justify-between">
+        {/* Streamlined Quick Actions (6 Purposeful SaaS Actions) */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-slate-800 text-sm">Period Breakdown</h3>
-            <p className="text-xs text-slate-500">Accounting health for {dateRange.label}</p>
+            <div className="border-b border-slate-100 pb-2.5">
+              <h3 className="font-bold text-slate-900 text-xs sm:text-sm">Quick Actions</h3>
+              <p className="text-[11px] text-slate-500">Direct shortcuts for frequent operations</p>
+            </div>
 
-            <div className="mt-3.5 space-y-2.5">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
-                <span className="text-xs text-slate-600 font-medium">Gross Turnover</span>
-                <span className="text-xs font-bold text-slate-800">৳{totalSales.toLocaleString()}</span>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
-                <span className="text-xs text-slate-600 font-medium">Returns/Refunds</span>
-                <span className="text-xs font-bold text-amber-600">- ৳{totalReturnsAmount.toLocaleString()}</span>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
-                <span className="text-xs text-slate-600 font-medium">Operating Expenses</span>
-                <span className="text-xs font-bold text-purple-600">- ৳{totalExpense.toLocaleString()}</span>
-              </div>
-              <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 flex items-center justify-between">
-                <span className="text-xs text-emerald-800 font-bold">Estimated Net Profit</span>
-                <span className="text-sm font-black text-emerald-700">৳{netProfit.toLocaleString()}</span>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-3">
+              <Link
+                href="/pos"
+                className="p-3 bg-blue-50/40 hover:bg-blue-50 border border-blue-100 hover:border-blue-300 rounded-xl transition flex items-center space-x-2.5 group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                  <ShoppingCart size={15} />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-xs text-slate-900 block truncate">New Sale</span>
+                  <span className="text-[10px] text-slate-500 block truncate">POS Terminal</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/inventory?action=new"
+                className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition flex items-center space-x-2.5 group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                  <Package size={15} />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-xs text-slate-900 block truncate">Add Product</span>
+                  <span className="text-[10px] text-slate-500 block truncate">Inventory item</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/inventory?action=purchase"
+                className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition flex items-center space-x-2.5 group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                  <ArrowDownCircle size={15} />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-xs text-slate-900 block truncate">New Purchase</span>
+                  <span className="text-[10px] text-slate-500 block truncate">Supplier order</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/clients"
+                className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition flex items-center space-x-2.5 group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                  <Users size={15} />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-xs text-slate-900 block truncate">Customers</span>
+                  <span className="text-[10px] text-slate-500 block truncate">Due & Ledgers</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/expenses"
+                className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition flex items-center space-x-2.5 group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                  <Receipt size={15} />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-xs text-slate-900 block truncate">Expenses</span>
+                  <span className="text-[10px] text-slate-500 block truncate">Record bill</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/reports?tab=sales"
+                className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition flex items-center space-x-2.5 group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-slate-700 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                  <FileText size={15} />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-xs text-slate-900 block truncate">Reports</span>
+                  <span className="text-[10px] text-slate-500 block truncate">Sales analytics</span>
+                </div>
+              </Link>
             </div>
           </div>
-
-          <Link
-            href={`/reports?tab=sales`}
-            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl text-center transition flex items-center justify-center space-x-1.5"
-          >
-            <span>Accounting Report</span>
-            <ArrowRight size={14} />
-          </Link>
         </div>
       </div>
 
-      {/* Low Stock Warning Section */}
+      {/* 6. Low Stock Attention Alerts */}
       {lowStockProducts.length > 0 && (
-        <div className="bg-rose-50/80 border border-rose-200 rounded-2xl p-4 sm:p-5 space-y-3">
+        <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-            <div className="flex items-center space-x-2 text-rose-700 font-bold text-xs sm:text-sm">
-              <AlertTriangle size={17} />
-              <span>Low Stock Alerts ({lowStockProducts.length} Items)</span>
+            <div className="flex items-center space-x-2 text-amber-900 font-bold text-xs sm:text-sm">
+              <AlertTriangle size={16} className="text-amber-600" />
+              <span>Low Stock Attention ({lowStockProducts.length} Items)</span>
             </div>
-            <Link href="/suppliers" className="text-xs font-bold text-rose-700 hover:underline">
-              + Restock via Suppliers PO ➔
+            <Link
+              href="/inventory?action=purchase"
+              className="text-xs font-bold text-amber-800 hover:text-amber-900 hover:underline flex items-center space-x-1"
+            >
+              <span>+ Create Restock Purchase Order</span>
+              <ArrowRight size={12} />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-            {lowStockProducts.map((p) => (
-              <div key={p.id} className="bg-white p-3 rounded-xl border border-rose-200 flex items-center justify-between text-xs">
-                <div className="min-w-0 pr-2">
-                  <p className="font-semibold text-slate-800 truncate">{p.name}</p>
-                  <p className="text-[10px] text-slate-500 font-mono">Code: {p.code}</p>
+            {lowStockProducts.slice(0, 6).map((p) => {
+              const qty = Number(p.quantity) || 0;
+              const isZero = qty === 0;
+              return (
+                <div
+                  key={p.id}
+                  className="bg-white p-3 rounded-xl border border-amber-200/60 flex items-center justify-between text-xs"
+                >
+                  <div className="min-w-0 pr-2">
+                    <p className="font-semibold text-slate-900 truncate">{p.name}</p>
+                    <p className="text-[10px] text-slate-500 font-mono">Code: {p.code}</p>
+                  </div>
+                  <span
+                    className={`font-bold px-2 py-0.5 rounded text-[11px] shrink-0 ${
+                      isZero
+                        ? 'bg-rose-100 text-rose-700'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {isZero ? 'Out of stock' : `${qty} left`}
+                  </span>
                 </div>
-                <span className="font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded text-[11px] shrink-0">
-                  {p.quantity} left
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
+
+      {/* 7. Recent Invoices Feed */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-3 sm:space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
+              Recent Sales & Invoices ({dateRange.label})
+            </h3>
+            <p className="text-[11px] text-slate-500">
+              Showing {filteredVouchers.slice(0, 8).length} of {filteredVouchers.length} matching sales
+            </p>
+          </div>
+          <Link
+            href="/vouchers/history"
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline flex items-center space-x-1"
+          >
+            <span>View All Sales</span>
+            <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        {filteredVouchers.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 px-4">
+            <Clock size={28} className="mx-auto mb-2 opacity-40 text-slate-400" />
+            <p className="font-bold text-xs sm:text-sm text-slate-700">No Sales in Selected Period</p>
+            <p className="text-xs text-slate-500 mt-0.5">Start by ringing up a sale in the POS terminal.</p>
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <Link
+                href="/pos"
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition shadow-xs"
+              >
+                + New Sale
+              </Link>
+              <button
+                onClick={() => setDatePreset('all')}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition"
+              >
+                View All Time
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Mobile View: Clean, readable cards without horizontal scroll */}
+            <div className="block md:hidden space-y-2.5">
+              {filteredVouchers.slice(0, 6).map((v) => (
+                <Link
+                  key={v.id || v.voucherNo}
+                  href={`/invoice/${v.publicToken || v.id}`}
+                  className="block p-3 rounded-xl border border-slate-200/90 hover:border-blue-300 bg-slate-50/40 hover:bg-blue-50/20 transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-blue-600">
+                      {v.voucherNo || v.voucherNumber || v.id}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        v.status === 'PAID'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : v.status === 'PARTIAL'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-rose-100 text-rose-700'
+                      }`}
+                    >
+                      {v.status || 'PAID'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-2 text-xs">
+                    <span className="font-semibold text-slate-700 truncate max-w-[150px]">
+                      {v.clientName || 'Walk-in Customer'}
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-slate-900">
+                        ৳{Number(v.totalAmount || 0).toLocaleString()}
+                      </span>
+                      {Number(v.dueAmount || 0) > 0 && (
+                        <span className="block text-[10px] font-semibold text-rose-600">
+                          Due: ৳{Number(v.dueAmount || 0).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-1.5 pt-1.5 border-t border-slate-200/60 text-[10px] text-slate-400 font-mono flex items-center justify-between">
+                    <span>{formatDhakaDateTime(v.createdAt || v.date)}</span>
+                    <span className="text-blue-600 font-bold">View Invoice ➔</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Desktop View: Clean Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                    <th className="pb-2.5 font-medium">Invoice No</th>
+                    <th className="pb-2.5 font-medium">Date & Time</th>
+                    <th className="pb-2.5 font-medium">Customer</th>
+                    <th className="pb-2.5 font-medium text-right">Total</th>
+                    <th className="pb-2.5 font-medium text-right">Paid</th>
+                    <th className="pb-2.5 font-medium text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredVouchers.slice(0, 8).map((v) => (
+                    <tr key={v.id || v.voucherNo} className="hover:bg-slate-50/70 transition">
+                      <td className="py-2.5 font-bold text-blue-600">
+                        <Link href={`/invoice/${v.publicToken || v.id}`} className="hover:underline">
+                          {v.voucherNo || v.voucherNumber || v.id}
+                        </Link>
+                      </td>
+                      <td className="py-2.5 text-slate-500 font-mono text-[11px]">
+                        {formatDhakaDateTime(v.createdAt || v.date)}
+                      </td>
+                      <td className="py-2.5 font-medium text-slate-700">
+                        {v.clientName || 'Walk-in Customer'}
+                      </td>
+                      <td className="py-2.5 text-right font-bold text-slate-900">
+                        ৳{Number(v.totalAmount || 0).toLocaleString()}
+                      </td>
+                      <td className="py-2.5 text-right font-medium text-emerald-600">
+                        ৳{Number(v.paidAmount || 0).toLocaleString()}
+                      </td>
+                      <td className="py-2.5 text-center">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            v.status === 'PAID'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : v.status === 'PARTIAL'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-rose-100 text-rose-700'
+                          }`}
+                        >
+                          {v.status || 'PAID'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
-
