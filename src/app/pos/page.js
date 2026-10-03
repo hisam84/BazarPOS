@@ -1644,7 +1644,7 @@ export default function POSTerminalPage() {
             </div>
 
             {/* Printable & Scrollable Area */}
-            <div className="flex-1 overflow-y-auto overflow-x-auto p-2 sm:p-4 bg-slate-100/70">
+            <div className="flex-1 overflow-y-auto overflow-x-auto p-3 sm:p-5 bg-slate-100/80 flex justify-center">
               {printLayout === 'A4' ? (
                 <div className="printable-area w-full min-w-fit flex justify-center">
                   <InvoiceA4
@@ -1655,78 +1655,134 @@ export default function POSTerminalPage() {
                   />
                 </div>
               ) : (
-                <div className="printable-area max-w-sm mx-auto border border-slate-200/80 p-4 sm:p-5 rounded-2xl bg-white font-mono text-xs text-slate-800 space-y-2 shadow-sm">
-                  <div className="text-center pb-2 border-b border-slate-200">
-                    <h2 className="font-bold text-sm text-slate-900">{company?.name || user?.storeName || 'BazarPOS Outlet'}</h2>
-                    {company?.phone && <p>Phone: {company.phone}</p>}
-                    {company?.address && <p className="text-[10px]">{company.address}</p>}
-                    <p className="font-semibold text-blue-600 mt-1">Invoice: {completedVoucher.voucherNo}</p>
-                    <p className="text-[10px] text-slate-500">{new Date(completedVoucher.date).toLocaleString()}</p>
+                <div className="printable-area w-full max-w-[360px] bg-white border border-slate-200 shadow-md rounded-2xl p-4 sm:p-5 text-slate-800 text-xs space-y-3 font-sans">
+                  {/* Store Header */}
+                  <div className="text-center pb-2.5 border-b border-dashed border-slate-300 space-y-0.5">
+                    <h2 className="font-black text-base text-slate-900 tracking-tight">{company?.name || user?.storeName || 'BazarPOS Outlet'}</h2>
+                    {company?.phone && <p className="text-xs text-slate-600 font-medium">Phone: {company.phone}</p>}
+                    {company?.address && <p className="text-[11px] text-slate-500">{company.address}</p>}
+                    <div className="pt-1.5 flex items-center justify-center gap-1.5">
+                      <span className="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-md text-[11px] border border-blue-200">
+                        Invoice: {completedVoucher.voucherNo}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 pt-0.5">
+                      {new Date(completedVoucher.date).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
 
-                  <div className="py-1 border-b border-slate-100 text-[11px] space-y-1">
-                    <p>Customer: <span className="font-bold text-slate-900">{completedVoucher.clientName}</span></p>
-                    {completedVoucher.salerName && <p>Sales Rep: {completedVoucher.salerName}</p>}
+                  {/* Customer Info */}
+                  <div className="py-1 border-b border-dashed border-slate-300 text-[11px] space-y-0.5">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Customer:</span>
+                      <span className="font-bold text-slate-900">{completedVoucher.clientName || 'Walk-in Customer'}</span>
+                    </div>
+                    {completedVoucher.clientPhone && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Phone:</span>
+                        <span className="font-mono text-slate-700">{completedVoucher.clientPhone}</span>
+                      </div>
+                    )}
+                    {completedVoucher.salerName && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Sales Rep:</span>
+                        <span className="font-semibold text-slate-700">{completedVoucher.salerName}</span>
+                      </div>
+                    )}
                   </div>
 
-                  <table className="w-full text-left text-[11px] border-b border-slate-200">
+                  {/* Items Table */}
+                  <table className="w-full text-left text-[11px] border-b border-dashed border-slate-300">
                     <thead>
-                      <tr className="border-b font-bold text-slate-700">
-                        <th className="py-1">Item</th>
-                        <th className="py-1 text-center">Qty</th>
-                        <th className="py-1 text-right">Price</th>
+                      <tr className="border-b border-slate-200 font-bold text-slate-600">
+                        <th className="py-1.5">Item</th>
+                        <th className="py-1.5 text-center">Qty</th>
+                        <th className="py-1.5 text-right">Price</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                       {completedVoucher.items.map((item, idx) => (
-                        <tr key={idx} className="border-b border-slate-100">
-                          <td className="py-1">
-                            <p className="font-semibold text-slate-900">{item.name}</p>
+                        <tr key={idx} className="align-top">
+                          <td className="py-1.5 pr-2">
+                            <p className="font-bold text-slate-900 leading-tight">{item.name}</p>
                             {item.warranty && (
-                              <p className="text-[9px] text-blue-600 font-medium">Warranty: {item.warranty}</p>
+                              <p className="text-[10px] text-blue-600 font-medium mt-0.5">🛡️ Warranty: {item.warranty}</p>
                             )}
                             {(item.serialNumber || item.serialNo) && (
-                              <p className="text-[9px] text-purple-700 font-mono font-medium">S/N: {item.serialNumber || item.serialNo}</p>
+                              <p className="text-[10px] text-purple-700 font-mono font-medium mt-0.5">SN: {item.serialNumber || item.serialNo}</p>
                             )}
                             {item.description && (
-                              <p className="text-[9px] text-slate-500 italic leading-tight">{item.description}</p>
+                              <p className="text-[10px] text-slate-400 italic leading-tight mt-0.5">{item.description}</p>
                             )}
                           </td>
-                          <td className="py-1 text-center align-top font-bold">{item.quantity}</td>
-                          <td className="py-1 text-right align-top font-mono font-semibold">৳{item.unitPrice * item.quantity}</td>
+                          <td className="py-1.5 text-center font-bold text-slate-800">{item.quantity}</td>
+                          <td className="py-1.5 text-right font-bold text-slate-900 whitespace-nowrap">
+                            ৳{Number(item.unitPrice * item.quantity).toLocaleString()}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
 
-                  <div className="pt-2 text-right space-y-1 font-bold">
-                    <p>Subtotal: ৳{completedVoucher.subTotal}</p>
-                    {completedVoucher.discount > 0 && <p>Discount: -৳{completedVoucher.discount}</p>}
-                    <p className="text-sm text-blue-700">Grand Total: ৳{completedVoucher.totalAmount}</p>
-                    <p className="text-emerald-600">Paid ({completedVoucher.paymentMethod}): ৳{completedVoucher.paidAmount}</p>
-                    {completedVoucher.dueAmount > 0 && <p className="text-rose-600">Due: ৳{completedVoucher.dueAmount}</p>}
+                  {/* Summary & Totals */}
+                  <div className="pt-1 text-right space-y-1 text-xs">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Subtotal:</span>
+                      <span className="font-bold text-slate-800">৳{Number(completedVoucher.subTotal || completedVoucher.totalAmount).toLocaleString()}</span>
+                    </div>
+                    {Number(completedVoucher.discount) > 0 && (
+                      <div className="flex justify-between text-rose-600">
+                        <span>Discount:</span>
+                        <span className="font-bold">-৳{Number(completedVoucher.discount).toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-black text-blue-700 pt-1.5 border-t border-slate-200">
+                      <span>Grand Total:</span>
+                      <span>৳{Number(completedVoucher.totalAmount).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-700 font-bold">
+                      <span>Paid ({completedVoucher.paymentMethod || 'Cash'}):</span>
+                      <span>৳{Number(completedVoucher.paidAmount || completedVoucher.totalAmount).toLocaleString()}</span>
+                    </div>
+                    {Number(completedVoucher.dueAmount) > 0 && (
+                      <div className="flex justify-between text-rose-600 font-black">
+                        <span>Due Amount:</span>
+                        <span>৳{Number(completedVoucher.dueAmount).toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Receipt Footer */}
+                  <div className="pt-2 text-center border-t border-dashed border-slate-300 text-[10px] text-slate-400 space-y-0.5">
+                    <p className="font-semibold text-slate-600">Thank you for shopping with us!</p>
+                    <p>Powered by BazarPOS</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Bottom Actions */}
-            <div className="flex items-center justify-end gap-2.5 p-3 sm:px-6 sm:py-3.5 bg-white border-t border-slate-200 shrink-0 no-print">
-              <button
-                type="button"
-                onClick={() => setPrintModal(false)}
-                className="flex-1 sm:flex-none px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition text-center"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="flex-1 sm:flex-none px-4 sm:px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-1.5 text-xs shadow-md shadow-blue-500/20 transition"
-              >
-                <Printer size={15} />
-                <span>Print {printLayout === 'A4' ? 'A4' : 'Thermal'}</span>
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3 sm:px-6 sm:py-3.5 bg-white border-t border-slate-200 shrink-0 no-print">
+              <div className="text-xs text-slate-400 hidden sm:block">
+                Print or share receipt with customer
+              </div>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setPrintModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition text-center active:scale-98"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 sm:px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center space-x-1.5 text-xs shadow-md shadow-blue-500/20 transition active:scale-98"
+                >
+                  <Printer size={15} />
+                  <span>Print {printLayout === 'A4' ? 'Invoice' : 'Slip'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
