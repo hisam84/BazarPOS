@@ -1645,9 +1645,9 @@ export default function POSTerminalPage() {
             </div>
 
             {/* Printable & Scrollable Area */}
-            <div className="flex-1 overflow-y-auto overflow-x-auto p-3 sm:p-5 bg-slate-100/80 flex justify-center">
+            <div className="flex-1 overflow-y-auto overflow-x-auto p-1.5 sm:p-5 bg-slate-100/80 flex justify-center">
               {printLayout === 'A4' ? (
-                <div className="printable-area w-full min-w-fit flex justify-center">
+                <div className="printable-area w-full flex justify-center">
                   <InvoiceA4
                     invoice={completedVoucher}
                     company={company}

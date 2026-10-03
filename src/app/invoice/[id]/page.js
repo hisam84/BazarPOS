@@ -114,7 +114,7 @@ export default function PublicInvoicePage() {
 
       {/* A4 Sheet Container */}
       <div className="max-w-4xl mx-auto shadow-2xl rounded-2xl overflow-x-auto bg-white/50 print:shadow-none print:m-0 print:w-full">
-        <div className="printable-area min-w-fit flex justify-center">
+        <div className="printable-area w-full flex justify-center">
           <InvoiceA4
             invoice={invoice}
             company={company}
