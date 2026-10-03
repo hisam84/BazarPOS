@@ -436,12 +436,12 @@ export default function InvoiceA4({
       </div>
 
       {/* 5. SUMMARY & CALCULATION SECTION (Left: Terms & Conditions / In Words, Right: Calculation Box) */}
-      <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-200 flex flex-row justify-between items-start gap-3 sm:gap-4 text-[10px] sm:text-[11px]">
-        {/* Left: In Words, Warranty, Notes & Terms */}
-        <div className="flex-1 min-w-0 space-y-2 sm:space-y-2.5">
+      <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-200 grid grid-cols-12 gap-3 sm:gap-4 text-[10px] sm:text-[11px] items-start">
+        {/* Left: In Words, Warranty, Notes & Terms (7 Columns = 58%) */}
+        <div className="col-span-7 space-y-2 sm:space-y-2.5">
           <div className="p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
             <p className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-400 tracking-wider">Amount In Words:</p>
-            <p className="font-semibold text-slate-800 italic text-[11px] sm:text-xs leading-relaxed">
+            <p className="font-semibold text-slate-800 italic text-[10px] sm:text-xs leading-relaxed">
               {numberToWords(totalAmount)}
             </p>
           </div>
@@ -513,9 +513,9 @@ export default function InvoiceA4({
           )}
         </div>
 
-        {/* Right: Calculations Table */}
-        <div className="w-[40%] sm:w-[38%] shrink-0 space-y-1.5 font-sans">
-          <div className="bg-slate-50 p-2.5 sm:p-3 rounded-lg border border-slate-200 space-y-1.5">
+        {/* Right: Calculations Table (5 Columns = 42%) */}
+        <div className="col-span-5 space-y-1.5 font-sans">
+          <div className="bg-slate-50 p-2 sm:p-2.5 rounded-lg border border-slate-200 space-y-1.5">
             {mergedSettings.showSubtotal && (
               <div className="flex justify-between items-center text-slate-600">
                 <span>Items Subtotal:</span>
