@@ -60,9 +60,6 @@ export default function POSTerminalPage() {
   const [selectedClient, setSelectedClient] = useState(''); // Default: No customer preselected
   const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
-  const [includePreviousDue, setIncludePreviousDue] = useState(false);
-  const [showPreviousDueModal, setShowPreviousDueModal] = useState(false);
-  const [pendingDueClient, setPendingDueClient] = useState(null);
 
   const [selectedSaler, setSelectedSaler] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -303,28 +300,19 @@ export default function POSTerminalPage() {
   const handleSelectClient = (client) => {
     if (!client) {
       setSelectedClient('');
-      setIncludePreviousDue(false);
       setClientDropdownOpen(false);
       return;
     }
 
     setSelectedClient(client.name);
     setClientDropdownOpen(false);
-
-    if (Number(client.due) > 0) {
-      setPendingDueClient(client);
-      setShowPreviousDueModal(true);
-    } else {
-      setIncludePreviousDue(false);
-    }
   };
 
   const selectedClientObj = clients.find(c => c.name === selectedClient || c.id === selectedClient);
-  const previousDueAmount = (includePreviousDue && selectedClientObj?.due > 0) ? Number(selectedClientObj.due) : 0;
+  const clientPreviousDue = Number(selectedClientObj?.due || 0);
 
   const subTotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
-  const itemsTotal = Math.max(0, subTotal - Number(discount));
-  const grandTotal = itemsTotal + previousDueAmount;
+  const grandTotal = Math.max(0, subTotal - Number(discount));
   const dueAmount = Math.max(0, grandTotal - Number(paidAmount));
 
   const handleCheckout = async () => {
@@ -347,8 +335,6 @@ export default function POSTerminalPage() {
           items: cart,
           totalAmount: subTotal,
           discount: Number(discount),
-          previousDue: previousDueAmount,
-          includePreviousDue: Boolean(includePreviousDue && previousDueAmount > 0),
           paidAmount: Number(paidAmount),
           paymentMethod,
           note: saleNote || note || '',
@@ -371,7 +357,6 @@ export default function POSTerminalPage() {
       setSaleNote('');
       setPaymentNote('');
       setNote('');
-      setIncludePreviousDue(false);
       loadPOSData(user?.storeId || 'default');
     } catch (err) {
       alert('Checkout error');
@@ -1035,34 +1020,14 @@ export default function POSTerminalPage() {
             />
           </div>
 
-          {/* Previous Due Line if Included */}
-          {includePreviousDue && previousDueAmount > 0 && (
-            <div className="flex items-center justify-between p-2 bg-amber-50 rounded-xl border border-amber-200/80 text-amber-900 font-semibold">
-              <div className="flex items-center space-x-1.5">
-                <span>⚠️ Previous Due Added:</span>
-                <span className="font-bold font-mono">৳{previousDueAmount.toLocaleString()}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIncludePreviousDue(false)}
-                className="text-[10px] text-rose-600 hover:text-rose-800 font-bold underline"
-              >
-                Remove
-              </button>
-            </div>
-          )}
-
-          {/* Prompt to add previous due if customer has due and not yet added */}
-          {!includePreviousDue && selectedClientObj?.due > 0 && (
-            <div className="flex items-center justify-between p-1.5 bg-slate-100 rounded-lg text-[11px] text-slate-600">
-              <span>Customer Due: ৳{Number(selectedClientObj.due).toLocaleString()}</span>
-              <button
-                type="button"
-                onClick={() => setIncludePreviousDue(true)}
-                className="text-[10px] font-bold text-blue-600 hover:underline"
-              >
-                + Add to Bill
-              </button>
+          {/* Customer Previous Due (Informational Only) */}
+          {clientPreviousDue > 0 && (
+            <div className="flex items-center justify-between p-2.5 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 font-medium">
+              <span className="flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>Customer Previous Due:</span>
+              </span>
+              <span className="font-mono font-bold text-rose-600 text-xs">৳{clientPreviousDue.toLocaleString()}</span>
             </div>
           )}
 
@@ -1480,88 +1445,7 @@ export default function POSTerminalPage() {
         </div>
       )}
 
-      {/* PREVIOUS DUE CONFIRMATION MODAL */}
-      {showPreviousDueModal && pendingDueClient && (
-        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-amber-50/50">
-              <div className="flex items-center space-x-3 text-amber-700 font-bold">
-                <span className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg shadow-inner">
-                  ⚠️
-                </span>
-                <div>
-                  <h3 className="text-base text-slate-900 leading-tight">Customer Previous Due</h3>
-                  <p className="text-[11px] text-amber-700/80 font-medium">Outstanding balance detected</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIncludePreviousDue(false);
-                  setShowPreviousDueModal(false);
-                }}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            <div className="p-6 space-y-4">
-              <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl space-y-2.5">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-amber-900 font-semibold">Customer:</span>
-                  <span className="font-bold text-slate-900">{pendingDueClient.name}</span>
-                </div>
-                {pendingDueClient.phone && (
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-amber-900 font-semibold">Phone:</span>
-                    <span className="font-mono text-slate-700">{pendingDueClient.phone}</span>
-                  </div>
-                )}
-                {pendingDueClient.customerId && (
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-amber-900 font-semibold">Customer ID:</span>
-                    <span className="font-mono text-slate-700">{pendingDueClient.customerId}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center pt-2.5 border-t border-amber-200 text-sm">
-                  <span className="font-bold text-amber-950">Previous Due Balance:</span>
-                  <span className="font-black font-mono text-rose-600 text-lg">
-                    ৳{Number(pendingDueClient.due || 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-600 leading-relaxed text-center font-medium">
-                Do you want to add this outstanding <strong>৳{Number(pendingDueClient.due || 0).toLocaleString()}</strong> due to the current sales bill/invoice?
-              </p>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIncludePreviousDue(false);
-                    setShowPreviousDueModal(false);
-                  }}
-                  className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
-                >
-                  No, Current Sale Only
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIncludePreviousDue(true);
-                    setShowPreviousDueModal(false);
-                  }}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-blue-500/25"
-                >
-                  Yes, Add to Invoice
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* PRINT RECEIPT MODAL */}
       {printModal && completedVoucher && (

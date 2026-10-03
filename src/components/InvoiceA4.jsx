@@ -451,13 +451,6 @@ export default function InvoiceA4({
               </div>
             )}
 
-            {/* Previous Due Added */}
-            {settings?.showPreviousDue !== false && (data?.previousDue > 0 || (data?.includePreviousDue && data?.previousDue)) && (
-              <div className="flex justify-between items-center text-amber-800 font-semibold bg-amber-50/80 px-2 py-0.5 rounded border border-amber-200/60 text-[10px] sm:text-[10.5px]">
-                <span>Previous Due:</span>
-                <span className="font-mono font-bold">+৳{Number(data.previousDue).toLocaleString()}</span>
-              </div>
-            )}
 
             {settings?.showTaxVat && (settings?.taxVatPercent > 0 || data?.vatAmount > 0) && (
               <div className="flex justify-between items-center text-slate-600">

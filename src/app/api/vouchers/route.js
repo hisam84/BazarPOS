@@ -20,63 +20,9 @@ function reconcileCustomerDues(storeData) {
     }
   });
 
-  // Reconcile each customer's vouchers chronologically
   Object.keys(vouchersByCustomer).forEach(custKey => {
-    // Sort vouchers oldest to newest (by date or voucherNo)
-    const list = vouchersByCustomer[custKey].sort((a, b) => {
-      const dateA = new Date(a.voucher.date || 0).getTime();
-      const dateB = new Date(b.voucher.date || 0).getTime();
-      return dateA - dateB;
-    });
-
-    // 1. Reconcile vouchers where subsequent invoices included and paid previous dues
-    list.forEach((entry, idx) => {
-      const v = entry.voucher;
-      const prevDueAmt = Number(v.previousDue || 0);
-      const isIncludePrevDue = Boolean(v.includePreviousDue || prevDueAmt > 0);
-
-      if (isIncludePrevDue && prevDueAmt > 0) {
-        const itemsSubTotal = Number(v.subTotal !== undefined ? v.subTotal : v.totalAmount) || 0;
-        const discountAmount = Number(v.discount || 0);
-        const itemsTotal = Math.max(0, itemsSubTotal - discountAmount);
-        const paid = Number(v.paidAmount || 0);
-        // Payment allocated toward previous due:
-        const prevDuePaid = Math.min(prevDueAmt, Math.max(0, paid - itemsTotal));
-
-        if (prevDuePaid > 0) {
-          let remainingToClear = prevDuePaid;
-          // Clear older vouchers (from oldest up to the one just before this voucher)
-          for (let i = 0; i < idx; i++) {
-            if (remainingToClear <= 0) break;
-            const olderV = list[i].voucher;
-            if (Number(olderV.dueAmount) > 0) {
-              const clearAmt = Math.min(Number(olderV.dueAmount), remainingToClear);
-              olderV.paidAmount = Number(olderV.paidAmount || 0) + clearAmt;
-              olderV.dueAmount = Math.max(0, Number(olderV.dueAmount) - clearAmt);
-              olderV.status = olderV.dueAmount === 0 ? 'PAID' : 'PARTIAL';
-              
-              olderV.paymentHistory = olderV.paymentHistory || [];
-              const alreadyLogged = olderV.paymentHistory.some(ph => ph.voucherNo === v.voucherNo || (ph.note && ph.note.includes(v.voucherNo)));
-              if (!alreadyLogged) {
-                olderV.paymentHistory.push({
-                  id: 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-                  date: v.date || new Date().toISOString(),
-                  amount: clearAmt,
-                  paymentMethod: v.paymentMethod || 'Cash',
-                  note: `Paid via invoice ${v.voucherNo}`,
-                  voucherNo: v.voucherNo
-                });
-              }
-
-              remainingToClear -= clearAmt;
-              modified = true;
-            }
-          }
-        }
-      }
-    });
-
-    // 2. Synchronize with client's current outstanding due balance in clients list
+    const list = vouchersByCustomer[custKey];
+    // Synchronize with client's current outstanding due balance in clients list
     const matchedClient = (storeData.clients || []).find(c => (c.name || '').trim().toLowerCase() === custKey);
     if (matchedClient) {
       const clientTotalDue = Number(matchedClient.due || 0);
@@ -193,9 +139,7 @@ export async function POST(request) {
 
     const itemsSubTotal = Number(totalAmount) || 0;
     const discountAmount = Number(discount) || 0;
-    const itemsTotal = Math.max(0, itemsSubTotal - discountAmount);
-    const prevDueAmount = (includePreviousDue && Number(previousDue) > 0) ? Number(previousDue) : 0;
-    const grandTotal = itemsTotal + prevDueAmount;
+    const grandTotal = Math.max(0, itemsSubTotal - discountAmount);
     const dueAmount = Math.max(0, grandTotal - Number(paidAmount));
     const status = dueAmount === 0 ? 'PAID' : (Number(paidAmount) > 0 ? 'PARTIAL' : 'DUE');
 
@@ -204,7 +148,7 @@ export async function POST(request) {
     items.forEach(item => {
       totalCost += (Number(item.costPrice) || 0) * (Number(item.quantity) || 1);
     });
-    const profit = Math.max(0, itemsTotal - totalCost);
+    const profit = Math.max(0, grandTotal - totalCost);
 
     // Secure non-guessable random token for public link sharing (prevents URL guessing/IDOR)
     const publicToken = 'inv_' + crypto.randomBytes(16).toString('hex');
@@ -230,8 +174,6 @@ export async function POST(request) {
       items,
       subTotal: itemsSubTotal,
       discount: discountAmount,
-      previousDue: prevDueAmount,
-      includePreviousDue: Boolean(includePreviousDue && prevDueAmount > 0),
       totalAmount: grandTotal,
       paidAmount: Number(paidAmount),
       dueAmount,
@@ -256,51 +198,11 @@ export async function POST(request) {
       return p;
     });
 
-    // Update Client Due if applicable and settle older due vouchers
-    if (clientName && clientName !== 'Walk-in Customer') {
+    // Update Client Due if this invoice has remaining due
+    if (clientName && clientName !== 'Walk-in Customer' && dueAmount > 0) {
       const client = (storeData.clients || []).find(c => c.name === clientName || c.id === clientName);
       if (client) {
-        if (includePreviousDue && prevDueAmount > 0) {
-          // Previous due was factored into this invoice, so client's remaining due is now this voucher's dueAmount
-          client.due = dueAmount;
-        } else if (dueAmount > 0) {
-          // Added new due on top of existing due
-          client.due = (Number(client.due) || 0) + dueAmount;
-        }
-      }
-    }
-
-    // Auto-settle older due vouchers when previous due is included and paid
-    if (includePreviousDue && prevDueAmount > 0 && storeData.vouchers?.length > 0) {
-      // Calculate how much payment went toward previous due
-      const prevDuePaid = Math.min(prevDueAmount, Math.max(0, Number(paidAmount) - itemsTotal));
-      
-      if (prevDuePaid > 0) {
-        let remainingToClear = prevDuePaid;
-        // Loop through older vouchers from oldest to newest
-        for (let i = storeData.vouchers.length - 1; i >= 0; i--) {
-          if (remainingToClear <= 0) break;
-          const oldV = storeData.vouchers[i];
-          if (
-            oldV.clientName === clientName &&
-            Number(oldV.dueAmount) > 0
-          ) {
-            const clearAmt = Math.min(Number(oldV.dueAmount), remainingToClear);
-            oldV.paidAmount = Number(oldV.paidAmount || 0) + clearAmt;
-            oldV.dueAmount = Math.max(0, Number(oldV.dueAmount) - clearAmt);
-            oldV.status = oldV.dueAmount === 0 ? 'PAID' : 'PARTIAL';
-            oldV.paymentHistory = oldV.paymentHistory || [];
-            oldV.paymentHistory.push({
-              id: 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
-              date: new Date().toISOString(),
-              amount: clearAmt,
-              paymentMethod: paymentMethod || 'Cash',
-              note: `Paid via new invoice ${voucherNo}`,
-              voucherNo
-            });
-            remainingToClear -= clearAmt;
-          }
-        }
+        client.due = (Number(client.due) || 0) + dueAmount;
       }
     }
 
