@@ -53,15 +53,94 @@ function numberToWords(num) {
   return (words.trim() + ' Taka Only').replace(/\s+/g, ' ');
 }
 
+const DEFAULT_INVOICE_SETTINGS = {
+  invoicePrefix: 'INV-',
+  headerType: 'both',
+  headerBanner: '',
+  logoUrl: '',
+  invoiceTitle: 'TAX INVOICE',
+  invoiceSubtitle: 'Customer Copy',
+  
+  // Header Visibility
+  showHeaderBanner: true,
+  showLogo: true,
+  showStoreName: true,
+  showStoreAddress: true,
+  showStorePhone: true,
+  showStoreEmail: true,
+  showStoreWebsite: true,
+  showTaxBin: true,
+  taxBinNumber: '',
+
+  // Customer & Meta Info
+  showCustomerName: true,
+  showCustomerPhone: true,
+  showCustomerAddress: true,
+  showInvoiceDate: true,
+  showDueDate: false,
+  showSalerName: true,
+  showPaymentMethod: true,
+  showBarcode: true,
+
+  // Item Table Columns
+  showItemSl: true,
+  showItemCode: false,
+  showItemBrand: true,
+  showItemUnit: true,
+  showItemWarranty: true,
+  showItemSerial: true,
+  showItemDiscount: false,
+  showItemTotal: true,
+
+  // Summary
+  showSubtotal: true,
+  showDiscount: true,
+  showPreviousDue: true,
+  showTaxVat: true,
+  taxVatPercent: 0,
+  showDeliveryCharge: false,
+  showPaidAmount: true,
+  showDueAmount: true,
+
+  // Warranty & Terms
+  showWarrantySection: true,
+  warrantyTitle: 'Warranty Terms & Policy',
+  warrantyTerms: '1. Warranty is valid only when accompanied by this original invoice.\n2. Physical damage, liquid ingress, burn, or seal tampering voids warranty.\n3. Turnaround time for warranty claim/replacement is 3-7 business days.',
+
+  // Notes
+  showSaleNote: true,
+  showPaymentNote: true,
+
+  // Footer & Signatures
+  showTerms: true,
+  termsAndConditions: '1. Goods once sold can be exchanged within 7 days with this invoice.\n2. Warranty issues are subject to manufacturer terms.\n3. Perishable or discount items are non-refundable.',
+  showFooterNote: true,
+  footerNote: 'Thank you for choosing our store! We value your trust.',
+  showSignatures: true,
+  customerSignatureLabel: 'Customer Signature',
+  authorizedSignatureLabel: 'Authorized Signature',
+
+  // Layout & Styling
+  paperSize: 'A4',
+  accentColor: '#2563eb',
+  compactTable: false,
+  logoSize: 'medium',
+  logoCustomPx: 64,
+};
+
 export default function InvoiceA4({
   invoice = {},
   company = {},
   settings = {},
   isSample = false
 }) {
-  const accentColor = settings?.accentColor || '#2563eb';
+  const mergedSettings = {
+    ...DEFAULT_INVOICE_SETTINGS,
+    ...(settings || {})
+  };
 
-  const prefix = (settings?.invoicePrefix || 'INV-').trim();
+  const accentColor = mergedSettings.accentColor || '#2563eb';
+  const prefix = (mergedSettings.invoicePrefix || 'INV-').trim();
   const formattedPrefix = prefix.endsWith('-') || prefix.endsWith('/') || prefix.endsWith('_') || prefix.endsWith('#') ? prefix : prefix + '-';
 
   // Sample data fallback for live preview
@@ -105,10 +184,10 @@ export default function InvoiceA4({
       }}
     >
       {/* 1. HEADER BANNER (IF UPLOADED & ENABLED) */}
-      {settings?.showHeaderBanner && settings?.headerBanner && (
+      {mergedSettings.showHeaderBanner && mergedSettings.headerBanner && (
         <div className="mb-3 sm:mb-4 w-full rounded-lg overflow-hidden border border-slate-200">
           <img
-            src={settings.headerBanner}
+            src={mergedSettings.headerBanner}
             alt="Invoice Header Banner"
             className="w-full h-auto max-h-24 sm:max-h-36 object-cover object-center block"
           />
@@ -120,17 +199,17 @@ export default function InvoiceA4({
         {/* Left: Company Details */}
         <div className="space-y-1 w-full sm:max-w-[60%]">
           <div className="flex items-center space-x-2.5 sm:space-x-3">
-            {settings?.showLogo && (settings?.logoUrl || company?.logoUrl) && (
+            {mergedSettings.showLogo && (mergedSettings.logoUrl || company?.logoUrl) && (
               <img
-                src={settings?.logoUrl || company?.logoUrl}
+                src={mergedSettings.logoUrl || company?.logoUrl}
                 alt="Logo"
                 style={{
                   height: (() => {
-                    const sz = settings?.logoSize || 'medium';
+                    const sz = mergedSettings.logoSize || 'medium';
                     if (sz === 'small') return '28px';
                     if (sz === 'large') return '60px';
                     if (sz === 'xlarge') return '80px';
-                    if (sz === 'custom') return `${settings?.logoCustomPx || 48}px`;
+                    if (sz === 'custom') return `${mergedSettings.logoCustomPx || 48}px`;
                     return '40px'; // medium
                   })(),
                   width: 'auto',
@@ -139,7 +218,7 @@ export default function InvoiceA4({
                 }}
               />
             )}
-            {settings?.showStoreName && (
+            {mergedSettings.showStoreName && (
               <div>
                 <h1 className="text-base sm:text-xl font-black tracking-tight text-slate-900 leading-tight uppercase">
                   {company?.name || 'BazarPOS Outlet'}
@@ -152,34 +231,34 @@ export default function InvoiceA4({
           </div>
 
           <div className="text-[10px] sm:text-[11px] text-slate-600 space-y-0.5 pt-1 leading-relaxed">
-            {settings?.showStoreAddress && company?.address && (
+            {mergedSettings.showStoreAddress && company?.address && (
               <p className="flex items-start">
                 <span className="font-semibold text-slate-700 min-w-[50px] sm:min-w-[55px]">Address:</span>
                 <span>{company.address}</span>
               </p>
             )}
-            {settings?.showStorePhone && company?.phone && (
+            {mergedSettings.showStorePhone && company?.phone && (
               <p className="flex items-center">
                 <span className="font-semibold text-slate-700 min-w-[50px] sm:min-w-[55px]">Phone:</span>
                 <span>{company.phone}</span>
               </p>
             )}
-            {settings?.showStoreEmail && company?.email && (
+            {mergedSettings.showStoreEmail && company?.email && (
               <p className="flex items-center">
                 <span className="font-semibold text-slate-700 min-w-[50px] sm:min-w-[55px]">Email:</span>
                 <span className="break-all">{company.email}</span>
               </p>
             )}
-            {settings?.showStoreWebsite && company?.website && (
+            {mergedSettings.showStoreWebsite && company?.website && (
               <p className="flex items-center">
                 <span className="font-semibold text-slate-700 min-w-[50px] sm:min-w-[55px]">Web:</span>
                 <span className="break-all">{company.website}</span>
               </p>
             )}
-            {settings?.showTaxBin && (settings?.taxBinNumber || company?.taxBinNumber) && (
+            {mergedSettings.showTaxBin && (mergedSettings.taxBinNumber || company?.taxBinNumber) && (
               <p className="flex items-center">
                 <span className="font-semibold text-slate-700 min-w-[50px] sm:min-w-[55px]">BIN / TAX:</span>
-                <span className="font-mono font-bold text-slate-800">{settings.taxBinNumber || company.taxBinNumber}</span>
+                <span className="font-mono font-bold text-slate-800">{mergedSettings.taxBinNumber || company.taxBinNumber}</span>
               </p>
             )}
           </div>
@@ -191,11 +270,11 @@ export default function InvoiceA4({
             className="inline-block px-3 sm:px-4 py-1 sm:py-1.5 rounded-lg text-white font-black text-xs sm:text-sm tracking-wider uppercase shadow-sm self-start sm:self-auto"
             style={{ backgroundColor: accentColor }}
           >
-            {settings?.invoiceTitle || 'TAX INVOICE'}
+            {mergedSettings.invoiceTitle || 'TAX INVOICE'}
           </div>
-          {settings?.invoiceSubtitle && (
+          {mergedSettings.invoiceSubtitle && (
             <p className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-              {settings.invoiceSubtitle}
+              {mergedSettings.invoiceSubtitle}
             </p>
           )}
 
@@ -204,13 +283,13 @@ export default function InvoiceA4({
               <span className="text-slate-500 font-sans">Invoice #: </span>
               <span className="font-bold text-slate-900">{data?.voucherNo || 'INV-0000'}</span>
             </p>
-            {settings?.showInvoiceDate && (
+            {mergedSettings.showInvoiceDate && (
               <p>
                 <span className="text-slate-500">Date: </span>
                 <span className="font-semibold">{formatDhakaDateTime(data?.date || new Date())}</span>
               </p>
             )}
-            {settings?.showSalerName && data?.salerName && (
+            {mergedSettings.showSalerName && data?.salerName && (
               <p>
                 <span className="text-slate-500">Served By: </span>
                 <span className="font-medium">{data.salerName}</span>
@@ -224,15 +303,15 @@ export default function InvoiceA4({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 py-2.5 sm:py-3 border-b border-slate-200 text-[10px] sm:text-[11px]">
         <div className="space-y-0.5 sm:space-y-1">
           <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Bill To / Customer Info:</p>
-          {settings?.showCustomerName && (
+          {mergedSettings.showCustomerName && (
             <p className="font-bold text-xs sm:text-sm text-slate-900">{data?.clientName || 'Walk-in Customer'}</p>
           )}
-          {settings?.showCustomerPhone && data?.clientPhone && (
+          {mergedSettings.showCustomerPhone && data?.clientPhone && (
             <p className="text-slate-600">
               <span className="font-medium text-slate-500">Phone: </span>{data.clientPhone}
             </p>
           )}
-          {settings?.showCustomerAddress && data?.clientAddress && (
+          {mergedSettings.showCustomerAddress && data?.clientAddress && (
             <p className="text-slate-600 leading-tight">
               <span className="font-medium text-slate-500">Address: </span>{data.clientAddress}
             </p>
@@ -240,7 +319,7 @@ export default function InvoiceA4({
         </div>
 
         <div className="text-left sm:text-right space-y-1 flex flex-col sm:items-end justify-end">
-          {settings?.showPaymentMethod && (
+          {mergedSettings.showPaymentMethod && (
             <p className="text-slate-600">
               <span className="text-slate-500">Payment Mode: </span>
               <span className="font-bold text-slate-800 uppercase px-1.5 py-0.5 bg-slate-100 rounded text-[10px] sm:text-[11px]">
@@ -248,7 +327,7 @@ export default function InvoiceA4({
               </span>
             </p>
           )}
-          {settings?.showBarcode && (
+          {mergedSettings.showBarcode && (
             <div className="flex justify-start sm:justify-end items-center space-x-1 pt-1">
               <div className="bg-white p-1 rounded border border-slate-200">
                 <BarcodeSvg
@@ -273,13 +352,13 @@ export default function InvoiceA4({
               className="text-white font-semibold uppercase text-[9px] sm:text-[10px] tracking-wide"
               style={{ backgroundColor: accentColor }}
             >
-              {settings?.showItemSl && <th className="py-1.5 sm:py-2 px-1.5 sm:px-2 text-center w-6 sm:w-8 rounded-l whitespace-nowrap">#</th>}
-              {settings?.showItemCode && <th className="py-1.5 sm:py-2 px-1.5 sm:px-2 w-14 sm:w-20 whitespace-nowrap">Code</th>}
+              {mergedSettings.showItemSl && <th className="py-1.5 sm:py-2 px-1.5 sm:px-2 text-center w-6 sm:w-8 rounded-l whitespace-nowrap">#</th>}
+              {mergedSettings.showItemCode && <th className="py-1.5 sm:py-2 px-1.5 sm:px-2 w-14 sm:w-20 whitespace-nowrap">Code</th>}
               <th className="py-1.5 sm:py-2 px-2 sm:px-3 min-w-[110px] sm:min-w-[160px]">Item Description</th>
               <th className="py-1.5 sm:py-2 px-1.5 sm:px-3 text-right whitespace-nowrap">Unit Price</th>
               <th className="py-1.5 sm:py-2 px-1.5 sm:px-3 text-center w-10 sm:w-14 whitespace-nowrap">Qty</th>
-              {settings?.showItemDiscount && <th className="py-1.5 sm:py-2 px-1.5 sm:px-2 text-right whitespace-nowrap">Disc.</th>}
-              {settings?.showItemTotal && <th className="py-1.5 sm:py-2 px-2 sm:px-3 text-right rounded-r whitespace-nowrap">Total (৳)</th>}
+              {mergedSettings.showItemDiscount && <th className="py-1.5 sm:py-2 px-1.5 sm:px-2 text-right whitespace-nowrap">Disc.</th>}
+              {mergedSettings.showItemTotal && <th className="py-1.5 sm:py-2 px-2 sm:px-3 text-right rounded-r whitespace-nowrap">Total (৳)</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -291,12 +370,12 @@ export default function InvoiceA4({
 
               return (
                 <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
-                  {settings?.showItemSl && (
+                  {mergedSettings.showItemSl && (
                     <td className="py-1.5 sm:py-2 px-1.5 sm:px-2 text-center text-slate-500 font-mono text-[9px] sm:text-[10px]">
                       {idx + 1}
                     </td>
                   )}
-                  {settings?.showItemCode && (
+                  {mergedSettings.showItemCode && (
                     <td className="py-1.5 sm:py-2 px-1.5 sm:px-2 text-slate-500 font-mono text-[9px] sm:text-[10px]">
                       {item.code || '-'}
                     </td>
@@ -306,20 +385,20 @@ export default function InvoiceA4({
                     
                     {/* Unit, Brand, Warranty & Serial Number badges */}
                     <div className="flex flex-wrap items-center gap-x-1.5 sm:gap-x-2.5 gap-y-0.5 mt-0.5 text-[9px] sm:text-[10px] text-slate-500">
-                      {item.brand && settings?.showItemBrand !== false && (
+                      {item.brand && mergedSettings.showItemBrand && (
                         <span className="text-indigo-700 font-semibold bg-indigo-50 px-1 py-0.2 rounded border border-indigo-200/80">
                           Brand: {item.brand}
                         </span>
                       )}
-                      {item.unit && settings?.showItemUnit !== false && (
+                      {item.unit && mergedSettings.showItemUnit && (
                         <span>Unit: <strong className="text-slate-700 font-medium">{item.unit}</strong></span>
                       )}
-                      {item.warranty && item.warranty.trim() !== '' && settings?.showItemWarranty !== false && (
+                      {item.warranty && item.warranty.trim() !== '' && mergedSettings.showItemWarranty && (
                         <span className="text-blue-700 font-medium bg-blue-50 px-1 py-0.2 rounded border border-blue-200/80 inline-flex items-center space-x-0.5">
                           <span>🛡️ Warranty: {item.warranty}{item.warrantyType && item.warrantyType !== 'none' ? ` (${item.warrantyType.charAt(0).toUpperCase() + item.warrantyType.slice(1)})` : ''}</span>
                         </span>
                       )}
-                      {(item.serialNumber || item.serialNo) && (item.serialNumber || item.serialNo).trim() !== '' && settings?.showItemSerial !== false && (
+                      {(item.serialNumber || item.serialNo) && (item.serialNumber || item.serialNo).trim() !== '' && mergedSettings.showItemSerial && (
                         <span className="text-purple-700 font-medium bg-purple-50 px-1 py-0.2 rounded border border-purple-200/80 inline-flex items-center space-x-0.5 font-mono">
                           <span>🔢 S/N: {item.serialNumber || item.serialNo}</span>
                         </span>
@@ -339,12 +418,12 @@ export default function InvoiceA4({
                   <td className="py-1.5 sm:py-2 px-1.5 sm:px-3 text-center font-bold text-slate-800">
                     {qty}
                   </td>
-                  {settings?.showItemDiscount && (
+                  {mergedSettings.showItemDiscount && (
                     <td className="py-1.5 sm:py-2 px-1.5 sm:px-2 text-right font-mono text-slate-500">
                       {itemDisc > 0 ? `৳${itemDisc}` : '-'}
                     </td>
                   )}
-                  {settings?.showItemTotal && (
+                  {mergedSettings.showItemTotal && (
                     <td className="py-1.5 sm:py-2 px-2 sm:px-3 text-right font-bold text-slate-900 font-mono">
                       ৳{lineTotal.toLocaleString()}
                     </td>
@@ -368,7 +447,7 @@ export default function InvoiceA4({
           </div>
 
           {/* Sale Note & Payment Note */}
-          {((data?.saleNote && settings?.showSaleNote !== false) || (data?.paymentNote && settings?.showPaymentNote !== false) || (data?.note && !data?.saleNote)) && (
+          {((data?.saleNote && mergedSettings.showSaleNote) || (data?.paymentNote && mergedSettings.showPaymentNote) || (data?.note && !data?.saleNote)) && (
             <div className="p-2 sm:p-2.5 bg-blue-50/50 rounded-lg border border-blue-200/80 space-y-1">
               <p className="text-[9px] sm:text-[10px] font-bold uppercase text-blue-700 tracking-wider">Notes & Remarks:</p>
               {data?.saleNote && (
@@ -412,23 +491,23 @@ export default function InvoiceA4({
           )}
 
           {/* Warranty Policy Section */}
-          {settings?.showWarrantySection !== false && (settings?.warrantyTerms || settings?.warrantyPolicyText) && (
+          {mergedSettings.showWarrantySection && (mergedSettings.warrantyTerms || mergedSettings.warrantyPolicyText) && (
             <div className="p-2 sm:p-2.5 bg-amber-50/60 rounded-lg border border-amber-200/80 space-y-1">
               <p className="text-[9px] sm:text-[10px] font-bold uppercase text-amber-800 tracking-wider flex items-center gap-1">
-                <span>🛡️ {settings.warrantyTitle || 'Warranty Terms & Policy'}:</span>
+                <span>🛡️ {mergedSettings.warrantyTitle || 'Warranty Terms & Policy'}:</span>
               </p>
               <div className="text-[9px] sm:text-[10px] text-slate-700 whitespace-pre-line leading-relaxed font-sans">
-                {settings.warrantyTerms || settings.warrantyPolicyText}
+                {mergedSettings.warrantyTerms || mergedSettings.warrantyPolicyText}
               </div>
             </div>
           )}
 
           {/* General Terms & Conditions */}
-          {settings?.showTerms && settings?.termsAndConditions && (
+          {mergedSettings.showTerms && mergedSettings.termsAndConditions && (
             <div className="p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
               <p className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 tracking-wider">Terms & Conditions:</p>
               <div className="text-[9px] sm:text-[10px] text-slate-600 whitespace-pre-line leading-relaxed font-sans">
-                {settings.termsAndConditions}
+                {mergedSettings.termsAndConditions}
               </div>
             </div>
           )}
@@ -437,29 +516,28 @@ export default function InvoiceA4({
         {/* Right: Calculations Table */}
         <div className="md:col-span-5 space-y-1.5 font-sans">
           <div className="bg-slate-50 p-2.5 sm:p-3 rounded-lg border border-slate-200 space-y-1.5">
-            {settings?.showSubtotal && (
+            {mergedSettings.showSubtotal && (
               <div className="flex justify-between items-center text-slate-600">
                 <span>Items Subtotal:</span>
                 <span className="font-mono font-semibold text-slate-900">৳{subTotal.toLocaleString()}</span>
               </div>
             )}
 
-            {settings?.showDiscount && discount > 0 && (
+            {mergedSettings.showDiscount && discount > 0 && (
               <div className="flex justify-between items-center text-slate-600">
                 <span>Discount:</span>
                 <span className="font-mono font-semibold text-rose-600">-৳{discount.toLocaleString()}</span>
               </div>
             )}
 
-
-            {settings?.showTaxVat && (settings?.taxVatPercent > 0 || data?.vatAmount > 0) && (
+            {mergedSettings.showTaxVat && (mergedSettings.taxVatPercent > 0 || data?.vatAmount > 0) && (
               <div className="flex justify-between items-center text-slate-600">
-                <span>VAT / Tax ({settings?.taxVatPercent || 0}%):</span>
-                <span className="font-mono font-semibold text-slate-900">৳{(data?.vatAmount || (subTotal * (settings?.taxVatPercent || 0) / 100)).toLocaleString()}</span>
+                <span>VAT / Tax ({mergedSettings.taxVatPercent || 0}%):</span>
+                <span className="font-mono font-semibold text-slate-900">৳{(data?.vatAmount || (subTotal * (mergedSettings.taxVatPercent || 0) / 100)).toLocaleString()}</span>
               </div>
             )}
 
-            {settings?.showDeliveryCharge && (data?.deliveryCharge > 0) && (
+            {mergedSettings.showDeliveryCharge && (data?.deliveryCharge > 0) && (
               <div className="flex justify-between items-center text-slate-600">
                 <span>Delivery Charge:</span>
                 <span className="font-mono font-semibold text-slate-900">৳{Number(data.deliveryCharge).toLocaleString()}</span>
@@ -475,14 +553,14 @@ export default function InvoiceA4({
               <span className="font-mono font-black text-sm sm:text-base">৳{totalAmount.toLocaleString()}</span>
             </div>
 
-            {settings?.showPaidAmount && (
+            {mergedSettings.showPaidAmount && (
               <div className="flex justify-between items-center text-slate-700 pt-1">
                 <span className="font-medium">Paid Amount:</span>
                 <span className="font-mono font-bold text-emerald-700">৳{paidAmount.toLocaleString()}</span>
               </div>
             )}
 
-            {settings?.showDueAmount && (
+            {mergedSettings.showDueAmount && (
               <div className={`flex justify-between items-center pt-1 border-t border-slate-200 font-bold ${dueAmount > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
                 <span>{dueAmount > 0 ? 'Due Balance:' : 'Change / Balance:'}</span>
                 <span className="font-mono text-xs sm:text-sm">৳{dueAmount.toLocaleString()}</span>
@@ -493,28 +571,28 @@ export default function InvoiceA4({
       </div>
 
       {/* 6. SIGNATURE AREAS */}
-      {settings?.showSignatures && (
-        <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 flex justify-between items-end gap-2 text-[10px] sm:text-[11px] text-slate-700">
-          <div className="text-center w-32 sm:w-48 space-y-1">
-            <div className="border-t border-slate-400 border-dashed pt-1.5 font-semibold">
-              {settings?.customerSignatureLabel || 'Customer Signature'}
+      {mergedSettings.showSignatures !== false && (
+        <div className="mt-8 sm:mt-10 pt-4 flex justify-between items-end gap-4 text-[10px] sm:text-[11px] text-slate-700 break-inside-avoid">
+          <div className="text-center w-36 sm:w-48 space-y-1">
+            <div className="border-t-2 border-slate-400 border-dashed pt-1.5 font-bold text-slate-800">
+              {mergedSettings.customerSignatureLabel || 'Customer Signature'}
             </div>
             <p className="text-[8px] sm:text-[9px] text-slate-400">Received Goods in Good Condition</p>
           </div>
 
-          <div className="text-center w-32 sm:w-48 space-y-1">
-            <div className="border-t border-slate-400 border-dashed pt-1.5 font-semibold">
-              {settings?.authorizedSignatureLabel || 'Authorized Signature'}
+          <div className="text-center w-36 sm:w-48 space-y-1">
+            <div className="border-t-2 border-slate-400 border-dashed pt-1.5 font-bold text-slate-800">
+              {mergedSettings.authorizedSignatureLabel || 'Authorized Signature'}
             </div>
-            <p className="text-[8px] sm:text-[9px] text-slate-400">For {company?.name || 'BazarPOS'}</p>
+            <p className="text-[8px] sm:text-[9px] text-slate-400">For {company?.name || 'BazarPOS Outlet'}</p>
           </div>
         </div>
       )}
 
       {/* 7. FOOTER NOTE */}
-      {settings?.showFooterNote && settings?.footerNote && (
+      {mergedSettings.showFooterNote && mergedSettings.footerNote && (
         <div className="mt-4 sm:mt-6 pt-2.5 sm:pt-3 border-t border-slate-200 text-center text-[9px] sm:text-[10px] text-slate-500 font-medium">
-          {settings.footerNote}
+          {mergedSettings.footerNote}
         </div>
       )}
     </div>
