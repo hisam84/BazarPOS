@@ -54,6 +54,11 @@ export default function QuickCalculator({ isOpen, onClose }) {
   }, [isOpen, display, equation]);
 
   const handleNumber = (num) => {
+    if (equation.includes('=')) {
+      setEquation('');
+      setDisplay(num);
+      return;
+    }
     if (display === '0' || display === 'Error') {
       setDisplay(num);
     } else {
@@ -62,6 +67,11 @@ export default function QuickCalculator({ isOpen, onClose }) {
   };
 
   const handleDecimal = () => {
+    if (equation.includes('=')) {
+      setEquation('');
+      setDisplay('0.');
+      return;
+    }
     if (display === 'Error') {
       setDisplay('0.');
       return;
@@ -74,11 +84,35 @@ export default function QuickCalculator({ isOpen, onClose }) {
   const handleOperator = (op) => {
     if (display === 'Error') return;
     try {
-      if (equation && !['+', '−', '×', '÷'].includes(equation.slice(-1))) {
+      if (equation && equation.includes('=')) {
         setEquation(`${display} ${op} `);
-      } else {
-        setEquation(`${display} ${op} `);
+        setDisplay('0');
+        return;
       }
+      if (equation) {
+        const parts = equation.trim().split(' ');
+        if (parts.length >= 2 && display !== '0') {
+          // Chain operation
+          const fullExpr = equation + display;
+          const evalExpr = fullExpr
+            .replace(/×/g, '*')
+            .replace(/÷/g, '/')
+            .replace(/−/g, '-');
+          // eslint-disable-next-line no-new-func
+          const result = Function(`'use strict'; return (${evalExpr})`)();
+          const formatted = Number.isFinite(result)
+            ? String(Math.round(result * 100000000) / 100000000)
+            : 'Error';
+          setEquation(`${formatted} ${op} `);
+          setDisplay('0');
+          return;
+        } else if (parts.length >= 1) {
+          // Change operator
+          setEquation(`${parts[0]} ${op} `);
+          return;
+        }
+      }
+      setEquation(`${display} ${op} `);
       setDisplay('0');
     } catch {
       setDisplay('Error');
@@ -86,7 +120,7 @@ export default function QuickCalculator({ isOpen, onClose }) {
   };
 
   const handleCalculate = () => {
-    if (!equation || display === 'Error') return;
+    if (!equation || display === 'Error' || equation.includes('=')) return;
     try {
       const fullExpr = equation + display;
       // Sanitize and replace display operators with JS operators
@@ -115,6 +149,10 @@ export default function QuickCalculator({ isOpen, onClose }) {
   };
 
   const handleBackspace = () => {
+    if (equation.includes('=')) {
+      setEquation('');
+      return;
+    }
     if (display === 'Error' || display.length <= 1) {
       setDisplay('0');
     } else {
@@ -125,9 +163,34 @@ export default function QuickCalculator({ isOpen, onClose }) {
   const handlePercent = () => {
     if (display === 'Error') return;
     const val = parseFloat(display);
-    if (!isNaN(val)) {
-      setDisplay(String(val / 100));
+    if (isNaN(val)) return;
+
+    if (equation && !equation.includes('=')) {
+      // Equation format is typically "1000 + " or "1000 − " or "1000 × " or "1000 ÷ "
+      const parts = equation.trim().split(' ');
+      if (parts.length >= 2) {
+        const baseNum = parseFloat(parts[0]);
+        const op = parts[1];
+
+        if (!isNaN(baseNum)) {
+          if (op === '+' || op === '−') {
+            // e.g. 1000 − 10% -> 10% of 1000 is 100
+            const percentVal = (baseNum * val) / 100;
+            setDisplay(String(Math.round(percentVal * 100000000) / 100000000));
+            return;
+          } else if (op === '×' || op === '÷') {
+            // e.g. 1000 × 10% -> 0.1
+            const percentVal = val / 100;
+            setDisplay(String(Math.round(percentVal * 100000000) / 100000000));
+            return;
+          }
+        }
+      }
     }
+
+    // Default standalone percentage (divide by 100)
+    const result = val / 100;
+    setDisplay(String(Math.round(result * 100000000) / 100000000));
   };
 
   const handleToggleSign = () => {
