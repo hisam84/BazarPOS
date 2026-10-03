@@ -104,9 +104,6 @@ function ExpensesContent() {
           paymentSource: 'Cash',
           date: new Date().toISOString().slice(0, 10)
         });
-        try {
-          localStorage.setItem('bazarpos_last_change', Date.now().toString());
-        } catch (e) {}
         loadData(u.storeId || 'default');
       } else {
         alert(result.message || 'Error saving entry');
@@ -188,9 +185,6 @@ function ExpensesContent() {
       });
       const result = await res.json();
       if (result.success) {
-        try {
-          localStorage.setItem('bazarpos_last_change', Date.now().toString());
-        } catch (e) {}
         loadData(u.storeId || 'default');
       }
     } catch (err) {

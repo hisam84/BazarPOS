@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   ShoppingCart,
@@ -13,6 +13,7 @@ import {
   TrendingUp,
   DollarSign,
   CreditCard,
+  Plus,
   Calendar,
   Filter,
   ChevronDown,
@@ -20,9 +21,12 @@ import {
   AlertTriangle,
   Clock,
   Wallet,
+  Building2,
+  Boxes,
   ArrowDownCircle,
+  HelpCircle,
   BarChart3,
-  RefreshCw
+  CheckCircle2
 } from 'lucide-react';
 import { formatDhakaDateTime } from '@/lib/date-utils';
 
@@ -33,8 +37,6 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState([]);
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(null);
 
   // Date Filter State - Default to 'today' for operational clarity
   const [datePreset, setDatePreset] = useState('today');
@@ -42,22 +44,28 @@ export default function Dashboard() {
   const [customEndDate, setCustomEndDate] = useState('');
   const [showCustomPicker, setShowCustomPicker] = useState(false);
 
-  const activeStoreIdRef = useRef('default');
-
-  const loadDashboardData = useCallback(async (storeId, isInitial = false) => {
-    if (isInitial) {
-      setLoading(true);
+  useEffect(() => {
+    const saved = localStorage.getItem('bazarpos_user');
+    if (saved) {
+      try {
+        const u = JSON.parse(saved);
+        setUser(u);
+        loadDashboardData(u.storeId || 'default');
+      } catch (e) {
+        setLoading(false);
+      }
     } else {
-      setIsRefreshing(true);
+      setLoading(false);
     }
+  }, []);
 
+  const loadDashboardData = async (storeId) => {
     try {
-      const timestamp = Date.now();
       const [vRes, pRes, eRes, rRes] = await Promise.all([
-        fetch(`/api/vouchers?storeId=${storeId}&_t=${timestamp}`, { cache: 'no-store' }),
-        fetch(`/api/products?storeId=${storeId}&_t=${timestamp}`, { cache: 'no-store' }),
-        fetch(`/api/expenses?storeId=${storeId}&_t=${timestamp}`, { cache: 'no-store' }),
-        fetch(`/api/sales-return?storeId=${storeId}&_t=${timestamp}`, { cache: 'no-store' })
+        fetch(`/api/vouchers?storeId=${storeId}`),
+        fetch(`/api/products?storeId=${storeId}`),
+        fetch(`/api/expenses?storeId=${storeId}`),
+        fetch(`/api/sales-return?storeId=${storeId}`)
       ]);
 
       const [vData, pData, eData, rData] = await Promise.all([
@@ -71,69 +79,12 @@ export default function Dashboard() {
       if (pData.success) setProducts(pData.products || []);
       if (eData.success) setExpenses((eData.data && eData.data.expense) || []);
       if (rData.success) setReturns(rData.returns || []);
-      setLastUpdated(new Date());
     } catch (err) {
-      console.error('Error loading real-time dashboard data:', err);
+      console.error('Error loading dashboard data:', err);
     } finally {
       setLoading(false);
-      setIsRefreshing(false);
     }
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('bazarpos_user');
-    let currentStoreId = 'default';
-
-    if (saved) {
-      try {
-        const u = JSON.parse(saved);
-        setUser(u);
-        currentStoreId = u.storeId || 'default';
-        activeStoreIdRef.current = currentStoreId;
-      } catch (e) {
-        // Fallback
-      }
-    }
-
-    // Initial load
-    loadDashboardData(currentStoreId, true);
-
-    // Real-time auto polling every 8 seconds when tab is active
-    const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-        loadDashboardData(activeStoreIdRef.current, false);
-      }
-    }, 8000);
-
-    // Instant sync when user switches tabs or returns to window
-    const handleFocus = () => {
-      loadDashboardData(activeStoreIdRef.current, false);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        loadDashboardData(activeStoreIdRef.current, false);
-      }
-    };
-
-    // Cross-tab storage change sync
-    const handleStorage = (e) => {
-      if (e.key === 'bazarpos_last_change' || e.key === 'bazarpos_user') {
-        loadDashboardData(activeStoreIdRef.current, false);
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('storage', handleStorage);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, [loadDashboardData]);
+  };
 
   // Calculate Date Range Bounds
   const dateRange = useMemo(() => {
@@ -242,7 +193,7 @@ export default function Dashboard() {
     });
   }, [returns, dateRange]);
 
-  // Real-time Aggregated Financial Metrics
+  // Standard Financial Calculations (Single Source of Truth)
   const totalSales = useMemo(() => {
     return filteredVouchers.reduce((acc, v) => acc + (Number(v.totalAmount) || 0), 0);
   }, [filteredVouchers]);
@@ -274,7 +225,7 @@ export default function Dashboard() {
   const collectionRate = totalSales > 0 ? Math.min(100, Math.round((totalPaid / totalSales) * 100)) : 0;
   const dueRate = totalSales > 0 ? Math.min(100, Math.round((totalDue / totalSales) * 100)) : 0;
 
-  // Real-time Payment Methods Distribution
+  // Payment Methods Distribution (Real Data)
   const paymentMethodsData = useMemo(() => {
     const map = {};
     filteredVouchers.forEach((v) => {
@@ -296,7 +247,7 @@ export default function Dashboard() {
     })).sort((a, b) => b.amount - a.amount);
   }, [filteredVouchers]);
 
-  // Real-time Sales Trend Data (Grouped for Selected Period)
+  // Sales Trend Chart Data (Grouped for Selected Period)
   const chartTrendData = useMemo(() => {
     if (filteredVouchers.length === 0) return [];
 
@@ -309,7 +260,7 @@ export default function Dashboard() {
       let displayLabel = '';
 
       if (isSingleDay) {
-        // Group by 2-3 hour slots
+        // Group by 2-hour slots
         const hour = d.getHours();
         const slot = Math.floor(hour / 3) * 3;
         key = `slot_${slot}`;
@@ -333,7 +284,7 @@ export default function Dashboard() {
     return Object.values(groups).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [filteredVouchers, datePreset]);
 
-  // Real-time low stock products alert
+  // Low stock products alert
   const lowStockProducts = useMemo(() => {
     return products.filter(
       (p) => (Number(p.quantity) || 0) <= (Number(p.minQuantity) || 5)
@@ -347,54 +298,26 @@ export default function Dashboard() {
     }
   };
 
-  const handleManualRefresh = () => {
-    loadDashboardData(activeStoreIdRef.current, false);
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6 pb-12 max-w-7xl mx-auto">
-      {/* 1. Header Section - Clean, Compact, Professional with Real-time Sync Status */}
+      {/* 1. Header Section - Clean, Compact, Professional */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex items-center space-x-2.5 flex-wrap">
+          <div className="flex items-center space-x-2">
             <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight truncate">
               Welcome back, <span className="text-blue-600">{user?.fullName || 'Store Manager'}</span> 👋
             </h1>
-
-            {/* Real-time Pulsing Live Badge */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span>Live Data</span>
-            </div>
           </div>
-
-          <div className="text-xs text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
             <span>Store Context:</span>
             <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md text-xs border border-slate-200/80">
               {user?.storeName || 'Main BazarPOS Store'}
             </span>
-            {lastUpdated && (
-              <span className="text-[11px] text-slate-400">
-                · Synced {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-              </span>
-            )}
-          </div>
+          </p>
         </div>
 
-        {/* Action Buttons & Manual Refresh */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={handleManualRefresh}
-            disabled={isRefreshing}
-            className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl transition border border-slate-200 cursor-pointer disabled:opacity-60"
-            title="Refresh Real-time Metrics"
-          >
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-blue-600' : ''} />
-          </button>
-
+        {/* Primary POS and Quick Operations */}
+        <div className="flex items-center gap-2.5 shrink-0">
           <Link
             href="/sales-return"
             className="inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition"
@@ -525,7 +448,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* 3. Real-time KPI Cards Grid */}
+      {/* 3. KPI Section - 6 Balanced Financial Cards with Single Source of Truth */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
           {[...Array(6)].map((_, i) => (
@@ -567,7 +490,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* 3. Customer Due */}
+          {/* 3. Customer Due (Fixed Terminology & Classification) */}
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500">Customer Due</span>
@@ -609,7 +532,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* 6. Net Profit */}
+          {/* 6. Net Profit (Transparent Formula & Distinct Margin %) */}
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between hover:border-slate-300 transition bg-gradient-to-b from-teal-50/20 to-white">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-600">Net Profit</span>
@@ -1001,7 +924,7 @@ export default function Dashboard() {
               </Link>
               <button
                 onClick={() => setDatePreset('all')}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition cursor-pointer"
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition"
               >
                 View All Time
               </button>
