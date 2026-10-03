@@ -168,7 +168,7 @@ export async function POST(request) {
     }
 
     // 4. Standard SMTP / Brevo SMTP Relay / Gmail Gateway
-    if (provider === 'smtp' || provider === 'gmail' || provider === 'brevo') {
+    if (provider === 'smtp' || provider === 'gmail' || (provider === 'brevo' && !apiKey)) {
       if (!smtpHost || !smtpUser) {
         return NextResponse.json(
           { success: false, message: 'SMTP Host and Username/Email are required' },
@@ -176,13 +176,55 @@ export async function POST(request) {
         );
       }
 
-      console.log(`[SMTP GATEWAY VERIFY] Connecting to ${smtpHost}:${smtpPort || 587} as ${smtpUser}...`);
-      console.log(`[SMTP GATEWAY DISPATCH] Sending to ${recipient} from ${fromEmail}`);
+      if (!smtpPassword) {
+        return NextResponse.json(
+          { success: false, message: 'SMTP Password (or Gmail 16-character App Password) is required' },
+          { status: 400 }
+        );
+      }
 
-      return NextResponse.json({
-        success: true,
-        message: `SMTP gateway verified & test email dispatched to ${recipient} via ${smtpHost}:${smtpPort || 587}!`
-      });
+      try {
+        const nodemailer = (await import('nodemailer')).default;
+        const port = Number(smtpPort) || 587;
+        const isSecure = port === 465 || settings.smtpSecure === 'ssl';
+
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: port,
+          secure: isSecure,
+          auth: {
+            user: smtpUser.trim(),
+            pass: smtpPassword.trim().replace(/\s+/g, '') // remove spaces from Gmail app passwords
+          },
+          tls: {
+            rejectUnauthorized: false
+          }
+        });
+
+        const info = await transporter.sendMail({
+          from: `"${fromName}" <${fromEmail || smtpUser}>`,
+          to: recipient,
+          subject: subject,
+          html: htmlBody
+        });
+
+        return NextResponse.json({
+          success: true,
+          message: `Test email successfully sent to ${recipient} via ${smtpHost}:${port}! (Message ID: ${info.messageId})`
+        });
+      } catch (err) {
+        console.error('SMTP test delivery error:', err);
+        let helpfulMessage = err.message;
+        if (err.message?.includes('Invalid login') || err.message?.includes('BadCredentials') || err.code === 'EAUTH') {
+          helpfulMessage = 'Authentication failed (Invalid login): For Gmail, you MUST use a 16-character "App Password" (Google Account > Security > 2-Step Verification > App Passwords), NOT your regular Gmail password.';
+        } else if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
+          helpfulMessage = `Connection to ${smtpHost}:${smtpPort || 587} timed out. Please check SMTP Host and Port.`;
+        }
+        return NextResponse.json(
+          { success: false, message: helpfulMessage },
+          { status: 400 }
+        );
+      }
     }
 
     return NextResponse.json({

@@ -116,24 +116,29 @@ export async function POST(request) {
     } else if (mailSettings.smtpHost && mailSettings.smtpUser && mailSettings.smtpPassword) {
       try {
         const nodemailer = (await import('nodemailer')).default;
+        const port = Number(mailSettings.smtpPort) || 587;
         const transporter = nodemailer.createTransport({
           host: mailSettings.smtpHost,
-          port: Number(mailSettings.smtpPort) || 587,
-          secure: mailSettings.smtpSecure === 'ssl' || Number(mailSettings.smtpPort) === 465,
+          port: port,
+          secure: mailSettings.smtpSecure === 'ssl' || port === 465,
           auth: {
-            user: mailSettings.smtpUser,
-            pass: mailSettings.smtpPassword
+            user: mailSettings.smtpUser.trim(),
+            pass: mailSettings.smtpPassword.trim().replace(/\s+/g, '')
           },
           tls: { rejectUnauthorized: false }
         });
         await transporter.sendMail({
-          from: `"${fromName}" <${fromEmail}>`,
+          from: `"${fromName}" <${fromEmail || mailSettings.smtpUser}>`,
           to: recipient,
           subject: subject,
           html: htmlBody
         });
       } catch (err) {
-        console.warn('Nodemailer invoice send warning:', err.message);
+        console.error('Nodemailer invoice send error:', err.message);
+        return NextResponse.json(
+          { success: false, message: `Failed to send email: ${err.message}` },
+          { status: 500 }
+        );
       }
     } else {
       console.log(`[SMTP/GATEWAY INVOICE SENT] To: ${recipient}, Subject: ${subject}, Link: ${directLink}`);
