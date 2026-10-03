@@ -461,40 +461,50 @@ export default function Sidebar({ user, company, onLogout, mobileOpen, setMobile
                   )}
                 </button>
 
-                {/* Submenu Accordion Items (when opened) */}
-                {isOpen && !collapsed && (
-                  <div className="pl-2.5 pr-1 py-1 space-y-0.5 border-l-2 border-slate-700/60 ml-4 animate-in slide-in-from-top-1 duration-150">
-                    {visibleChildren.map((sub, idx) => {
-                      const subActive = isItemActive(sub.href);
-                      return (
-                        <Link
-                          key={idx}
-                          href={sub.href}
-                          onClick={() => setMobileOpen(false)}
-                          title={sub.name}
-                          className={`group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition duration-150 font-medium ${
-                            subActive
-                              ? 'bg-blue-600 text-white font-bold shadow-xs'
-                              : 'text-slate-400 hover:text-white hover:bg-white/5 hover:translate-x-0.5'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2 min-w-0 flex-1">
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
-                                subActive ? 'bg-white' : 'bg-slate-500 group-hover:bg-blue-400'
+                {/* Submenu Accordion Items with smooth expand/collapse animation */}
+                {!collapsed && (
+                  <div
+                    className={`grid transition-[grid-template-rows,opacity] duration-200 ease-in-out ${
+                      isOpen
+                        ? 'grid-rows-[1fr] opacity-100'
+                        : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="pl-2.5 pr-1 py-1 space-y-0.5 border-l-2 border-slate-700/60 ml-4">
+                        {visibleChildren.map((sub, idx) => {
+                          const subActive = isItemActive(sub.href);
+                          return (
+                            <Link
+                              key={idx}
+                              href={sub.href}
+                              onClick={() => setMobileOpen(false)}
+                              title={sub.name}
+                              className={`group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all duration-150 font-medium ${
+                                subActive
+                                  ? 'bg-blue-600 text-white font-bold shadow-xs'
+                                  : 'text-slate-400 hover:text-white hover:bg-white/5 hover:translate-x-0.5'
                               }`}
-                            />
-                            <span className="truncate">{sub.name}</span>
-                          </div>
+                            >
+                              <div className="flex items-center space-x-2 min-w-0 flex-1">
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+                                    subActive ? 'bg-white' : 'bg-slate-500 group-hover:bg-blue-400'
+                                  }`}
+                                />
+                                <span className="truncate">{sub.name}</span>
+                              </div>
 
-                          {sub.badge && (
-                            <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[9px] font-extrabold rounded-full shrink-0 ml-1">
-                              {sub.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
+                              {sub.badge && (
+                                <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[9px] font-extrabold rounded-full shrink-0 ml-1">
+                                  {sub.badge}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
