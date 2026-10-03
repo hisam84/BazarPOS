@@ -3,6 +3,115 @@ import { getStoreData, saveStoreData } from '@/lib/db';
 import { verifyApiAuth } from '@/lib/api-auth';
 import crypto from 'crypto';
 
+function reconcileCustomerDues(storeData) {
+  if (!storeData?.vouchers || storeData.vouchers.length === 0) return false;
+
+  let modified = false;
+
+  // Group vouchers by customer (excluding walk-in customer)
+  const vouchersByCustomer = {};
+  storeData.vouchers.forEach((v, index) => {
+    const custKey = (v.clientName || '').trim().toLowerCase();
+    if (custKey && custKey !== 'walk-in customer') {
+      if (!vouchersByCustomer[custKey]) {
+        vouchersByCustomer[custKey] = [];
+      }
+      vouchersByCustomer[custKey].push({ voucher: v, index });
+    }
+  });
+
+  // Reconcile each customer's vouchers chronologically
+  Object.keys(vouchersByCustomer).forEach(custKey => {
+    // Sort vouchers oldest to newest (by date or voucherNo)
+    const list = vouchersByCustomer[custKey].sort((a, b) => {
+      const dateA = new Date(a.voucher.date || 0).getTime();
+      const dateB = new Date(b.voucher.date || 0).getTime();
+      return dateA - dateB;
+    });
+
+    // 1. Reconcile vouchers where subsequent invoices included and paid previous dues
+    list.forEach((entry, idx) => {
+      const v = entry.voucher;
+      const prevDueAmt = Number(v.previousDue || 0);
+      const isIncludePrevDue = Boolean(v.includePreviousDue || prevDueAmt > 0);
+
+      if (isIncludePrevDue && prevDueAmt > 0) {
+        const itemsSubTotal = Number(v.subTotal !== undefined ? v.subTotal : v.totalAmount) || 0;
+        const discountAmount = Number(v.discount || 0);
+        const itemsTotal = Math.max(0, itemsSubTotal - discountAmount);
+        const paid = Number(v.paidAmount || 0);
+        // Payment allocated toward previous due:
+        const prevDuePaid = Math.min(prevDueAmt, Math.max(0, paid - itemsTotal));
+
+        if (prevDuePaid > 0) {
+          let remainingToClear = prevDuePaid;
+          // Clear older vouchers (from oldest up to the one just before this voucher)
+          for (let i = 0; i < idx; i++) {
+            if (remainingToClear <= 0) break;
+            const olderV = list[i].voucher;
+            if (Number(olderV.dueAmount) > 0) {
+              const clearAmt = Math.min(Number(olderV.dueAmount), remainingToClear);
+              olderV.paidAmount = Number(olderV.paidAmount || 0) + clearAmt;
+              olderV.dueAmount = Math.max(0, Number(olderV.dueAmount) - clearAmt);
+              olderV.status = olderV.dueAmount === 0 ? 'PAID' : 'PARTIAL';
+              
+              olderV.paymentHistory = olderV.paymentHistory || [];
+              const alreadyLogged = olderV.paymentHistory.some(ph => ph.voucherNo === v.voucherNo || (ph.note && ph.note.includes(v.voucherNo)));
+              if (!alreadyLogged) {
+                olderV.paymentHistory.push({
+                  id: 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                  date: v.date || new Date().toISOString(),
+                  amount: clearAmt,
+                  paymentMethod: v.paymentMethod || 'Cash',
+                  note: `Paid via invoice ${v.voucherNo}`,
+                  voucherNo: v.voucherNo
+                });
+              }
+
+              remainingToClear -= clearAmt;
+              modified = true;
+            }
+          }
+        }
+      }
+    });
+
+    // 2. Synchronize with client's current outstanding due balance in clients list
+    const matchedClient = (storeData.clients || []).find(c => (c.name || '').trim().toLowerCase() === custKey);
+    if (matchedClient) {
+      const clientTotalDue = Number(matchedClient.due || 0);
+      const totalVoucherDues = list.reduce((sum, item) => sum + Number(item.voucher.dueAmount || 0), 0);
+
+      // If client has 0 due overall, clear all dues on their vouchers
+      if (clientTotalDue === 0 && totalVoucherDues > 0) {
+        list.forEach(entry => {
+          const v = entry.voucher;
+          if (Number(v.dueAmount || 0) > 0) {
+            const remainingDue = Number(v.dueAmount);
+            v.paidAmount = Number(v.paidAmount || 0) + remainingDue;
+            v.dueAmount = 0;
+            v.status = 'PAID';
+            v.paymentHistory = v.paymentHistory || [];
+            const alreadyLogged = v.paymentHistory.some(ph => ph.note && ph.note.includes('Settled'));
+            if (!alreadyLogged) {
+              v.paymentHistory.push({
+                id: 'pay_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                date: new Date().toISOString(),
+                amount: remainingDue,
+                paymentMethod: 'Cash',
+                note: 'Settled with customer balance'
+              });
+            }
+            modified = true;
+          }
+        });
+      }
+    }
+  });
+
+  return modified;
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -25,12 +134,17 @@ export async function GET(request) {
 
     if (modified) {
       storeData.vouchers = vouchers;
+    }
+
+    // Auto-reconcile customer dues retroactively
+    const duesReconciled = reconcileCustomerDues(storeData);
+    if (modified || duesReconciled) {
       await saveStoreData(storeId, storeData);
     }
 
     return NextResponse.json({
       success: true,
-      vouchers: vouchers,
+      vouchers: storeData.vouchers || [],
       voucherCounter: storeData.voucherCounter || 1001
     });
   } catch (error) {
