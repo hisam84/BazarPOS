@@ -17,17 +17,11 @@ import {
   Phone,
   Mail,
   MapPin,
-  Send,
-  Server,
-  Zap,
-  Check,
-  AlertCircle,
   Eye,
   EyeOff,
-  BellRing,
-  Globe
+  Globe,
+  Database
 } from 'lucide-react';
-import EmailTemplateEditor from '@/components/EmailTemplateEditor';
 import SMSGatewaySettings from '@/components/SMSGatewaySettings';
 
 export default function SettingsPage() {
@@ -59,35 +53,11 @@ export default function SettingsPage() {
     confirmPassword: ''
   });
 
-  // Mailing & API Settings State
-  const [mailSettings, setMailSettings] = useState({
-    enabled: true,
-    provider: 'smtp', // 'smtp' | 'resend' | 'sendgrid' | 'gmail'
-    fromName: 'BazarPOS Store',
-    fromEmail: 'noreply@bazarpos.com',
-    replyTo: '',
-    smtpHost: 'smtp.gmail.com',
-    smtpPort: 587,
-    smtpSecure: 'tls',
-    smtpUser: '',
-    smtpPassword: '',
-    apiKey: '',
-    sendInvoiceOnSale: false,
-    sendLowStockAlert: true,
-    sendDailySummary: false
-  });
-
-  const [showPassword, setShowPassword] = useState(false);
   const [showOwnerNewPassword, setShowOwnerNewPassword] = useState(false);
   const [showOwnerConfirmPassword, setShowOwnerConfirmPassword] = useState(false);
-  const [showBrevoKey, setShowBrevoKey] = useState(false);
-  const [testEmail, setTestEmail] = useState('');
-  const [sendingTest, setSendingTest] = useState(false);
-  const [testResult, setTestResult] = useState(null);
 
   const [savingOwner, setSavingOwner] = useState(false);
   const [savingCompany, setSavingCompany] = useState(false);
-  const [savingMail, setSavingMail] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
@@ -103,15 +73,13 @@ export default function SettingsPage() {
   const loadAllSettings = async (storeId) => {
     try {
       setLoading(true);
-      const [compRes, ownerRes, mailRes] = await Promise.all([
+      const [compRes, ownerRes] = await Promise.all([
         fetch(`/api/company?storeId=${storeId}`),
-        fetch(`/api/owner?storeId=${storeId}`),
-        fetch(`/api/mail-settings?storeId=${storeId}`)
+        fetch(`/api/owner?storeId=${storeId}`)
       ]);
 
       const compData = await compRes.json();
       const ownerData = await ownerRes.json();
-      const mailData = await mailRes.json();
 
       if (compData.success && compData.company) {
         setCompany(compData.company);
@@ -128,13 +96,6 @@ export default function SettingsPage() {
           newPassword: '',
           confirmPassword: ''
         });
-        if (o.email && !testEmail) {
-          setTestEmail(o.email);
-        }
-      }
-
-      if (mailData.success && mailData.mailSettings) {
-        setMailSettings(mailData.mailSettings);
       }
     } catch (err) {
       console.error(err);
@@ -284,84 +245,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSaveMailSettings = async (e) => {
-    e.preventDefault();
-    setSavingMail(true);
-    setErrorMsg('');
-    try {
-      const res = await fetch('/api/mail-settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId: user?.storeId || 'default',
-          mailSettings
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setMsg('Mailing & API configuration saved successfully!');
-        setTimeout(() => setMsg(''), 3500);
-      } else {
-        setErrorMsg(data.message || 'Failed to save mail settings');
-      }
-    } catch (err) {
-      setErrorMsg('Error saving mailing configuration');
-    } finally {
-      setSavingMail(false);
-    }
-  };
-
-  const handleToggleMailEnabled = async () => {
-    const nextState = !mailSettings.enabled;
-    const updated = { ...mailSettings, enabled: nextState };
-    setMailSettings(updated);
-
-    try {
-      await fetch('/api/mail-settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId: user?.storeId || 'default',
-          mailSettings: updated
-        })
-      });
-      if (nextState) {
-        setMsg('Email Service enabled! You can now configure credentials below.');
-      } else {
-        setMsg('Email Service disabled.');
-      }
-      setTimeout(() => setMsg(''), 3500);
-    } catch (err) {
-      console.error('Failed to toggle email service state:', err);
-    }
-  };
-
-  const handleSendTestEmail = async () => {
-    if (!testEmail || !testEmail.includes('@')) {
-      alert('Please enter a valid recipient email address');
-      return;
-    }
-
-    setSendingTest(true);
-    setTestResult(null);
-    try {
-      const res = await fetch('/api/mail/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          recipient: testEmail,
-          settings: mailSettings
-        })
-      });
-      const data = await res.json();
-      setTestResult(data);
-    } catch (err) {
-      setTestResult({ success: false, message: 'Network error sending test email' });
-    } finally {
-      setSendingTest(false);
-    }
-  };
-
   const handleDownloadBackup = async () => {
     try {
       const res = await fetch(`/api/backup?storeId=${user?.storeId || 'default'}`);
@@ -403,16 +286,16 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl space-y-4 sm:space-y-8 pb-12 overflow-x-hidden">
+    <div className="max-w-4xl space-y-4 sm:space-y-6 pb-12 overflow-x-hidden">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center space-x-2">
             <Settings className="text-blue-600 flex-shrink-0" size={22} />
-            <span className="truncate">Store & System Settings</span>
+            <span className="truncate">Store &amp; Business Settings</span>
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-            Manage owner details, store branding, SMTP & API email gateway, and database backups.
+            Manage your store branding, owner details, security credentials, and system backups.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -440,571 +323,17 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* 1. STORE OWNER INFORMATION FORM */}
+      {/* 1. STORE BRANDING & RECEIPT DETAILS */}
       <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between border-b pb-3">
           <h2 className="text-sm sm:text-base font-bold text-slate-800 flex items-center space-x-2">
-            <User className="text-blue-600 flex-shrink-0" size={18} />
-            <span className="truncate">Store Owner Information</span>
+            <Store className="text-blue-600 flex-shrink-0" size={18} />
+            <span className="truncate">Store Branding &amp; Public Receipt Details</span>
           </h2>
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full flex-shrink-0">
-            Store Owner
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full flex-shrink-0">
+            Branding
           </span>
         </div>
-
-        <form onSubmit={handleSaveOwnerInfo} className="space-y-3.5 sm:space-y-4 text-xs font-medium">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-slate-700 mb-1 font-bold">Owner Full Name *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Hisam Uddin"
-                value={ownerInfo.owner}
-                onChange={e => setOwnerInfo({ ...ownerInfo, owner: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-semibold text-slate-900 focus:bg-white focus:outline-none transition text-xs"
-              />
-            </div>
-
-            <div>
-              <label className="block text-slate-700 mb-1 font-bold">Owner Login Username *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. zenmart"
-                value={ownerInfo.username}
-                onChange={e => setOwnerInfo({ ...ownerInfo, username: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono font-bold text-slate-900 focus:bg-white focus:outline-none transition text-xs"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-slate-700 mb-1 font-bold">Owner Phone Number</label>
-              <input
-                type="text"
-                placeholder="01700000000"
-                value={ownerInfo.phone}
-                onChange={e => setOwnerInfo({ ...ownerInfo, phone: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-slate-800 focus:bg-white focus:outline-none transition text-xs"
-              />
-            </div>
-
-            <div>
-              <label className="block text-slate-700 mb-1 font-bold">Owner Email Address</label>
-              <input
-                type="email"
-                placeholder="owner@store.com"
-                value={ownerInfo.email}
-                onChange={e => setOwnerInfo({ ...ownerInfo, email: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-800 focus:bg-white focus:outline-none transition text-xs"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-slate-700 mb-1 font-bold">Owner Address / City</label>
-            <input
-              type="text"
-              placeholder="e.g. Mirpur, Dhaka-1216"
-              value={ownerInfo.address}
-              onChange={e => setOwnerInfo({ ...ownerInfo, address: e.target.value })}
-              className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-800 focus:bg-white focus:outline-none transition text-xs"
-            />
-          </div>
-
-          {/* Change Password Section */}
-          <div className="p-3 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3 mt-2">
-            <div className="flex items-center space-x-2 text-slate-800 font-bold text-xs">
-              <KeyRound size={15} className="text-blue-600 flex-shrink-0" />
-              <span>Change Login Password (Optional)</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div>
-                <label className="block text-slate-600 mb-1 text-[11px] font-semibold">New Password</label>
-                <div className="relative">
-                  <input
-                    type={showOwnerNewPassword ? 'text' : 'password'}
-                    placeholder="Leave blank to keep current"
-                    value={ownerInfo.newPassword}
-                    onChange={e => setOwnerInfo({ ...ownerInfo, newPassword: e.target.value })}
-                    className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono focus:outline-none focus:border-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOwnerNewPassword(!showOwnerNewPassword)}
-                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
-                  >
-                    {showOwnerNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className="block text-slate-600 mb-1 text-[11px] font-semibold">Confirm New Password</label>
-                <div className="relative">
-                  <input
-                    type={showOwnerConfirmPassword ? 'text' : 'password'}
-                    placeholder="Repeat new password"
-                    value={ownerInfo.confirmPassword}
-                    onChange={e => setOwnerInfo({ ...ownerInfo, confirmPassword: e.target.value })}
-                    className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono focus:outline-none focus:border-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowOwnerConfirmPassword(!showOwnerConfirmPassword)}
-                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
-                  >
-                    {showOwnerConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={savingOwner}
-            className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-blue-500/20 active:scale-98"
-          >
-            <Save size={15} />
-            <span>{savingOwner ? 'Saving Owner Info...' : 'Update Owner Information'}</span>
-          </button>
-        </form>
-      </div>
-
-      {/* 2. EMAIL & API MAILING SETTINGS */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 sm:pb-4 gap-3">
-          <div>
-            <h2 className="text-sm sm:text-base font-bold text-slate-800 flex items-center space-x-2">
-              <Mail className="text-indigo-600 flex-shrink-0" size={18} />
-              <span className="truncate">Email & Mailing Gateway</span>
-            </h2>
-            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-              Configure Brevo, SMTP, Resend, SendGrid or Gmail for auto-invoices & alerts.
-            </p>
-          </div>
-          <div className="flex items-center space-x-3 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={handleToggleMailEnabled}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all ${
-                mailSettings.enabled
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
-                  : 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${mailSettings.enabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
-              <span>{mailSettings.enabled ? 'Enabled' : 'Disabled'}</span>
-              <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${mailSettings.enabled ? 'bg-emerald-600' : 'bg-slate-300'} flex items-center`}>
-                <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${mailSettings.enabled ? 'translate-x-3.5' : 'translate-x-0'}`} />
-              </div>
-            </button>
-          </div>
-        </div>
-
-        {!mailSettings.enabled ? (
-          <div className="bg-slate-50/80 border border-dashed border-slate-300 rounded-2xl p-5 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
-              <Mail size={22} />
-            </div>
-            <h3 className="font-bold text-slate-700 text-xs sm:text-sm mb-1">Email Service is Currently Disabled</h3>
-            <p className="text-[11px] sm:text-xs text-slate-500 max-w-md mx-auto mb-3.5 leading-relaxed">
-              Automated invoice emails, password reset links, low stock warnings, and daily summaries are currently turned off.
-            </p>
-            <button
-              type="button"
-              onClick={handleToggleMailEnabled}
-              className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition inline-flex items-center justify-center space-x-2 shadow-md shadow-indigo-600/20 active:scale-98"
-            >
-              <Zap size={15} />
-              <span>Enable Email Gateway</span>
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4 sm:space-y-6">
-            <form onSubmit={handleSaveMailSettings} className="space-y-4 sm:space-y-6 text-xs font-medium">
-              {/* Provider Selection */}
-              <div>
-                <label className="block text-slate-700 mb-2 font-bold">Select Protocol / Provider</label>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
-                  {[
-                    { id: 'brevo', label: 'Brevo', sub: 'REST API & Relay', icon: Send },
-                    { id: 'smtp', label: 'Custom SMTP', sub: 'cPanel / Webmail', icon: Server },
-                    { id: 'gmail', label: 'Gmail SMTP', sub: 'App Password', icon: Mail },
-                    { id: 'resend', label: 'Resend API', sub: 'Deliverability', icon: Zap },
-                    { id: 'sendgrid', label: 'SendGrid API', sub: 'Enterprise API', icon: Send },
-                  ].map(prov => {
-                    const Icon = prov.icon;
-                    const isSelected = mailSettings.provider === prov.id;
-                    return (
-                      <button
-                        key={prov.id}
-                        type="button"
-                        onClick={() => {
-                          let updates = { provider: prov.id };
-                          if (prov.id === 'gmail') {
-                            updates.smtpHost = 'smtp.gmail.com';
-                            updates.smtpPort = 587;
-                            updates.smtpSecure = 'tls';
-                          } else if (prov.id === 'brevo' && !mailSettings.smtpHost) {
-                            updates.smtpHost = 'smtp-relay.brevo.com';
-                            updates.smtpPort = 587;
-                            updates.smtpSecure = 'tls';
-                          }
-                          setMailSettings(prev => ({ ...prev, ...updates }));
-                        }}
-                        className={`p-2.5 sm:p-3 rounded-xl border text-left transition relative flex flex-col justify-between ${
-                          isSelected
-                            ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
-                            : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                            <Icon size={14} />
-                          </div>
-                          {isSelected && <Check size={14} className="text-indigo-600 font-bold" />}
-                        </div>
-                        <div>
-                          <p className={`font-bold text-[11px] sm:text-xs truncate ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>{prov.label}</p>
-                          <p className="text-[9px] sm:text-[10px] text-slate-500 truncate">{prov.sub}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Sender Details */}
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 sm:space-y-4">
-                <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                  <Store size={14} className="text-indigo-600" />
-                  <span>Sender Identity</span>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-slate-700 mb-1 font-semibold">Sender Display Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. BazarPOS Outlet"
-                      value={mailSettings.fromName}
-                      onChange={e => setMailSettings({ ...mailSettings, fromName: e.target.value })}
-                      className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-700 mb-1 font-semibold">Sender Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="e.g. billing@zenmart.com"
-                      value={mailSettings.fromEmail}
-                      onChange={e => setMailSettings({ ...mailSettings, fromEmail: e.target.value })}
-                      className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:border-indigo-500 text-xs font-mono"
-                    />
-                    {mailSettings.provider === 'brevo' && (
-                      <p className="text-[10px] text-slate-500 mt-1">Note: Must be a verified Sender in your Brevo account.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Provider Specific Configuration */}
-              {mailSettings.provider === 'brevo' ? (
-                <div className="p-3 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 sm:space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                      <Send size={14} className="text-indigo-600" />
-                      <span>Brevo Configuration</span>
-                    </h3>
-                    <span className="text-[10px] bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-md">REST API v3</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-700 mb-1 font-semibold">Brevo API Key *</label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                        value={mailSettings.apiKey}
-                        onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
-                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-                      >
-                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Optional SMTP Fallback */}
-                  <div className="pt-2 border-t border-slate-200">
-                    <p className="text-[11px] font-semibold text-slate-700 mb-2">Or Brevo SMTP Relay credentials:</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                      <div>
-                        <label className="block text-slate-600 mb-0.5 text-[10px]">Host</label>
-                        <input
-                          type="text"
-                          placeholder="smtp-relay.brevo.com"
-                          value={mailSettings.smtpHost}
-                          onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
-                          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-600 mb-0.5 text-[10px]">Login / User</label>
-                        <input
-                          type="text"
-                          placeholder="your-email@domain.com"
-                          value={mailSettings.smtpUser}
-                          onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
-                          className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-600 mb-0.5 text-[10px]">SMTP Key</label>
-                        <div className="relative">
-                          <input
-                            type={showBrevoKey ? 'text' : 'password'}
-                            placeholder="Brevo SMTP Master Key"
-                            value={mailSettings.smtpPassword}
-                            onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
-                            className="w-full pl-2.5 pr-7 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowBrevoKey(!showBrevoKey)}
-                            className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 focus:outline-none"
-                          >
-                            {showBrevoKey ? <EyeOff size={13} /> : <Eye size={13} />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (mailSettings.provider === 'smtp' || mailSettings.provider === 'gmail') ? (
-                <div className="p-3 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 sm:space-y-4">
-                  <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                    <Server size={14} className="text-indigo-600" />
-                    <span>SMTP Server Details</span>
-                  </h3>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <div className="sm:col-span-2">
-                      <label className="block text-slate-700 mb-1 font-semibold">SMTP Host *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. smtp.gmail.com"
-                        value={mailSettings.smtpHost}
-                        onChange={e => setMailSettings({ ...mailSettings, smtpHost: e.target.value })}
-                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-slate-700 mb-1 font-semibold">Port *</label>
-                      <input
-                        type="number"
-                        required
-                        placeholder="587"
-                        value={mailSettings.smtpPort}
-                        onChange={e => setMailSettings({ ...mailSettings, smtpPort: Number(e.target.value) })}
-                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block text-slate-700 mb-1 font-semibold">SMTP Username *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. user@domain.com"
-                        value={mailSettings.smtpUser}
-                        onChange={e => setMailSettings({ ...mailSettings, smtpUser: e.target.value })}
-                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-slate-700 mb-1 font-semibold">SMTP Password *</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          required
-                          placeholder="••••••••••••••••"
-                          value={mailSettings.smtpPassword}
-                          onChange={e => setMailSettings({ ...mailSettings, smtpPassword: e.target.value })}
-                          className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-                        >
-                          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 sm:space-y-4">
-                  <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                    <Zap size={14} className="text-indigo-600" />
-                    <span>{mailSettings.provider === 'resend' ? 'Resend API Key' : 'SendGrid API Key'}</span>
-                  </h3>
-
-                  <div>
-                    <label className="block text-slate-700 mb-1 font-semibold">API Key *</label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        placeholder={mailSettings.provider === 'resend' ? 're_123456789...' : 'SG.123456789...'}
-                        value={mailSettings.apiKey}
-                        onChange={e => setMailSettings({ ...mailSettings, apiKey: e.target.value })}
-                        className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-white text-slate-900 font-mono text-xs pr-10 focus:outline-none focus:border-indigo-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
-                      >
-                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Automated Trigger Options */}
-              <div className="p-3 sm:p-4 bg-indigo-50/40 rounded-2xl border border-indigo-100 space-y-2.5 sm:space-y-3">
-                <h3 className="font-bold text-indigo-950 text-xs flex items-center space-x-1.5">
-                  <BellRing size={14} className="text-indigo-600" />
-                  <span>Notification Triggers</span>
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                  <label className="flex items-center space-x-2 bg-white p-2.5 sm:p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
-                    <input
-                      type="checkbox"
-                      checked={mailSettings.sendInvoiceOnSale}
-                      onChange={e => setMailSettings({ ...mailSettings, sendInvoiceOnSale: e.target.checked })}
-                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <div>
-                      <span className="font-bold text-slate-800 block text-xs">Invoices</span>
-                      <span className="text-[10px] text-slate-500 block">Digital receipt</span>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center space-x-2 bg-white p-2.5 sm:p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
-                    <input
-                      type="checkbox"
-                      checked={mailSettings.sendLowStockAlert}
-                      onChange={e => setMailSettings({ ...mailSettings, sendLowStockAlert: e.target.checked })}
-                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <div>
-                      <span className="font-bold text-slate-800 block text-xs">Low Stock</span>
-                      <span className="text-[10px] text-slate-500 block">Stock alert</span>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center space-x-2 bg-white p-2.5 sm:p-3 rounded-xl border border-indigo-200/60 cursor-pointer hover:border-indigo-400 transition">
-                    <input
-                      type="checkbox"
-                      checked={mailSettings.sendDailySummary}
-                      onChange={e => setMailSettings({ ...mailSettings, sendDailySummary: e.target.checked })}
-                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <div>
-                      <span className="font-bold text-slate-800 block text-xs">Daily Summary</span>
-                      <span className="text-[10px] text-slate-500 block">Revenue report</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={savingMail}
-                  className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-indigo-600/20 active:scale-98"
-                >
-                  <Save size={15} />
-                  <span>{savingMail ? 'Saving Mail Gateway...' : 'Save Mailing Configuration'}</span>
-                </button>
-              </div>
-            </form>
-
-            {/* Live Test Email Tool */}
-            <div className="mt-4 pt-4 border-t border-slate-200 space-y-2.5">
-              <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
-                <Send size={14} className="text-emerald-600" />
-                <span>Test Live Email Dispatch</span>
-              </h3>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="email"
-                  placeholder="Enter recipient email (e.g. name@gmail.com)"
-                  value={testEmail}
-                  onChange={e => setTestEmail(e.target.value)}
-                  className="flex-1 px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-indigo-500"
-                />
-                <button
-                  type="button"
-                  onClick={handleSendTestEmail}
-                  disabled={sendingTest}
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-sm transition active:scale-98"
-                >
-                  <Send size={13} />
-                  <span>{sendingTest ? 'Sending...' : 'Send Test'}</span>
-                </button>
-              </div>
-
-              {testResult && (
-                <div className={`p-3 rounded-xl border text-xs font-semibold flex items-center space-x-2 animate-fadeIn ${
-                  testResult.success
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-rose-50 border-rose-200 text-rose-800'
-                }`}>
-                  {testResult.success ? <CheckCircle size={15} className="text-emerald-600 shrink-0" /> : <AlertCircle size={15} className="text-rose-600 shrink-0" />}
-                  <span>{testResult.message}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Editable Email Templates Builder */}
-            <div id="email-templates" className="mt-6 pt-6 border-t border-slate-200">
-              <EmailTemplateEditor storeId={user?.storeId || 'default'} companyInfo={company} />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 3. SMS GATEWAY & NOTIFICATION TEMPLATES */}
-      <div id="templates">
-        <SMSGatewaySettings storeId={user?.storeId || 'default'} companyInfo={company} />
-      </div>
-
-      {/* 4. STORE BRANDING & RECEIPT DETAILS */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4 sm:space-y-6">
-        <h2 className="text-sm sm:text-base font-bold text-slate-800 border-b pb-3 flex items-center space-x-2">
-          <Store className="text-blue-600 flex-shrink-0" size={18} />
-          <span className="truncate">Store Branding & Public Receipt Details</span>
-        </h2>
 
         {/* Separate Company Logo & Favicon Upload Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
@@ -1082,7 +411,7 @@ export default function SettingsPage() {
                   </span>
                 </div>
                 <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-normal">
-                  Displayed on browser tabs and bookmarks.
+                  Displayed on browser tabs and mobile bookmarks.
                 </p>
               </div>
             </div>
@@ -1122,7 +451,7 @@ export default function SettingsPage() {
                 required
                 value={company.name}
                 onChange={e => setCompany({ ...company, name: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs font-bold text-slate-900 focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -1132,7 +461,7 @@ export default function SettingsPage() {
                 value={company.tagline}
                 onChange={e => setCompany({ ...company, tagline: e.target.value })}
                 placeholder="e.g. Quality Retail Store"
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -1144,7 +473,7 @@ export default function SettingsPage() {
                 type="text"
                 value={company.phone}
                 onChange={e => setCompany({ ...company, phone: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -1153,7 +482,7 @@ export default function SettingsPage() {
                 type="email"
                 value={company.email}
                 onChange={e => setCompany({ ...company, email: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -1162,7 +491,7 @@ export default function SettingsPage() {
                 type="text"
                 value={company.website}
                 onChange={e => setCompany({ ...company, website: e.target.value })}
-                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -1173,14 +502,14 @@ export default function SettingsPage() {
               rows="2"
               value={company.address}
               onChange={e => setCompany({ ...company, address: e.target.value })}
-              className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
             ></textarea>
           </div>
 
           <button
             type="submit"
             disabled={savingCompany}
-            className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-blue-500/20 active:scale-98"
+            className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-blue-500/20 active:scale-98"
           >
             <Save size={15} />
             <span>{savingCompany ? 'Saving Store Settings...' : 'Save Store Branding'}</span>
@@ -1188,11 +517,147 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* 5. JSON BACKUP & RESTORE */}
+      {/* 2. STORE OWNER INFORMATION & CREDENTIALS FORM */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-between border-b pb-3">
+          <h2 className="text-sm sm:text-base font-bold text-slate-800 flex items-center space-x-2">
+            <User className="text-blue-600 flex-shrink-0" size={18} />
+            <span className="truncate">Store Owner &amp; Security Credentials</span>
+          </h2>
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full flex-shrink-0">
+            Account Access
+          </span>
+        </div>
+
+        <form onSubmit={handleSaveOwnerInfo} className="space-y-4 sm:space-y-5 text-xs font-medium">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-slate-700 mb-1 font-bold">Owner Full Name *</label>
+              <input
+                type="text"
+                required
+                value={ownerInfo.owner}
+                onChange={e => setOwnerInfo({ ...ownerInfo, owner: e.target.value })}
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs font-semibold focus:bg-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-700 mb-1 font-bold">Contact Phone Number</label>
+              <input
+                type="text"
+                value={ownerInfo.phone}
+                onChange={e => setOwnerInfo({ ...ownerInfo, phone: e.target.value })}
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 font-mono text-xs focus:bg-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
+              <label className="block text-slate-700 mb-1 font-bold">Owner Email Address</label>
+              <input
+                type="email"
+                value={ownerInfo.email}
+                onChange={e => setOwnerInfo({ ...ownerInfo, email: e.target.value })}
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-700 mb-1 font-bold">Owner Residential / Office Address</label>
+              <input
+                type="text"
+                value={ownerInfo.address}
+                onChange={e => setOwnerInfo({ ...ownerInfo, address: e.target.value })}
+                className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-xs focus:bg-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Credentials Box */}
+          <div className="p-3.5 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+            <h3 className="font-bold text-slate-800 text-xs flex items-center space-x-1.5">
+              <KeyRound size={14} className="text-blue-600" />
+              <span>Login Credentials &amp; Password Update</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">Login Username *</label>
+                <input
+                  type="text"
+                  required
+                  value={ownerInfo.username}
+                  onChange={e => setOwnerInfo({ ...ownerInfo, username: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">New Password (Leave blank to keep)</label>
+                <div className="relative">
+                  <input
+                    type={showOwnerNewPassword ? 'text' : 'password'}
+                    placeholder="New password"
+                    value={ownerInfo.newPassword}
+                    onChange={e => setOwnerInfo({ ...ownerInfo, newPassword: e.target.value })}
+                    className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOwnerNewPassword(!showOwnerNewPassword)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showOwnerNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">Confirm New Password</label>
+                <div className="relative">
+                  <input
+                    type={showOwnerConfirmPassword ? 'text' : 'password'}
+                    placeholder="Confirm password"
+                    value={ownerInfo.confirmPassword}
+                    onChange={e => setOwnerInfo({ ...ownerInfo, confirmPassword: e.target.value })}
+                    className="w-full pl-3 pr-9 py-2 border border-slate-200 rounded-xl bg-white text-xs font-mono focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOwnerConfirmPassword(!showOwnerConfirmPassword)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showOwnerConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={savingOwner}
+            className="w-full sm:w-auto px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-md shadow-blue-500/20 active:scale-98"
+          >
+            <Save size={15} />
+            <span>{savingOwner ? 'Saving Owner Info...' : 'Update Owner Information'}</span>
+          </button>
+        </form>
+      </div>
+
+      {/* 3. SMS GATEWAY & NOTIFICATION TEMPLATES */}
+      <div id="templates">
+        <SMSGatewaySettings storeId={user?.storeId || 'default'} companyInfo={company} />
+      </div>
+
+      {/* 4. JSON BACKUP & RESTORE */}
       <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-3 sm:space-y-4">
-        <h2 className="text-sm sm:text-base font-bold text-slate-800 border-b pb-3">JSON Data Backup & Restore</h2>
-        <p className="text-[11px] sm:text-xs text-slate-500">
-          Easily export your entire database as a JSON file or restore from a previous backup file.
+        <div className="flex items-center space-x-2 border-b pb-3">
+          <Database className="text-emerald-600" size={18} />
+          <h2 className="text-sm sm:text-base font-bold text-slate-800">JSON Data Backup &amp; Disaster Recovery</h2>
+        </div>
+        <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+          Easily export your entire database as a portable JSON backup file or restore from a previous backup to prevent data loss.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4 pt-1">
@@ -1201,7 +666,7 @@ export default function SettingsPage() {
             className="flex-1 py-2.5 sm:py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs shadow-xs active:scale-98"
           >
             <Download size={16} />
-            <span>Download Backup (.json)</span>
+            <span>Download Full Backup (.json)</span>
           </button>
 
           <label className="flex-1 py-2.5 sm:py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition flex items-center justify-center space-x-2 text-xs cursor-pointer text-center shadow-xs active:scale-98">
@@ -1214,4 +679,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

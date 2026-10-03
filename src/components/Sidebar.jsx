@@ -173,11 +173,10 @@ const STORE_NAVIGATION_ITEMS = [
   {
     id: 'notification_templates',
     type: 'group',
-    title: 'Notification Templates',
+    title: 'SMS & Notifications',
     icon: Mail,
     permission: 'company_settings',
     items: [
-      { name: 'Email Template Studio', href: '/settings#email-templates', permission: 'company_settings' },
       { name: 'SMS & Notice Templates', href: '/settings#templates', permission: 'company_settings' },
     ]
   },
