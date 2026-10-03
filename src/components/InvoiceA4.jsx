@@ -389,6 +389,28 @@ export default function InvoiceA4({
             </div>
           )}
 
+          {/* Payment History / Installments */}
+          {data?.paymentHistory && data.paymentHistory.length > 0 && (
+            <div className="p-2 sm:p-2.5 bg-emerald-50/60 rounded-lg border border-emerald-200/80 space-y-1">
+              <p className="text-[9px] sm:text-[10px] font-bold uppercase text-emerald-800 tracking-wider flex items-center justify-between">
+                <span>💳 Payment Receipts / Dues Settled:</span>
+                <span className="font-mono text-emerald-700 font-semibold">{data.paymentHistory.length} Record(s)</span>
+              </p>
+              <div className="space-y-1 divide-y divide-emerald-100">
+                {data.paymentHistory.map((p, pIdx) => (
+                  <div key={p.id || pIdx} className="pt-1 flex items-center justify-between text-[9px] sm:text-[10px] text-slate-700">
+                    <div>
+                      <span className="font-semibold text-slate-900">{formatDhakaDate(p.date)}</span>
+                      <span className="text-slate-500 ml-1">({p.paymentMethod || 'Cash'})</span>
+                      {p.note && <span className="text-slate-500 italic ml-1">- {p.note}</span>}
+                    </div>
+                    <span className="font-mono font-bold text-emerald-700">+৳{Number(p.amount).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Warranty Policy Section */}
           {settings?.showWarrantySection !== false && (settings?.warrantyTerms || settings?.warrantyPolicyText) && (
             <div className="p-2 sm:p-2.5 bg-amber-50/60 rounded-lg border border-amber-200/80 space-y-1">

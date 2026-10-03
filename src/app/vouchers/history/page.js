@@ -16,7 +16,14 @@ import {
   CheckCircle,
   ExternalLink,
   Copy,
-  RotateCcw
+  RotateCcw,
+  Wallet,
+  Pencil,
+  Plus,
+  Trash,
+  PlusCircle,
+  Check,
+  CreditCard
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
 import { formatDhakaDate, formatDhakaDateTime, formatDhakaReceiptDateTime } from '@/lib/date-utils';
@@ -44,6 +51,21 @@ export default function VoucherHistoryPage() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const [clients, setClients] = useState([]);
+  const [products, setProducts] = useState([]);
+
+  // Payment modal state
+  const [paymentModalVoucher, setPaymentModalVoucher] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [paymentNote, setPaymentNote] = useState('');
+  const [paymentDate, setPaymentDate] = useState('');
+  const [savingPayment, setSavingPayment] = useState(false);
+
+  // Edit invoice modal state
+  const [editModalVoucher, setEditModalVoucher] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [selectedProductToAdd, setSelectedProductToAdd] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('bazarpos_user');
@@ -58,14 +80,16 @@ export default function VoucherHistoryPage() {
 
   const fetchVouchers = async (storeId) => {
     try {
-      const [vRes, invRes, cRes] = await Promise.all([
+      const [vRes, invRes, cRes, pRes] = await Promise.all([
         fetch(`/api/vouchers?storeId=${storeId}`),
         fetch(`/api/invoice-settings?storeId=${storeId}`),
-        fetch(`/api/clients?storeId=${storeId}`)
+        fetch(`/api/clients?storeId=${storeId}`),
+        fetch(`/api/products?storeId=${storeId}`)
       ]);
       const data = await vRes.json();
       const invData = await invRes.json();
       const clientData = await cRes.json();
+      const productData = await pRes.json();
 
       if (data.success) {
         setVouchers(data.vouchers || []);
@@ -78,10 +102,229 @@ export default function VoucherHistoryPage() {
       if (clientData.success) {
         setClients(clientData.clients || []);
       }
+      if (productData.success) {
+        setProducts(productData.products || []);
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenPayment = (voucher) => {
+    setPaymentModalVoucher(voucher);
+    setPaymentAmount(String(voucher.dueAmount || ''));
+    setPaymentMethod('Cash');
+    setPaymentNote('');
+    setPaymentDate(new Date().toISOString().slice(0, 16));
+  };
+
+  const handleSavePayment = async (e) => {
+    e.preventDefault();
+    if (!paymentModalVoucher) return;
+    const amt = Number(paymentAmount);
+    if (isNaN(amt) || amt <= 0) {
+      alert('Please enter a valid payment amount');
+      return;
+    }
+    if (amt > Number(paymentModalVoucher.dueAmount)) {
+      alert(`Payment amount cannot exceed remaining due (৳${Number(paymentModalVoucher.dueAmount).toLocaleString()})`);
+      return;
+    }
+
+    setSavingPayment(true);
+    try {
+      const saved = localStorage.getItem('bazarpos_user');
+      const u = saved ? JSON.parse(saved) : {};
+      const res = await fetch('/api/vouchers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: u.storeId || 'default',
+          id: paymentModalVoucher.id,
+          action: 'add_payment',
+          paymentAmount: amt,
+          paymentMethod,
+          paymentNote,
+          paymentDate: paymentDate ? new Date(paymentDate).toISOString() : new Date().toISOString()
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.voucher) {
+        setVouchers(prev => prev.map(v => v.id === data.voucher.id ? data.voucher : v));
+        if (selectedVoucher?.id === data.voucher.id) {
+          setSelectedVoucher(data.voucher);
+        }
+        setPaymentModalVoucher(null);
+        alert('Payment received successfully!');
+      } else {
+        alert(data.message || 'Failed to record payment');
+      }
+    } catch (err) {
+      alert(err.message || 'Error recording payment');
+    } finally {
+      setSavingPayment(false);
+    }
+  };
+
+  const handleOpenEdit = (voucher) => {
+    setEditModalVoucher(voucher);
+    setEditForm({
+      clientName: voucher.clientName || '',
+      clientPhone: voucher.clientPhone || '',
+      salerName: voucher.salerName || '',
+      items: (voucher.items || []).map(it => ({
+        id: it.id || Math.random().toString(),
+        name: it.name || '',
+        code: it.code || '',
+        quantity: Number(it.quantity || 1),
+        unitPrice: Number(it.unitPrice || 0),
+        costPrice: Number(it.costPrice || 0),
+        discount: Number(it.discount || 0),
+        unit: it.unit || 'Pcs',
+        brand: it.brand || '',
+        warranty: it.warranty || '',
+        serialNumber: it.serialNumber || it.serialNo || '',
+        description: it.description || ''
+      })),
+      discount: Number(voucher.discount || 0),
+      paidAmount: Number(voucher.paidAmount || 0),
+      paymentMethod: voucher.paymentMethod || 'Cash',
+      saleNote: voucher.saleNote || voucher.note || '',
+      paymentNote: voucher.paymentNote || ''
+    });
+    setSelectedProductToAdd('');
+  };
+
+  const handleAddItemToEdit = () => {
+    if (!selectedProductToAdd) return;
+    const prod = products.find(p => p.id === selectedProductToAdd || p.code === selectedProductToAdd);
+    if (!prod) return;
+
+    setEditForm(prev => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          id: prod.id || Math.random().toString(),
+          name: prod.name,
+          code: prod.code || '',
+          quantity: 1,
+          unitPrice: Number(prod.sellingPrice || prod.price || 0),
+          costPrice: Number(prod.costPrice || 0),
+          discount: 0,
+          unit: prod.unit || 'Pcs',
+          brand: prod.brand || '',
+          warranty: prod.warranty || '',
+          serialNumber: '',
+          description: ''
+        }
+      ]
+    }));
+    setSelectedProductToAdd('');
+  };
+
+  const handleAddNewCustomItemToEdit = () => {
+    setEditForm(prev => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          id: 'custom_' + Date.now(),
+          name: 'New Custom Item',
+          code: '',
+          quantity: 1,
+          unitPrice: 0,
+          costPrice: 0,
+          discount: 0,
+          unit: 'Pcs',
+          brand: '',
+          warranty: '',
+          serialNumber: '',
+          description: ''
+        }
+      ]
+    }));
+  };
+
+  const handleRemoveItemFromEdit = (index) => {
+    if (editForm.items.length <= 1) {
+      alert('An invoice must have at least one item');
+      return;
+    }
+    setEditForm(prev => ({
+      ...prev,
+      items: prev.items.filter((_, idx) => idx !== index)
+    }));
+  };
+
+  const handleUpdateItemInEdit = (index, field, value) => {
+    setEditForm(prev => {
+      const nextItems = [...prev.items];
+      nextItems[index] = {
+        ...nextItems[index],
+        [field]: value
+      };
+      return {
+        ...prev,
+        items: nextItems
+      };
+    });
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editModalVoucher || !editForm) return;
+    if (!editForm.items || editForm.items.length === 0) {
+      alert('Invoice must have at least one item');
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      const saved = localStorage.getItem('bazarpos_user');
+      const u = saved ? JSON.parse(saved) : {};
+
+      const subTotal = editForm.items.reduce((sum, it) => sum + (Number(it.quantity || 1) * Number(it.unitPrice || 0) - Number(it.discount || 0)), 0);
+      const discount = Number(editForm.discount || 0);
+      const totalAmount = Math.max(0, subTotal - discount);
+
+      const res = await fetch('/api/vouchers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeId: u.storeId || 'default',
+          id: editModalVoucher.id,
+          action: 'edit',
+          clientName: editForm.clientName,
+          clientPhone: editForm.clientPhone,
+          salerName: editForm.salerName,
+          items: editForm.items,
+          subTotal,
+          discount,
+          totalAmount,
+          paidAmount: Number(editForm.paidAmount || 0),
+          paymentMethod: editForm.paymentMethod,
+          saleNote: editForm.saleNote,
+          paymentNote: editForm.paymentNote
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.voucher) {
+        setVouchers(prev => prev.map(v => v.id === data.voucher.id ? data.voucher : v));
+        if (selectedVoucher?.id === data.voucher.id) {
+          setSelectedVoucher(data.voucher);
+        }
+        setEditModalVoucher(null);
+        alert('Invoice updated successfully!');
+      } else {
+        alert(data.message || 'Failed to update invoice');
+      }
+    } catch (err) {
+      alert(err.message || 'Error updating invoice');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -429,6 +672,23 @@ export default function VoucherHistoryPage() {
                     </span>
 
                     <div className="flex items-center space-x-1">
+                      {Number(v.dueAmount || 0) > 0 && (
+                        <button
+                          onClick={() => handleOpenPayment(v)}
+                          className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg font-bold text-[11px] flex items-center space-x-0.5 transition"
+                          title="Receive Due Payment"
+                        >
+                          <Wallet size={13} />
+                          <span>Pay Due</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleOpenEdit(v)}
+                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                        title="Edit Invoice"
+                      >
+                        <Pencil size={15} />
+                      </button>
                       <a
                         href={`/sales-return?invoiceNo=${encodeURIComponent(v.voucherNo || v.voucherNumber || v.id)}`}
                         className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
@@ -495,7 +755,24 @@ export default function VoucherHistoryPage() {
                           {v.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right space-x-1.5">
+                      <td className="px-4 py-3 text-right space-x-1">
+                        {Number(v.dueAmount || 0) > 0 && (
+                          <button
+                            onClick={() => handleOpenPayment(v)}
+                            className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition inline-flex items-center space-x-1 font-bold text-xs"
+                            title="Receive Due Payment"
+                          >
+                            <Wallet size={15} />
+                            <span className="hidden lg:inline">Pay Due</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleOpenEdit(v)}
+                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center"
+                          title="Edit Invoice"
+                        >
+                          <Pencil size={15} />
+                        </button>
                         <a
                           href={`/sales-return?invoiceNo=${encodeURIComponent(v.voucherNo || v.voucherNumber || v.id)}`}
                           className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition inline-flex items-center"
@@ -699,14 +976,36 @@ export default function VoucherHistoryPage() {
               )}
             </div>
 
-            {/* Action Buttons: WhatsApp, Email, Link, Print */}
+            {/* Action Buttons: Pay Due, Edit, WhatsApp, Email, Link, Print */}
             <div className="flex flex-wrap items-center justify-between gap-2 p-3 sm:px-6 sm:py-3.5 bg-white border-t border-slate-200 shrink-0 no-print">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                {Number(selectedVoucher.dueAmount || 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenPayment(selectedVoucher)}
+                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center space-x-1 text-xs shadow-xs transition active:scale-98"
+                    title="Receive Due Payment for this invoice"
+                  >
+                    <Wallet size={14} className="shrink-0" />
+                    <span>Pay Due (৳{Number(selectedVoucher.dueAmount).toLocaleString()})</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenEdit(selectedVoucher)}
+                  className="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl flex items-center justify-center space-x-1 text-xs shadow-xs transition active:scale-98"
+                  title="Edit Invoice"
+                >
+                  <Pencil size={14} className="shrink-0" />
+                  <span>Edit</span>
+                </button>
+
                 <a
                   href={getWhatsAppShareUrl(selectedVoucher)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center space-x-1 text-xs shadow-xs transition active:scale-98"
+                  className="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center space-x-1 text-xs shadow-xs transition active:scale-98"
                   title="Send Invoice with Download Link via WhatsApp"
                 >
                   <Share2 size={14} className="shrink-0" />
@@ -766,6 +1065,467 @@ export default function VoucherHistoryPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* RECEIVE DUE PAYMENT MODAL */}
+      {paymentModalVoucher && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-[70] flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200 p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                  <Wallet size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Receive Due Payment</h3>
+                  <p className="text-xs text-slate-500 font-mono">Invoice: #{paymentModalVoucher.voucherNo}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPaymentModalVoucher(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Voucher Summary Card */}
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Customer:</span>
+                <span className="font-bold text-slate-900">{paymentModalVoucher.clientName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Total Bill Amount:</span>
+                <span className="font-mono font-semibold text-slate-800">৳{Number(paymentModalVoucher.totalAmount).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">Already Paid:</span>
+                <span className="font-mono font-semibold text-emerald-600">৳{Number(paymentModalVoucher.paidAmount).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center pt-1.5 border-t border-slate-200 font-bold">
+                <span className="text-rose-600">Remaining Due:</span>
+                <span className="font-mono text-sm text-rose-600">৳{Number(paymentModalVoucher.dueAmount).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSavePayment} className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-bold text-slate-700">Payment Amount (৳)</label>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentAmount(String(paymentModalVoucher.dueAmount))}
+                    className="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold underline"
+                  >
+                    Pay Full (৳{Number(paymentModalVoucher.dueAmount).toLocaleString()})
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  step="any"
+                  min="1"
+                  max={Number(paymentModalVoucher.dueAmount)}
+                  required
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  placeholder="Enter payment amount"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Payment Method</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Cash', 'bKash', 'Nagad', 'Card', 'Rocket', 'Bank Transfer'].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setPaymentMethod(m)}
+                      className={`py-2 px-2 text-xs font-bold rounded-xl border transition text-center ${
+                        paymentMethod === m
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Payment Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Payment Note / Reference (Optional)</label>
+                <input
+                  type="text"
+                  value={paymentNote}
+                  onChange={(e) => setPaymentNote(e.target.value)}
+                  placeholder="e.g. TrxID / Received by Counter"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentModalVoucher(null)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingPayment}
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-400 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/20 transition"
+                >
+                  {savingPayment ? (
+                    <span>Recording...</span>
+                  ) : (
+                    <>
+                      <Check size={15} />
+                      <span>Confirm Payment</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT INVOICE MODAL */}
+      {editModalVoucher && editForm && (
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-[70] flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b bg-white shrink-0">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                  <Pencil size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm sm:text-base">Edit Sales Invoice</h3>
+                  <p className="text-xs text-slate-500 font-mono">Invoice #{editModalVoucher.voucherNo}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditModalVoucher(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-xs">
+              {/* Customer & Rep Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Customer Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.clientName}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, clientName: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Customer Phone</label>
+                  <input
+                    type="text"
+                    value={editForm.clientPhone}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, clientPhone: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Sales Rep</label>
+                  <input
+                    type="text"
+                    value={editForm.salerName}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, salerName: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Items Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Invoice Items ({editForm.items.length})</h4>
+                  <div className="flex items-center gap-2">
+                    {products.length > 0 && (
+                      <select
+                        value={selectedProductToAdd}
+                        onChange={(e) => {
+                          setSelectedProductToAdd(e.target.value);
+                        }}
+                        className="px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium"
+                      >
+                        <option value="">+ Select Product to Add...</option>
+                        {products.map(p => (
+                          <option key={p.id || p.code} value={p.id || p.code}>
+                            {p.name} (৳{p.sellingPrice || p.price || 0})
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {selectedProductToAdd && (
+                      <button
+                        type="button"
+                        onClick={handleAddItemToEdit}
+                        className="px-2.5 py-1.5 bg-indigo-600 text-white font-bold rounded-lg text-xs"
+                      >
+                        Add
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleAddNewCustomItemToEdit}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs flex items-center space-x-1"
+                    >
+                      <Plus size={13} />
+                      <span>Custom Item</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-[11px]">
+                    <thead className="bg-slate-100 text-slate-600 font-semibold border-b">
+                      <tr>
+                        <th className="py-2 px-2.5">Item Name</th>
+                        <th className="py-2 px-2 text-center w-16">Qty</th>
+                        <th className="py-2 px-2 text-right w-24">Unit Price</th>
+                        <th className="py-2 px-2 text-right w-20">Item Disc.</th>
+                        <th className="py-2 px-2.5 text-right w-24">Total</th>
+                        <th className="py-2 px-2 text-center w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {editForm.items.map((item, idx) => {
+                        const lineTotal = (Number(item.quantity || 1) * Number(item.unitPrice || 0)) - Number(item.discount || 0);
+                        return (
+                          <tr key={item.id || idx} className="hover:bg-slate-50/50">
+                            <td className="py-2 px-2.5">
+                              <input
+                                type="text"
+                                required
+                                value={item.name}
+                                onChange={(e) => handleUpdateItemInEdit(idx, 'name', e.target.value)}
+                                className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-900"
+                              />
+                              <div className="flex flex-wrap gap-2 pt-1 text-[10px] text-slate-500">
+                                <input
+                                  type="text"
+                                  placeholder="Brand"
+                                  value={item.brand || ''}
+                                  onChange={(e) => handleUpdateItemInEdit(idx, 'brand', e.target.value)}
+                                  className="w-20 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Warranty"
+                                  value={item.warranty || ''}
+                                  onChange={(e) => handleUpdateItemInEdit(idx, 'warranty', e.target.value)}
+                                  className="w-24 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Serial No"
+                                  value={item.serialNumber || ''}
+                                  onChange={(e) => handleUpdateItemInEdit(idx, 'serialNumber', e.target.value)}
+                                  className="w-24 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded font-mono"
+                                />
+                              </div>
+                            </td>
+                            <td className="py-2 px-2 text-center">
+                              <input
+                                type="number"
+                                min="1"
+                                required
+                                value={item.quantity}
+                                onChange={(e) => handleUpdateItemInEdit(idx, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                                className="w-14 px-1.5 py-1 text-center bg-white border border-slate-200 rounded text-xs font-bold"
+                              />
+                            </td>
+                            <td className="py-2 px-2 text-right">
+                              <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                required
+                                value={item.unitPrice}
+                                onChange={(e) => handleUpdateItemInEdit(idx, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                className="w-20 px-1.5 py-1 text-right bg-white border border-slate-200 rounded text-xs font-mono font-semibold"
+                              />
+                            </td>
+                            <td className="py-2 px-2 text-right">
+                              <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                value={item.discount || 0}
+                                onChange={(e) => handleUpdateItemInEdit(idx, 'discount', parseFloat(e.target.value) || 0)}
+                                className="w-16 px-1.5 py-1 text-right bg-white border border-slate-200 rounded text-xs font-mono"
+                              />
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-mono font-bold text-slate-900">
+                              ৳{Math.max(0, lineTotal).toLocaleString()}
+                            </td>
+                            <td className="py-2 px-2 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveItemFromEdit(idx)}
+                                className="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50"
+                                title="Remove Item"
+                              >
+                                <Trash size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Financial Calculations & Payment Row */}
+              {(() => {
+                const subTotal = editForm.items.reduce((sum, it) => sum + (Number(it.quantity || 1) * Number(it.unitPrice || 0) - Number(it.discount || 0)), 0);
+                const discount = Number(editForm.discount || 0);
+                const totalAmount = Math.max(0, subTotal - discount);
+                const paid = Number(editForm.paidAmount || 0);
+                const due = Math.max(0, totalAmount - paid);
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
+                    <div className="space-y-2">
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">Overall Invoice Discount (৳)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={editForm.discount}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">Paid Amount (৳)</label>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={editForm.paidAmount}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, paidAmount: parseFloat(e.target.value) || 0 }))}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-emerald-700"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-bold text-slate-700 block mb-1">Payment Method</label>
+                        <select
+                          value={editForm.paymentMethod}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium"
+                        >
+                          {['Cash', 'bKash', 'Nagad', 'Card', 'Rocket', 'Bank Transfer'].map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                      <div className="flex justify-between items-center text-slate-600">
+                        <span>Items Subtotal:</span>
+                        <span className="font-mono font-bold text-slate-900">৳{subTotal.toLocaleString()}</span>
+                      </div>
+                      {discount > 0 && (
+                        <div className="flex justify-between items-center text-rose-600">
+                          <span>Discount:</span>
+                          <span className="font-mono font-bold">-৳{discount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center pt-1.5 border-t border-slate-200 text-sm font-bold text-slate-900">
+                        <span>Net Total:</span>
+                        <span className="font-mono font-black text-indigo-700 text-base">৳{totalAmount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-emerald-700 font-semibold">
+                        <span>Paid:</span>
+                        <span className="font-mono font-bold">৳{paid.toLocaleString()}</span>
+                      </div>
+                      <div className={`flex justify-between items-center pt-1 border-t border-slate-200 font-bold ${due > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+                        <span>{due > 0 ? 'Remaining Due:' : 'Status: Fully Paid'}</span>
+                        <span className="font-mono">৳{due.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Notes */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Sale Note</label>
+                  <input
+                    type="text"
+                    value={editForm.saleNote}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, saleNote: e.target.value }))}
+                    placeholder="e.g. Special order remarks"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Payment Reference Note</label>
+                  <input
+                    type="text"
+                    value={editForm.paymentNote}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, paymentNote: e.target.value }))}
+                    placeholder="e.g. Transaction ID"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Buttons */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setEditModalVoucher(null)}
+                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-md shadow-blue-500/20"
+                >
+                  {savingEdit ? (
+                    <span>Saving Changes...</span>
+                  ) : (
+                    <>
+                      <Check size={15} />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
