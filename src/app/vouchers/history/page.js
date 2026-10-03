@@ -19,6 +19,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
+import { formatDhakaDate, formatDhakaDateTime, formatDhakaReceiptDateTime } from '@/lib/date-utils';
 
 export default function VoucherHistoryPage() {
   const [user, setUser] = useState(null);
@@ -131,11 +132,11 @@ export default function VoucherHistoryPage() {
     const text = encodeURIComponent(
       `*${user?.storeName || company?.name || 'BazarPOS Outlet'}*\n` +
       `📄 *Invoice #:* ${voucher.voucherNo}\n` +
-      `📅 *Date:* ${new Date(voucher.date).toLocaleDateString()}\n` +
+      `📅 *Date:* ${formatDhakaDateTime(voucher.date)}\n` +
       `👤 *Customer:* ${voucher.clientName || 'Valued Customer'}\n` +
-      `💵 *Total Amount:* ৳${voucher.totalAmount}\n` +
-      `✅ *Paid:* ৳${voucher.paidAmount}\n` +
-      (voucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${voucher.dueAmount}\n` : '') +
+      `💵 *Total Amount:* ৳${Number(voucher.totalAmount).toLocaleString()}\n` +
+      `✅ *Paid:* ৳${Number(voucher.paidAmount).toLocaleString()}\n` +
+      (voucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${Number(voucher.dueAmount).toLocaleString()}\n` : '') +
       `\n📥 *Download / View Invoice Link:*\n${downloadUrl}\n\n` +
       `Thank you for your business!`
     );
@@ -409,7 +410,7 @@ export default function VoucherHistoryPage() {
                     <div className="min-w-0 pr-2">
                       <span className="font-bold text-slate-900 block truncate">{v.clientName}</span>
                       <span className="text-[10px] text-slate-400 font-mono">
-                        {new Date(v.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {formatDhakaDateTime(v.date)}
                       </span>
                     </div>
 
@@ -475,14 +476,14 @@ export default function VoucherHistoryPage() {
                   {filteredVouchers.map((v) => (
                     <tr key={v.id} className="hover:bg-slate-50/80 transition">
                       <td className="px-4 py-3 font-mono font-bold text-blue-600">{v.voucherNo}</td>
-                      <td className="px-4 py-3 text-xs text-slate-500">
-                        {new Date(v.date).toLocaleDateString()}
+                      <td className="px-4 py-3 text-xs text-slate-500 font-mono">
+                        {formatDhakaDateTime(v.date)}
                       </td>
                       <td className="px-4 py-3 font-medium text-slate-800">{v.clientName}</td>
                       <td className="px-4 py-3 text-xs text-slate-600">{v.salerName}</td>
-                      <td className="px-4 py-3 font-bold text-slate-900">৳{v.totalAmount}</td>
-                      <td className="px-4 py-3 text-emerald-600 font-semibold">৳{v.paidAmount}</td>
-                      <td className="px-4 py-3 text-rose-600 font-semibold">৳{v.dueAmount}</td>
+                      <td className="px-4 py-3 font-bold text-slate-900">৳{Number(v.totalAmount).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-emerald-600 font-semibold">৳{Number(v.paidAmount).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-rose-600 font-semibold">৳{Number(v.dueAmount).toLocaleString()}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2.5 py-1 text-[11px] font-bold rounded-full ${
                           v.status === 'PAID'
@@ -529,7 +530,7 @@ export default function VoucherHistoryPage() {
       {/* VIEW / PRINT INVOICE MODAL */}
       {selectedVoucher && (
         <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className={`bg-white rounded-2xl w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[94vh] sm:max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200 ${printLayout === 'A4' ? 'max-w-4xl' : 'max-w-lg'}`}>
+          <div className={`bg-white rounded-2xl w-full shadow-2xl border border-slate-200/80 my-auto flex flex-col max-h-[94vh] sm:max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200 ${printLayout === 'A4' ? 'max-w-4xl' : 'max-w-xl'}`}>
             
             {/* Modal Top Header */}
             <div className="flex items-center justify-between px-3.5 sm:px-6 py-3 sm:py-3.5 border-b border-slate-100 bg-white shrink-0 sticky top-0 z-10 no-print">
@@ -576,7 +577,7 @@ export default function VoucherHistoryPage() {
 
               <div className="text-[11px] sm:text-xs text-slate-500 font-mono flex items-center justify-end gap-1.5 shrink-0">
                 <Calendar size={12} className="text-slate-400" />
-                <span>{new Date(selectedVoucher.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                <span>{formatDhakaDate(selectedVoucher.date)}</span>
               </div>
             </div>
 
@@ -604,7 +605,7 @@ export default function VoucherHistoryPage() {
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-400 pt-0.5">
-                      {new Date(selectedVoucher.date).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {formatDhakaReceiptDateTime(selectedVoucher.date)}
                     </p>
                   </div>
 

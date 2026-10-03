@@ -27,6 +27,7 @@ import {
   ArrowRight,
   PieChart
 } from 'lucide-react';
+import { formatDhakaDateTime, formatDhakaDate } from '@/lib/date-utils';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -887,12 +888,7 @@ export default function Dashboard() {
 
                     <div className="mt-1.5 pt-1.5 border-t border-slate-200/60 text-[10px] text-slate-400 font-mono flex items-center justify-between">
                       <span>
-                        {new Date(v.createdAt || v.date).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {formatDhakaDateTime(v.createdAt || v.date)}
                       </span>
                       <span className="text-blue-500 font-bold">View Invoice ➔</span>
                     </div>
@@ -922,12 +918,7 @@ export default function Dashboard() {
                           </Link>
                         </td>
                         <td className="py-2.5 text-slate-500 font-mono text-[11px]">
-                          {new Date(v.createdAt || v.date).toLocaleDateString('en-GB', {
-                            day: '2-digit',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
+                          {formatDhakaDateTime(v.createdAt || v.date)}
                         </td>
                         <td className="py-2.5 font-semibold text-slate-700">
                           {v.clientName || 'Walk-in'}

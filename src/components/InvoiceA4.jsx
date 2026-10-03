@@ -2,6 +2,7 @@
 
 import React from 'react';
 import BarcodeSvg from '@/components/BarcodeSvg';
+import { formatDhakaDateTime } from '@/lib/date-utils';
 
 // Convert number to Bangladeshi Taka in words
 function numberToWords(num) {
@@ -210,7 +211,7 @@ export default function InvoiceA4({
             {settings?.showInvoiceDate && (
               <p>
                 <span className="text-slate-500">Date: </span>
-                <span className="font-semibold">{data?.date ? new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleDateString()}</span>
+                <span className="font-semibold">{formatDhakaDateTime(data?.date || new Date())}</span>
               </p>
             )}
             {settings?.showSalerName && data?.salerName && (

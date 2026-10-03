@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import InvoiceA4 from '@/components/InvoiceA4';
 import BarcodeScannerModal from '@/components/BarcodeScannerModal';
+import { formatDhakaDate, formatDhakaDateTime, formatDhakaReceiptDateTime } from '@/lib/date-utils';
 
 const WARRANTY_TYPES = [
   { value: 'none', label: 'No Warranty', color: 'bg-slate-100 text-slate-500' },
@@ -413,11 +414,11 @@ export default function POSTerminalPage() {
     const text = encodeURIComponent(
       `*${user?.storeName || 'BazarPOS Outlet'}*\n` +
       `📄 *Invoice #:* ${completedVoucher.voucherNo}\n` +
-      `📅 *Date:* ${new Date(completedVoucher.date).toLocaleDateString()}\n` +
+      `📅 *Date:* ${formatDhakaDateTime(completedVoucher.date)}\n` +
       `👤 *Customer:* ${completedVoucher.clientName || 'Valued Customer'}\n` +
-      `💵 *Total Amount:* ৳${completedVoucher.totalAmount}\n` +
-      `✅ *Paid:* ৳${completedVoucher.paidAmount}\n` +
-      (completedVoucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${completedVoucher.dueAmount}\n` : '') +
+      `💵 *Total Amount:* ৳${Number(completedVoucher.totalAmount).toLocaleString()}\n` +
+      `✅ *Paid:* ৳${Number(completedVoucher.paidAmount).toLocaleString()}\n` +
+      (completedVoucher.dueAmount > 0 ? `⚠️ *Due Balance:* ৳${Number(completedVoucher.dueAmount).toLocaleString()}\n` : '') +
       `\n📥 *Download / View Invoice Link:*\n${downloadUrl}\n\n` +
       `Thank you for your business!`
     );
@@ -1667,7 +1668,7 @@ export default function POSTerminalPage() {
                       </span>
                     </div>
                     <p className="text-[10px] text-slate-400 pt-0.5">
-                      {new Date(completedVoucher.date).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {formatDhakaReceiptDateTime(completedVoucher.date)}
                     </p>
                   </div>
 
