@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   User,
@@ -11,11 +12,14 @@ import {
   ShieldCheck,
   Building2,
   Clock,
-  Menu
+  Menu,
+  Calculator
 } from 'lucide-react';
+import QuickCalculator from '@/components/QuickCalculator';
 
 export default function Header({ user, onLogout, onToggleMobileSidebar }) {
   const isSuperAdmin = user?.role === 'superadmin';
+  const [showCalculator, setShowCalculator] = useState(false);
 
   return (
     <header className="h-16 bg-white border-b border-slate-200/80 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs no-print">
@@ -110,6 +114,17 @@ export default function Header({ user, onLogout, onToggleMobileSidebar }) {
           </div>
         )}
 
+        {/* Quick Calculator Trigger Button */}
+        <button
+          type="button"
+          onClick={() => setShowCalculator(true)}
+          className="flex items-center space-x-1.5 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold border border-indigo-200/90 rounded-xl transition text-xs shadow-2xs active:scale-95 cursor-pointer"
+          title="Open Quick POS Calculator"
+        >
+          <Calculator size={14} className="text-indigo-600 shrink-0" />
+          <span className="hidden sm:inline">Calculator</span>
+        </button>
+
         {/* User Info */}
         <Link
           href="/profile"
@@ -134,6 +149,9 @@ export default function Header({ user, onLogout, onToggleMobileSidebar }) {
           <LogOut size={16} />
         </button>
       </div>
+
+      {/* Quick Calculator Modal */}
+      <QuickCalculator isOpen={showCalculator} onClose={() => setShowCalculator(false)} />
     </header>
   );
 }
